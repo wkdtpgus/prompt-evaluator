@@ -1,0 +1,138 @@
+{
+  "prompt_name": "prep_analyzer",
+  "mode": "full",
+  "model": "gpt-4o-mini",
+  "timestamp": "2026-01-21T15:48:47.093808",
+  "cases": [
+    {
+      "case_id": "case_001",
+      "description": "기본 흐름 - Phase 1(3턴) + Phase 1.5(요약) + Phase 2(서베이)",
+      "output": "{\n  \"question_context\": [\n    {\n      \"question_theme\": \"Work\",\n      \"bot_question\": \"요즘 주로 어떤 일 하고 계세요?\",\n      \"response_quality\": \"brief\",\n      \"member_response\": \"요즘 캠페인 준비하고 있어요.\",\n      \"coaching_hint\": \"현재 진행 중인 캠페인에 대한 감정이나 어려움을 더 이야기해보세요.\"\n    },\n    {\n      \"question_theme\": \"Work\",\n      \"bot_question\": \"어떤 캠페인이에요?\",\n      \"response_quality\": \"brief\",\n      \"member_response\": \"신제품 런칭 캠페인인데, SNS랑 퍼포먼스 광고 같이 돌려요.\",\n      \"coaching_hint\": \"캠페인에 대한 감정이나 스트레스 요인을 더 탐색해보세요.\"\n    },\n    {\n      \"question_theme\": \"Work\",\n      \"bot_question\": \"지금 어느 단계까지 진행되셨어요?\",\n      \"response_quality\": \"brief\",\n      \"member_response\": \"소재 제작은 거의 끝났고, 이번 주에 세팅 들어가요.\",\n      \"coaching_hint\": \"진행 상황에 대한 감정이나 어려움을 더 이야기해보세요.\"\n    },\n    {\n      \"question_theme\": \"Condition\",\n      \"bot_question\": \"서베이에서 컨디션을 '약간 지침'으로 체크해주셨는데, 요즘 어떠세요?\",\n      \"response_quality\": \"detailed\",\n      \"member_response\": \"요즘 야근이 좀 많아서요. 캠페인 준비 끝나면 좀 나아질 것 같아요.\",\n      \"coaching_hint\": \"야근으로 인한 스트레스와 피로를 어떻게 관리하고 있는지 이야기해보세요.\"\n    },\n    {\n      \"question_theme\": \"Condition\",\n      \"bot_question\": \"리더님께 전달하고 싶은 부분 있으세요?\",\n      \"response_quality\": \"brief\",\n      \"member_response\": \"캠페인 끝나고 휴가 좀 쓰고 싶다고 말씀드리고 싶어요.\",\n      \"coaching_hint\": \"휴가에 대한 필요성과 그로 인해 느끼는 감정을 더 이야기해보세요.\"\n    }\n  ]\n}",
+      "evaluation": {
+        "rule_based": {
+          "keyword_inclusion": {
+            "score": 0.8,
+            "passed": true,
+            "found": [
+              "야근",
+              "피로",
+              "휴가",
+              "컨디션"
+            ],
+            "missing": [
+              "지원"
+            ],
+            "details": "Found 4/5 keywords"
+          },
+          "forbidden_word_check": {
+            "score": 1.0,
+            "passed": true,
+            "violations": [],
+            "details": "No violations"
+          },
+          "format_validity": {
+            "score": 1.0,
+            "passed": true,
+            "parsed": {
+              "question_context": [
+                {
+                  "question_theme": "Work",
+                  "bot_question": "요즘 주로 어떤 일 하고 계세요?",
+                  "response_quality": "brief",
+                  "member_response": "요즘 캠페인 준비하고 있어요.",
+                  "coaching_hint": "현재 진행 중인 캠페인에 대한 감정이나 어려움을 더 이야기해보세요."
+                },
+                {
+                  "question_theme": "Work",
+                  "bot_question": "어떤 캠페인이에요?",
+                  "response_quality": "brief",
+                  "member_response": "신제품 런칭 캠페인인데, SNS랑 퍼포먼스 광고 같이 돌려요.",
+                  "coaching_hint": "캠페인에 대한 감정이나 스트레스 요인을 더 탐색해보세요."
+                },
+                {
+                  "question_theme": "Work",
+                  "bot_question": "지금 어느 단계까지 진행되셨어요?",
+                  "response_quality": "brief",
+                  "member_response": "소재 제작은 거의 끝났고, 이번 주에 세팅 들어가요.",
+                  "coaching_hint": "진행 상황에 대한 감정이나 어려움을 더 이야기해보세요."
+                },
+                {
+                  "question_theme": "Condition",
+                  "bot_question": "서베이에서 컨디션을 '약간 지침'으로 체크해주셨는데, 요즘 어떠세요?",
+                  "response_quality": "detailed",
+                  "member_response": "요즘 야근이 좀 많아서요. 캠페인 준비 끝나면 좀 나아질 것 같아요.",
+                  "coaching_hint": "야근으로 인한 스트레스와 피로를 어떻게 관리하고 있는지 이야기해보세요."
+                },
+                {
+                  "question_theme": "Condition",
+                  "bot_question": "리더님께 전달하고 싶은 부분 있으세요?",
+                  "response_quality": "brief",
+                  "member_response": "캠페인 끝나고 휴가 좀 쓰고 싶다고 말씀드리고 싶어요.",
+                  "coaching_hint": "휴가에 대한 필요성과 그로 인해 느끼는 감정을 더 이야기해보세요."
+                }
+              ]
+            },
+            "details": "Valid JSON format"
+          }
+        },
+        "string_distance": {
+          "score": 0.17596229379418693,
+          "passed": false,
+          "details": "Levenshtein similarity: 0.176"
+        },
+        "llm_judge": {
+          "instruction_following": {
+            "score": 1.0,
+            "checklist": {
+              "output_format": 1,
+              "required_fields": 1,
+              "constraints": 1,
+              "task_completion": 1,
+              "no_extra_content": 1
+            },
+            "passed": true,
+            "details": ""
+          },
+          "factual_accuracy": {
+            "score": 1.0,
+            "checklist": {
+              "no_fabrication": 1,
+              "no_distortion": 1,
+              "accurate_extraction": 1,
+              "reasonable_inference": 1,
+              "no_hallucinated_details": 1
+            },
+            "passed": true,
+            "details": ""
+          },
+          "output_quality": {
+            "score": 1.0,
+            "checklist": {
+              "clarity": 1,
+              "completeness": 1,
+              "usefulness": 1,
+              "consistency": 1,
+              "professionalism": 1
+            },
+            "passed": true,
+            "details": "The output is clear, complete, and useful, maintaining a consistent and professional tone throughout."
+          },
+          "overall": {
+            "score": 1.0,
+            "passed": true
+          }
+        },
+        "overall_score": 0.85154927118792,
+        "passed": true
+      },
+      "duration_ms": 17255
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "pass_rate": 1.0,
+    "avg_score": 0.85154927118792
+  }
+}

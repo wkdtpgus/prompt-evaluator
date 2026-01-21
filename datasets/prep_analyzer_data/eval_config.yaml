@@ -1,0 +1,68 @@
+# 1on1 Meeting Prep Analyzer 평가 설정
+# 프롬프트: 채팅 히스토리 + 서베이 → question_context 분석
+
+evaluators:
+  # Rule-based 평가자 (무료)
+  - type: rule_based
+    checks:
+      - keyword_inclusion    # 필수 키워드 포함 여부
+      - forbidden_word_check # 금지어 사용 여부 (민감 주제 직접 언급 방지)
+      - format_validity      # JSON 출력 형식 검증
+      # - exact_match        # 이 프롬프트는 자연어 출력이므로 비활성화
+
+  # LangSmith 내장 평가자 (저비용)
+  - type: langsmith_builtin
+    name: embedding_distance
+    threshold: 0.70  # 코칭 힌트 의미적 유사도
+
+  # LLM-as-Judge (고비용, 선택적)
+  - type: llm_judge
+    criteria:
+      # 일반 평가 기준
+      - instruction_following  # 프롬프트 지시사항 준수
+      - output_quality         # 전반적 출력 품질
+      # 1on1 특화 평가 기준
+      - purpose_alignment       # 1on1 미팅 목적 부합도
+      - coaching_quality        # 코칭 힌트 품질
+      - tone_appropriateness    # 톤/어조 적절성
+      - sensitive_topic_handling # 민감한 주제 처리
+    enabled: true
+
+# 통과 기준
+thresholds:
+  pass_rate: 0.85      # 전체 케이스 중 85% 통과
+  min_score: 0.70      # 개별 케이스 최소 점수
+
+# 실행 모드
+# quick: Rule-based만
+# standard: Rule-based + Embedding
+# full: 모든 평가자
+run_mode: standard
+
+# 출력 검증 스키마 (format_validity용)
+output_schema:
+  type: object
+  required:
+    - question_context
+  properties:
+    question_context:
+      type: array
+      items:
+        type: object
+        required:
+          - question_theme
+          - response_quality
+          - coaching_hint
+        properties:
+          question_theme:
+            type: string
+            enum: ["Work", "Career", "Team Culture", "Condition"]
+          response_quality:
+            type: string
+            enum: ["detailed", "brief", "avoided", "survey_only"]
+          bot_question:
+            type: ["string", "null"]
+          member_response:
+            type: ["string", "null"]
+          coaching_hint:
+            type: string
