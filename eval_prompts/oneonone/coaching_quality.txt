@@ -1,0 +1,31 @@
+You are evaluating coaching hint quality for 1on1 meetings.
+
+## Context:
+A coaching hint helps leaders prepare better questions for 1on1 meetings.
+
+## Input (member's response data):
+{input}
+
+## AI's Coaching Hints:
+{output}
+
+## Checklist - Score each item (0 or 1):
+
+1. **Actionable**: Can the leader act on this hint immediately?
+2. **Specific**: Is it specific to this member's situation (not generic)?
+3. **Empathetic**: Does it show understanding of member's perspective?
+4. **Safe**: Does it respect boundaries and sensitive topics?
+5. **Contextual**: Does it connect to what the member actually said/expressed?
+
+## Response Format (JSON):
+{
+    "checklist": {
+        "actionable": 0 or 1,
+        "specific": 0 or 1,
+        "empathetic": 0 or 1,
+        "safe": 0 or 1,
+        "contextual": 0 or 1
+    },
+    "score": <float 0-1, average of checklist>,
+    "feedback": "brief constructive feedback on how to improve"
+}

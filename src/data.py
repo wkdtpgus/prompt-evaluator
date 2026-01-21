@@ -1,6 +1,6 @@
 """데이터 로드/저장
 
-프롬프트, 테스트 케이스, 설정 파일 관리
+평가 대상 프롬프트, 테스트 케이스, 설정 파일 관리
 """
 
 import json
@@ -13,15 +13,17 @@ from langsmith import Client
 
 def load_evaluation_set(
     prompt_name: str,
-    prompts_dir: str | Path = "prompts",
-    datasets_dir: str | Path = "datasets"
+    targets_dir: str | Path = "targets",
+    datasets_dir: str | Path = "datasets",
+    configs_dir: str | Path = "configs"
 ) -> dict:
-    """프롬프트와 데이터셋 로드
+    """평가 대상 프롬프트와 데이터셋 로드
 
     Args:
         prompt_name: 프롬프트 이름 (예: "prep_analyzer")
-        prompts_dir: prompts 폴더 경로
+        targets_dir: 평가 대상 프롬프트 폴더 경로
         datasets_dir: datasets 폴더 경로
+        configs_dir: configs 폴더 경로
 
     Returns:
         {
@@ -31,21 +33,26 @@ def load_evaluation_set(
             "eval_config": dict
         }
     """
-    prompts_dir = Path(prompts_dir)
+    targets_dir = Path(targets_dir)
     datasets_dir = Path(datasets_dir)
+    configs_dir = Path(configs_dir)
 
     # 파일 경로 구성
-    prompt_file = prompts_dir / f"{prompt_name}_prompt.txt"
+    prompt_file = targets_dir / f"{prompt_name}_prompt.txt"
     data_dir = datasets_dir / f"{prompt_name}_data"
+    config_file = configs_dir / f"{prompt_name}.yaml"
 
     # 필수 파일 확인
     if not prompt_file.exists():
         raise FileNotFoundError(f"프롬프트 파일 없음: {prompt_file}")
 
-    required_data_files = ["test_cases.json", "expected.json", "eval_config.yaml"]
+    required_data_files = ["test_cases.json", "expected.json"]
     for f in required_data_files:
         if not (data_dir / f).exists():
             raise FileNotFoundError(f"데이터 파일 없음: {data_dir / f}")
+
+    if not config_file.exists():
+        raise FileNotFoundError(f"설정 파일 없음: {config_file}")
 
     # 파일 로드
     template = prompt_file.read_text(encoding="utf-8")
@@ -56,7 +63,7 @@ def load_evaluation_set(
     with open(data_dir / "expected.json", "r", encoding="utf-8") as f:
         expected = json.load(f)
 
-    with open(data_dir / "eval_config.yaml", "r", encoding="utf-8") as f:
+    with open(config_file, "r", encoding="utf-8") as f:
         eval_config = yaml.safe_load(f)
 
     return {
@@ -69,7 +76,7 @@ def load_evaluation_set(
 
 def upload_to_langsmith(
     prompt_name: str,
-    prompts_dir: str | Path = "prompts",
+    targets_dir: str | Path = "targets",
     datasets_dir: str | Path = "datasets",
     dataset_name: Optional[str] = None,
     description: Optional[str] = None
@@ -78,7 +85,7 @@ def upload_to_langsmith(
 
     Args:
         prompt_name: 프롬프트 이름
-        prompts_dir: prompts 폴더 경로
+        targets_dir: 평가 대상 프롬프트 폴더 경로
         datasets_dir: datasets 폴더 경로
         dataset_name: LangSmith 데이터셋 이름 (기본값: prompt_name)
         description: 데이터셋 설명
@@ -86,7 +93,7 @@ def upload_to_langsmith(
     Returns:
         생성된 데이터셋 이름
     """
-    data = load_evaluation_set(prompt_name, prompts_dir, datasets_dir)
+    data = load_evaluation_set(prompt_name, targets_dir, datasets_dir)
 
     if dataset_name is None:
         dataset_name = f"prompt-eval-{prompt_name}"
@@ -140,20 +147,25 @@ def upload_to_langsmith(
 
 
 def list_evaluation_sets(
-    prompts_dir: str | Path = "prompts",
-    datasets_dir: str | Path = "datasets"
+    targets_dir: str | Path = "targets",
+    datasets_dir: str | Path = "datasets",
+    configs_dir: str | Path = "configs"
 ) -> list[str]:
     """사용 가능한 평가 세트 목록"""
-    prompts_dir = Path(prompts_dir)
+    targets_dir = Path(targets_dir)
     datasets_dir = Path(datasets_dir)
+    configs_dir = Path(configs_dir)
     sets = []
 
-    for prompt_file in prompts_dir.glob("*_prompt.txt"):
+    for prompt_file in targets_dir.glob("*_prompt.txt"):
         name = prompt_file.stem.replace("_prompt", "")
         data_dir = datasets_dir / f"{name}_data"
+        config_file = configs_dir / f"{name}.yaml"
 
-        required = ["test_cases.json", "expected.json", "eval_config.yaml"]
-        if data_dir.exists() and all((data_dir / f).exists() for f in required):
+        required_data = ["test_cases.json", "expected.json"]
+        if (data_dir.exists()
+            and all((data_dir / f).exists() for f in required_data)
+            and config_file.exists()):
             sets.append(name)
 
     return sets

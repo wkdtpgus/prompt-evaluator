@@ -43,8 +43,8 @@ poetry install
 - `poetry.lock` - 의존성 버전 고정 파일 (재현 가능한 빌드)
 
 ### 1.3 디렉토리 구조 생성
-- [x] `prompts/` 폴더 생성
-- [x] `prompts/_shared/` 폴더 생성
+- [x] `targets/` 폴더 생성
+- [x] `targets/_shared/` 폴더 생성
 - [x] `src/` 폴더 생성
 - [x] `src/evaluators/` 폴더 생성
 - [x] `src/utils/` 폴더 생성
@@ -53,7 +53,7 @@ poetry install
 
 **사용한 명령어:**
 ```bash
-mkdir -p prompts/_shared src/evaluators src/utils results tests
+mkdir -p targets/_shared src/evaluators src/utils results tests
 ```
 
 ### 1.4 LangSmith 연동 테스트
@@ -77,22 +77,24 @@ poetry run python scripts/test_langsmith.py
 ## Phase 2: 데이터셋 구축
 
 ### 2.1 샘플 평가 세트 생성 (분리 구조)
-- [x] `prompts/prep_analyzer_prompt.txt` 작성 (평가 대상 프롬프트)
+- [x] `targets/prep_analyzer_prompt.txt` 작성 (평가 대상 프롬프트)
 - [x] `datasets/prep_analyzer_data/` 폴더 생성 (평가 데이터)
 - [x] `datasets/prep_analyzer_data/test_cases.json` 작성 (15개 케이스)
 - [x] `datasets/prep_analyzer_data/expected.json` 작성 (기대 결과)
-- [x] `datasets/prep_analyzer_data/eval_config.yaml` 작성 (평가 설정)
+- [x] `configs/prep_analyzer.yaml` 작성 (평가 설정)
 
 **디렉토리 구조 (분리됨):**
 ```
-prompts/                           # 평가 대상 (프롬프트)
+targets/                           # 평가 대상 (프롬프트)
 └── prep_analyzer_prompt.txt
 
 datasets/                          # 평가 데이터
 └── prep_analyzer_data/
     ├── test_cases.json
-    ├── expected.json
-    └── eval_config.yaml
+    └── expected.json
+
+configs/                           # 평가 설정
+└── prep_analyzer.yaml
 ```
 
 **생성된 테스트 케이스:**
@@ -103,7 +105,7 @@ datasets/                          # 평가 데이터
 - case_015: 프로필 카드 포함 케이스
 
 ### 2.2 기본 설정 파일
-- [x] `prompts/_shared/default_config.yaml` 작성
+- [x] `targets/_shared/default_config.yaml` 작성
 
 ### 2.3 데이터 로더 구현
 - [x] `src/utils/loader.py` 구현

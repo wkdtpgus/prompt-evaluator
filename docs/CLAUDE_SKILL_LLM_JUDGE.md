@@ -5,21 +5,42 @@
 ## 사용법
 
 1. Claude Code에서 프로젝트 열기
-2. 평가기준을 만들고 싶은 프롬프트명 확인
+2. 평가기준을 만들고 싶은 프롬프트명 확인 (`targets/` 폴더에 위치)
 3. `/eval-criteria [프롬프트명]` 또는 "평가기준 만들어줘" 요청
-4. 생성된 코드를 `src/evaluators/llm_judge.py`에 복붙
-5. `eval_config.yaml`에 criteria 추가
+4. 생성된 평가 프롬프트 파일이 `eval_prompts/{도메인명}/` 폴더에 저장됨
+5. `configs/{프롬프트명}.yaml`에 criteria 자동 생성
 
 ---
+
+## 폴더 구조
+
+```
+eval_prompts/                       # 평가 프롬프트 (LLM Judge용)
+├── general/                   # 범용 평가 기준
+│   ├── instruction_following.txt
+│   ├── factual_accuracy.txt
+│   └── output_quality.txt
+└── oneonone/                  # 1on1 특화 평가 기준
+    ├── purpose_alignment.txt
+    ├── coaching_quality.txt
+    ├── tone_appropriateness.txt
+    └── sensitive_topic_handling.txt
+
+targets/                       # 평가 대상 프롬프트
+└── {프롬프트명}_prompt.txt
+
+configs/                       # 평가 설정
+└── {프롬프트명}.yaml
+```
 
 ## 스킬 위치
 
 ```
-.claude/skills/llm-judge-generator/
+.claude/skills/llm_judge_generator/
 ├── SKILL.md              # 스킬 정의
 └── references/
-    ├── general-criteria.md    # 범용 평가기준 예시
-    └── oneonone-example.md    # 1on1 도메인 예시
+    ├── general_criteria.md    # 범용 평가기준 예시
+    └── oneonone_criteria.md   # 1on1 도메인 예시
 ```
 
 ---
@@ -40,21 +61,17 @@ prep_analyzer 프롬프트의 평가기준 만들어줘
 
 ### Claude Code가 하는 일
 
-1. `prompts/prep_analyzer_prompt.txt` 읽기
+1. `targets/prep_analyzer_prompt.txt` 읽기 (평가 대상 프롬프트)
 2. 도메인 컨텍스트 파악 (1on1 미팅, 코칭 힌트 등)
 3. MUST/AVOID 규칙에서 체크리스트 추출
-4. Python 코드로 평가 프롬프트 생성
+4. 평가 프롬프트 파일을 `eval_prompts/{도메인}/` 폴더에 생성
 
 ### 출력 예시
 
-```python
-# ============================================================
-# 1on1 Meeting 특화 평가 프롬프트
-# ============================================================
+**1. 평가 프롬프트 파일 생성: `eval_prompts/oneonone/purpose_alignment.txt`**
 
-ONEONONE_PROMPTS = {
-    # 📋 purpose_alignment: 1on1 미팅 목적 부합도
-    "purpose_alignment": """You are evaluating: 1on1 meeting coaching hint quality
+```
+You are evaluating: 1on1 meeting coaching hint quality
 
 ## Input:
 {input}
@@ -71,37 +88,33 @@ ONEONONE_PROMPTS = {
 5. **Relationship Building**: Does it help build trust and open communication?
 
 ## Response Format (JSON):
-{{
-    "checklist": {{
+{
+    "checklist": {
         "focus_on_member": 0 or 1,
         "support_oriented": 0 or 1,
         "avoids_status_questions": 0 or 1,
         "explores_growth": 0 or 1,
         "relationship_building": 0 or 1
-    }},
+    },
     "score": <float 0-1, average of checklist>,
     "reasoning": "brief explanation"
-}}""",
 }
+```
 
-# ============================================================
-# 적용 방법
-# ============================================================
+**2. 설정 파일 생성: `configs/prep_analyzer.yaml`**
 
-# 1. AVAILABLE_CRITERIA에 추가 (llm_judge.py 하단):
-AVAILABLE_CRITERIA = {
-    ...
-    "purpose_alignment": "1on1 미팅 목적 부합도",
-}
+```yaml
+# configs/prep_analyzer.yaml
+evaluators:
+  - type: llm_judge
+    criteria:
+      - purpose_alignment
+      - coaching_quality
+    enabled: true
 
-# 2. ALL_CHECKLIST_PROMPTS 업데이트:
-ALL_CHECKLIST_PROMPTS = {**CHECKLIST_PROMPTS, **ONEONONE_PROMPTS}
-
-# 3. eval_config.yaml에 추가:
-# evaluators:
-#   - type: llm_judge
-#     criteria:
-#       - purpose_alignment
+thresholds:
+  pass_rate: 0.85
+  min_score: 0.70
 ```
 
 ---
@@ -109,16 +122,16 @@ ALL_CHECKLIST_PROMPTS = {**CHECKLIST_PROMPTS, **ONEONONE_PROMPTS}
 ## 워크플로우
 
 ```
-프롬프트 작성 (prompts/{name}_prompt.txt)
+프롬프트 작성 (targets/{name}_prompt.txt)
     │
     ▼
 Claude Code에서 /eval-criteria {name}
     │
     ▼
-생성된 코드를 llm_judge.py에 복붙
+평가 프롬프트 파일 생성 (eval_prompts/{도메인}/{criterion}.txt)
     │
     ▼
-eval_config.yaml에 criteria 추가
+설정 파일 생성 (configs/{name}.yaml)
     │
     ▼
 poetry run python main.py experiment --name {name} --mode full

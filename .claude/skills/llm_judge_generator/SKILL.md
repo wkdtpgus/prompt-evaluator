@@ -10,12 +10,15 @@ argument-hint: "[프롬프트명]"
 
 ## Overview
 
-이 스킬은 LLM 프롬프트에서 품질 기준을 추출하고, 체크리스트 기반 평가자 코드를 생성합니다.
+이 스킬은 LLM 프롬프트에서 품질 기준을 추출하고, 평가 프롬프트 파일을 **직접 생성**합니다.
 
 **핵심 기능:**
 - 프롬프트 패턴 분석 (AVOID, MUST, Format 등)
 - 평가 차원 자동 분류
-- `llm_judge.py`에 복붙 가능한 Python 코드 생성
+- `eval_prompts/{도메인}/` 폴더에 평가 프롬프트 파일 직접 생성
+- `configs/` 폴더에 설정 파일 직접 생성
+
+**중요: 이 스킬은 파일을 직접 생성해야 합니다. 코드 블록만 보여주지 마세요.**
 
 ## When to Use
 
@@ -48,10 +51,10 @@ argument-hint: "[프롬프트명]"
 
 ### Step 0: 도메인 컨텍스트 파악 (중요!)
 
-**반드시 `prompts/` 폴더에서 해당 프롬프트 파일을 먼저 읽어야 합니다.**
+**반드시 `targets/` 폴더에서 해당 평가 대상 프롬프트 파일을 먼저 읽어야 합니다.**
 
 ```
-prompts/{프롬프트명}_prompt.txt
+targets/{프롬프트명}_prompt.txt
 ```
 
 이 파일에서 다음을 파악합니다:
@@ -82,18 +85,19 @@ prompts/{프롬프트명}_prompt.txt
 - **한글 설명**: 무엇을 평가하는지
 - **5개 체크리스트**: Yes/No로 판단 가능한 구체적 질문
 
-### Step 3: 코드 생성
+### Step 3: 파일 직접 생성 (필수!)
 
-아래 템플릿을 따라 코드 생성:
+**⚠️ 중요: Write 도구를 사용하여 파일을 직접 생성해야 합니다. 코드 블록만 보여주고 끝내지 마세요.**
 
-```python
-# ============================================================
-# {도메인명} 특화 평가 프롬프트
-# ============================================================
+**1. 평가 프롬프트 파일 생성**
 
-{DOMAIN}_PROMPTS = {
-    # 📋 {evaluator_name}: {한글 설명}
-    "{evaluator_name}": """You are evaluating: {평가 목적 영문 설명}
+Write 도구로 `eval_prompts/{도메인명}/{evaluator_name}.txt` 파일을 생성합니다.
+
+- 도메인 폴더가 없으면 새로 생성됩니다
+- 파일 내용은 아래 템플릿을 따릅니다
+
+```
+You are evaluating: {평가 목적 영문 설명}
 
 ## Input:
 {input}
@@ -110,41 +114,46 @@ prompts/{프롬프트명}_prompt.txt
 5. **{Check5}**: {구체적 질문}?
 
 ## Response Format (JSON):
-{{
-    "checklist": {{
+{
+    "checklist": {
         "{check1_key}": 0 or 1,
         "{check2_key}": 0 or 1,
         "{check3_key}": 0 or 1,
         "{check4_key}": 0 or 1,
         "{check5_key}": 0 or 1
-    }},
+    },
     "score": <float 0-1, average of checklist>,
     "reasoning": "brief explanation"
-}}""",
 }
-
-# ============================================================
-# 적용 방법
-# ============================================================
-
-# 1. AVAILABLE_CRITERIA에 추가 (llm_judge.py 하단):
-AVAILABLE_CRITERIA = {
-    ...
-    "{evaluator_name}": "{한글 설명}",
-}
-
-# 2. ALL_CHECKLIST_PROMPTS 업데이트:
-ALL_CHECKLIST_PROMPTS = {**CHECKLIST_PROMPTS, **ONEONONE_PROMPTS, **{DOMAIN}_PROMPTS}
-
-# 3. eval_config.yaml에 추가:
-# evaluators:
-#   - type: llm_judge
-#     criteria:
-#       - {evaluator_name}
 ```
+
+**2. 설정 파일 생성**
+
+Write 도구로 `configs/{프롬프트명}.yaml` 파일을 생성합니다.
+
+```yaml
+# {프롬프트명} 평가 설정
+
+evaluators:
+  - type: llm_judge
+    criteria:
+      - {evaluator_name_1}
+      - {evaluator_name_2}
+    enabled: true
+
+thresholds:
+  pass_rate: 0.85
+  min_score: 0.70
+```
+
+**체크리스트:**
+- [ ] `eval_prompts/{도메인명}/` 폴더에 평가 프롬프트 파일 생성됨
+- [ ] `configs/{프롬프트명}.yaml` 설정 파일 생성됨
+- [ ] 생성된 파일 경로를 사용자에게 알려줌
 
 ## What to Avoid
 
+- 코드 블록만 보여주고 파일을 생성하지 않는 것 (반드시 Write 도구 사용!)
 - 너무 많은 평가기준 생성 (프롬프트당 2-4개 권장)
 - 모호한 체크리스트 항목 (Yes/No로 판단 불가능한 질문)
 - 일반적인 평가기준 (프롬프트에 특화되지 않은 항목)
@@ -171,10 +180,10 @@ Output in JSON format with "response" and "sentiment" fields.
 
 ### 출력: 생성된 평가기준
 
-```python
-CUSTOMER_SERVICE_PROMPTS = {
-    # 📋 customer_empathy: 고객 공감 표현 품질
-    "customer_empathy": """You are evaluating customer service empathy quality.
+**1. 평가 프롬프트 파일: `eval_prompts/customer_service/customer_empathy.txt`**
+
+```
+You are evaluating customer service empathy quality.
 
 ## Input:
 {input}
@@ -191,20 +200,23 @@ CUSTOMER_SERVICE_PROMPTS = {
 5. **Warm Tone**: Is the tone friendly and warm (not robotic)?
 
 ## Response Format (JSON):
-{{
-    "checklist": {{
+{
+    "checklist": {
         "acknowledges_feeling": 0 or 1,
         "no_blame": 0 or 1,
         "shows_understanding": 0 or 1,
         "offers_solution": 0 or 1,
         "warm_tone": 0 or 1
-    }},
+    },
     "score": <float 0-1, average of checklist>,
     "reasoning": "brief explanation"
-}}""",
+}
+```
 
-    # 📋 customer_clarity: 응답 명확성
-    "customer_clarity": """You are evaluating customer service response clarity.
+**2. 평가 프롬프트 파일: `eval_prompts/customer_service/customer_clarity.txt`**
+
+```
+You are evaluating customer service response clarity.
 
 ## Input:
 {input}
@@ -221,32 +233,51 @@ CUSTOMER_SERVICE_PROMPTS = {
 5. **Format Correct**: Is the output in valid JSON with required fields?
 
 ## Response Format (JSON):
-{{
-    "checklist": {{
+{
+    "checklist": {
         "no_jargon": 0 or 1,
         "clear_steps": 0 or 1,
         "concise": 0 or 1,
         "actionable": 0 or 1,
         "format_correct": 0 or 1
-    }},
+    },
     "score": <float 0-1, average of checklist>,
     "reasoning": "brief explanation"
-}}""",
 }
+```
 
-# 적용 방법:
-# AVAILABLE_CRITERIA에 추가:
-# "customer_empathy": "고객 공감 표현 품질",
-# "customer_clarity": "응답 명확성",
+**3. 설정 파일: `configs/customer_service.yaml`**
+
+```yaml
+evaluators:
+  - type: llm_judge
+    criteria:
+      - customer_empathy
+      - customer_clarity
+    enabled: true
+
+thresholds:
+  pass_rate: 0.85
+  min_score: 0.70
 ```
 
 ## Integration
 
-이 스킬로 생성된 코드는 다음과 통합됩니다:
+이 스킬로 생성된 파일들:
 
-- **src/evaluators/llm_judge.py**: 평가 프롬프트 추가
-- **eval_config.yaml**: criteria 목록에 추가
+- **eval_prompts/{도메인명}/{evaluator_name}.txt**: 평가 프롬프트 파일 (새로 생성)
+- **configs/{프롬프트명}.yaml**: 평가 설정 파일 (새로 생성)
 - **LangSmith**: Experiment에서 평가 실행
+
+**폴더 구조:**
+```
+eval_prompts/               # 평가 프롬프트 (LLM Judge용)
+├── general/               # 범용 평가 기준
+└── {도메인명}/            # 도메인 특화 평가 기준
+
+targets/                   # 평가 대상 프롬프트
+└── {프롬프트명}_prompt.txt
+```
 
 ## Related Commands
 

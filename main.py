@@ -11,8 +11,8 @@ Usage:
     # 평가 세트 목록
     poetry run python main.py list
 
-    # 템플릿 목록 확인
-    poetry run python main.py templates
+    # 사용 가능한 평가 기준 확인
+    poetry run python main.py criteria
 """
 
 from typing import Annotated, Optional
@@ -104,7 +104,7 @@ def list_sets():
 
     if not sets:
         typer.echo("사용 가능한 평가 세트가 없습니다.")
-        typer.echo("prompts/{name}_prompt.txt와 datasets/{name}_data/ 구조가 필요합니다.")
+        typer.echo("targets/{name}_prompt.txt와 datasets/{name}_data/, configs/{name}.yaml 구조가 필요합니다.")
         return
 
     typer.echo("\n사용 가능한 평가 세트:")
@@ -149,26 +149,6 @@ def experiment(
 
 
 @app.command()
-def templates():
-    """사용 가능한 평가 템플릿 목록 출력."""
-    from src.templates.presets import list_templates
-
-    typer.echo("\n📋 평가 템플릿 목록:")
-    typer.echo("-" * 60)
-
-    for t in list_templates():
-        typer.echo(f"\n  [{t['id']}]")
-        typer.echo(f"    이름: {t['name']}")
-        typer.echo(f"    설명: {t['description']}")
-
-    typer.echo("\n" + "-" * 60)
-    typer.echo("사용법: 새 프롬프트 평가 세트를 만들 때 템플릿 ID 참고")
-    typer.echo("  from src.templates.presets import create_evaluation_set")
-    typer.echo('  create_evaluation_set("my_prompt", "json_output", ...)')
-    typer.echo()
-
-
-@app.command()
 def criteria():
     """사용 가능한 LLM Judge 평가 기준 목록 출력."""
     from src.evaluators.llm_judge import list_available_criteria
@@ -191,7 +171,7 @@ def criteria():
             typer.echo(f"    • {c}: {criteria_list[c]}")
 
     typer.echo("\n" + "-" * 60)
-    typer.echo("사용법: eval_config.yaml의 llm_judge.criteria에 추가")
+    typer.echo("사용법: configs/{name}.yaml의 llm_judge.criteria에 추가")
     typer.echo("  예: criteria: [purpose_alignment, coaching_quality]")
     typer.echo()
 

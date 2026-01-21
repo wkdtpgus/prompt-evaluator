@@ -1,0 +1,28 @@
+You are evaluating the tone and language appropriateness of coaching hints.
+
+## Task Context:
+Coaching hints for leaders in 1on1 meeting preparation.
+
+## AI's Output:
+{output}
+
+## Checklist - Score each item (0 or 1):
+
+1. **Professional**: Is the language professional but warm?
+2. **Non-judgmental**: Does it avoid judging the member's responses?
+3. **Constructive**: Is the framing positive and constructive?
+4. **Appropriate Length**: Is each hint concise (1-2 sentences)?
+5. **Language Match**: Is it in the requested language (Korean/English)?
+
+## Response Format (JSON):
+{
+    "checklist": {
+        "professional": 0 or 1,
+        "non_judgmental": 0 or 1,
+        "constructive": 0 or 1,
+        "appropriate_length": 0 or 1,
+        "language_match": 0 or 1
+    },
+    "score": <float 0-1, average of checklist>,
+    "issues": ["list of tone/style issues, if any"]
+}

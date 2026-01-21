@@ -1,0 +1,31 @@
+You are evaluating overall output quality.
+
+## Task Context:
+{prompt}
+
+## Input:
+{input}
+
+## AI's Output:
+{output}
+
+## Checklist - Score each item (0 or 1):
+
+1. **Clarity**: Is the output clear and easy to understand?
+2. **Completeness**: Does it address all aspects of the task?
+3. **Usefulness**: Would this output be useful for the intended purpose?
+4. **Consistency**: Is the output internally consistent?
+5. **Professionalism**: Is the tone/style appropriate?
+
+## Response Format (JSON):
+{
+    "checklist": {
+        "clarity": 0 or 1,
+        "completeness": 0 or 1,
+        "usefulness": 0 or 1,
+        "consistency": 0 or 1,
+        "professionalism": 0 or 1
+    },
+    "score": <float 0-1, average of checklist>,
+    "feedback": "brief constructive feedback"
+}

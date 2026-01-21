@@ -10,12 +10,14 @@ argument-hint: "[프롬프트명]"
 
 ## Overview
 
-API 엔드포인트 테스트(Swagger UI 등)에 바로 사용할 수 있는 JSON 형태의 테스트 케이스를 생성합니다.
+API 엔드포인트 테스트(Swagger UI 등)에 바로 사용할 수 있는 JSON 형태의 테스트 케이스를 **직접 생성**합니다.
 
 **핵심 목표:**
 - Swagger UI에서 복붙해서 바로 테스트 가능한 JSON
 - 다양한 시나리오 커버 (정상, 엣지, 스트레스)
-- `datasets/{name}_data/test_cases.json`에 저장
+- Write 도구로 `datasets/{name}_data/test_cases.json`에 직접 저장
+
+**중요: 이 스킬은 파일을 직접 생성해야 합니다. JSON만 보여주지 마세요.**
 
 ## When to Use
 
@@ -25,10 +27,10 @@ API 엔드포인트 테스트(Swagger UI 등)에 바로 사용할 수 있는 JSO
 
 ## Instructions
 
-### Step 1: 프롬프트 파일 읽기
+### Step 1: 평가 대상 프롬프트 파일 읽기
 
 ```
-prompts/{프롬프트명}_prompt.txt
+targets/{프롬프트명}_prompt.txt
 ```
 
 파악할 것:
@@ -87,14 +89,22 @@ prompts/{프롬프트명}_prompt.txt
 }
 ```
 
-## 저장 위치
+## Step 4: 파일 직접 생성 (필수!)
 
+**⚠️ 중요: Write 도구를 사용하여 파일을 직접 생성해야 합니다. JSON만 보여주고 끝내지 마세요.**
+
+1. `datasets/{프롬프트명}_data/` 폴더가 없으면 생성됨
+2. Write 도구로 `test_cases.json` 파일 생성
+3. 생성된 파일 경로를 사용자에게 알려줌
+
+**저장 위치:**
 ```
 datasets/{프롬프트명}_data/test_cases.json
 ```
 
 ## What to Avoid
 
+- JSON만 보여주고 파일을 생성하지 않는 것 (반드시 Write 도구 사용!)
 - 너무 많은 케이스 (15개 초과)
 - 중복 시나리오
 - 실제로 발생하지 않을 비현실적 데이터

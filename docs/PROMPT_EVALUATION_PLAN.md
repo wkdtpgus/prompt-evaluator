@@ -292,13 +292,12 @@ TIMEOUT_SECONDS = 30     # 개별 요청 타임아웃
 [1. 평가 대상 프롬프트]              [2. 평가 데이터셋]
         │                                   │
         ▼                                   ▼
-┌─────────────────────┐       ┌─────────────────────────┐
-│ prompts/            │       │ datasets/               │
-│   {name}_prompt.txt │       │   {name}_data/          │
-│                     │       │     ├── test_cases.json │
-│                     │       │     ├── expected.json   │
-│                     │       │     └── eval_config.yaml│
-└──────────┬──────────┘       └────────────┬────────────┘
+┌─────────────────────┐       ┌─────────────────────────┐       ┌─────────────────┐
+│ targets/            │       │ datasets/               │       │ configs/        │
+│   {name}_prompt.txt │       │   {name}_data/          │       │   {name}.yaml   │
+│                     │       │     ├── test_cases.json │       │                 │
+│                     │       │     └── expected.json   │       │                 │
+└──────────┬──────────┘       └────────────┬────────────┘       └────────┬────────┘
            │                               │
            └───────────┬───────────────────┘
                        │
@@ -316,7 +315,7 @@ TIMEOUT_SECONDS = 30     # 개별 요청 타임아웃
 
 #### 4.4.2. 각 데이터 파일 형식
 
-**1) 평가 대상 프롬프트** (`prompts/{name}_prompt.txt`)
+**1) 평가 대상 프롬프트** (`targets/{name}_prompt.txt`)
 ```
 당신은 {role}입니다.
 
@@ -364,7 +363,7 @@ TIMEOUT_SECONDS = 30     # 개별 요청 타임아웃
 }
 ```
 
-**4) 평가 가이드라인** (`datasets/{name}_data/eval_config.yaml`)
+**4) 평가 설정** (`configs/{name}.yaml`)
 ```yaml
 evaluators:
   - type: rule_based
@@ -397,7 +396,7 @@ run_mode: standard  # quick | standard | full
 ```bash
 # 기본 실행 (이름 기반 - convention 따름)
 python main.py eval --name prep_analyzer
-# → prompts/prep_analyzer_prompt.txt + datasets/prep_analyzer_data/
+# → targets/prep_analyzer_prompt.txt + datasets/prep_analyzer_data/
 
 # 특정 케이스만 실행
 python main.py eval --name prep_analyzer --case-id case_001,case_002
@@ -409,27 +408,29 @@ python main.py eval --name prep_analyzer --mode full
 #### 4.4.4. 디렉토리 컨벤션 (분리 구조)
 
 ```
-prompts/                              # 평가 대상 프롬프트
+targets/                              # 평가 대상 프롬프트
 ├── prep_analyzer_prompt.txt          # 프롬프트 1
-├── code_review_prompt.txt            # 프롬프트 2
-└── _shared/
-    └── default_config.yaml           # 기본 평가 설정
+└── code_review_prompt.txt            # 프롬프트 2
 
 datasets/                             # 평가 데이터
 ├── prep_analyzer_data/               # 데이터셋 1
 │   ├── test_cases.json
-│   ├── expected.json
-│   └── eval_config.yaml
+│   └── expected.json
 │
-├── code_review_data/                 # 데이터셋 2
-│   ├── test_cases.json
-│   ├── expected.json
-│   └── eval_config.yaml
-│
-└── ...
+└── code_review_data/                 # 데이터셋 2
+    ├── test_cases.json
+    └── expected.json
+
+configs/                              # 평가 설정
+├── prep_analyzer.yaml                # 설정 1
+└── code_review.yaml                  # 설정 2
+
+eval_prompts/                         # LLM Judge 평가 프롬프트
+├── general/                          # 범용 평가 기준
+└── oneonone/                         # 1on1 특화 평가 기준
 ```
 
-> **사용법**: `python main.py eval --name prep_analyzer` 실행 시 `prompts/prep_analyzer_prompt.txt`와 `datasets/prep_analyzer_data/` 자동 로드
+> **사용법**: `python main.py eval --name prep_analyzer` 실행 시 `targets/prep_analyzer_prompt.txt`, `datasets/prep_analyzer_data/`, `configs/prep_analyzer.yaml` 자동 로드
 
 ### 4.5. 구조화된 출력 처리
 
@@ -518,58 +519,58 @@ datasets/                             # 평가 데이터
 *   [ ] Slack/이메일 알림 연동
 *   [ ] CLI 도구화 (argparse/typer 활용)
 
-## 7. 디렉토리 구조 (제안)
+## 7. 디렉토리 구조
+
 ```
 prompt-evaluator/
 ├── .env                        # API Key (비공개)
 ├── .env.example                # 환경 변수 템플릿
 ├── pyproject.toml              # 프로젝트 의존성
 │
-├── prompts/                    # [평가 대상 프롬프트]
-│   ├── prep_analyzer_prompt.txt    # 프롬프트 1
-│   ├── code_review_prompt.txt      # 프롬프트 2
-│   └── _shared/
-│       └── default_config.yaml     # 기본 평가 설정 (TODO: fallback 로직 구현)
+├── targets/                    # [평가 대상 프롬프트]
+│   └── prep_analyzer_prompt.txt
 │
-├── datasets/                   # [평가 데이터]
-│   ├── prep_analyzer_data/     # 데이터셋 1
-│   │   ├── test_cases.json     # 테스트케이스
-│   │   ├── expected.json       # 기대 결과 (reference)
-│   │   └── eval_config.yaml    # 평가 설정
-│   │
-│   └── code_review_data/       # 데이터셋 2
-│       ├── test_cases.json
-│       ├── expected.json
-│       └── eval_config.yaml
+├── datasets/                   # [테스트 데이터]
+│   └── prep_analyzer_data/
+│       ├── test_cases.json     # 테스트케이스
+│       └── expected.json       # 기대 결과 (reference)
+│
+├── configs/                    # [평가 설정]
+│   └── prep_analyzer.yaml      # evaluators, thresholds 등
+│
+├── eval_prompts/               # [LLM Judge 평가 프롬프트]
+│   ├── general/                # 범용 평가 기준
+│   │   ├── instruction_following.txt
+│   │   ├── factual_accuracy.txt
+│   │   └── output_quality.txt
+│   └── oneonone/               # 1on1 특화 평가 기준
+│       ├── purpose_alignment.txt
+│       └── coaching_quality.txt
 │
 ├── src/
 │   ├── __init__.py
-│   ├── pipeline.py             # 핵심 파이프라인 로직 (고정)
-│   ├── evaluators/
-│   │   ├── __init__.py
-│   │   ├── rule_based.py       # Rule-based 평가자
-│   │   └── custom.py           # 커스텀 평가자
-│   └── utils/
-│       ├── loader.py           # 데이터 로더
-│       └── reporter.py         # 결과 리포터
+│   ├── pipeline.py             # 핵심 파이프라인 로직
+│   ├── data.py                 # 데이터 로더
+│   ├── report.py               # 결과 리포터
+│   └── evaluators/
+│       ├── __init__.py
+│       ├── rule_based.py       # Rule-based 평가자
+│       └── llm_judge.py        # LLM-as-Judge 평가자
 │
 ├── results/                    # 평가 결과 저장
-│   └── {timestamp}/
-│       ├── summary.json
-│       └── details.json
 │
 ├── tests/                      # 단위 테스트
-│   └── test_pipeline.py
 │
-├── .github/
-│   └── workflows/
-│       └── eval_on_pr.yml      # PR 시 자동 평가
+├── .claude/skills/             # Claude Code 스킬
+│   ├── llm_judge_generator/    # 평가기준 생성 스킬
+│   ├── test_case_generator/    # 테스트케이스 생성 스킬
+│   └── prompt_ab_comparator/   # A/B 비교 스킬
 │
 ├── main.py                     # CLI 진입점
-└── PROMPT_EVALUATION_PLAN.md   # 본 기획안
+└── docs/                       # 문서
 ```
 
-> **사용법**: `python main.py eval --name prep_analyzer` 실행 시 `prompts/prep_analyzer_prompt.txt`와 `datasets/prep_analyzer_data/` 자동 로드하여 평가 실행
+> **사용법**: `python main.py eval --name prep_analyzer` 실행 시 `targets/prep_analyzer_prompt.txt`, `datasets/prep_analyzer_data/`, `configs/prep_analyzer.yaml` 자동 로드
 
 ## 8. CI/CD 연동 계획
 
@@ -582,7 +583,7 @@ name: Prompt Evaluation
 on:
   pull_request:
     paths:
-      - 'prompts/**'
+      - 'targets/**'
 
 jobs:
   evaluate:
@@ -608,7 +609,7 @@ jobs:
 
 | 트리거 | 평가 모드 | 용도 |
 |--------|----------|------|
-| `prompts/**` 변경 PR | `standard` | 프롬프트 변경 검증 |
+| `targets/**` 변경 PR | `standard` | 프롬프트 변경 검증 |
 | 수동 실행 | `full` | 릴리즈 전 전수 검사 |
 | 매일 스케줄 (선택) | `quick` | 모델 드리프트 감지 |
 
@@ -658,10 +659,11 @@ Claude Code에서 프롬프트를 붙여넣고 "평가기준 만들어줘"라고
 
 **스킬 파일 위치:**
 ```
-.claude/skills/llm-judge-generator/
+.claude/skills/llm_judge_generator/
 ├── SKILL.md                    # 메인 스킬 문서
 └── references/
-    └── existing-criteria.md    # 기존 평가기준 참조
+    ├── general_criteria.md     # 범용 평가기준
+    └── oneonone_criteria.md    # 1on1 도메인 평가기준
 ```
 
 ### 11.3. 현재 지원하는 평가 기준
