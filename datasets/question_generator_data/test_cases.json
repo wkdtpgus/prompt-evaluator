@@ -1,0 +1,283 @@
+[
+  {
+    "id": "gen_001",
+    "description": "기본 흐름 - detailed 응답 포함, 다양한 주제",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Work",
+          "bot_question": "요즘 주로 어떤 일 하고 계세요?",
+          "response_quality": "detailed",
+          "member_response": "신제품 런칭 캠페인 준비하고 있어요. SNS랑 퍼포먼스 광고 같이 돌리는데, 소재 제작은 거의 끝나고 이번 주에 세팅 들어가요.",
+          "coaching_hint": "캠페인 마무리 단계에서 겪는 어려움이나 필요한 지원을 물어보세요. 성과에 대한 기대감도 함께 나눠볼 수 있습니다."
+        },
+        {
+          "question_theme": "Condition",
+          "bot_question": "서베이에서 컨디션을 '약간 지침'으로 체크해주셨는데, 요즘 어떠세요?",
+          "response_quality": "detailed",
+          "member_response": "요즘 야근이 좀 많아서요. 캠페인 준비 끝나면 좀 나아질 것 같아요.",
+          "coaching_hint": "피로감을 공감하며, 캠페인 후 휴식이나 워라밸에 대해 이야기하세요. 지원할 부분이 있는지 물어보세요."
+        }
+      ],
+      "member_name": "김마케터",
+      "profile_card": null,
+      "language": "ko-KR"
+    }
+  },
+  {
+    "id": "gen_002",
+    "description": "brief 응답 중심 - 업무에 대해 간단히만 답변",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Work",
+          "bot_question": "요즘 주로 어떤 일 하고 계세요?",
+          "response_quality": "brief",
+          "member_response": "그냥 이것저것요.",
+          "coaching_hint": "업무 상세를 묻지 말고, 전반적인 컨디션이나 기분을 물어보세요. 편하게 대화할 수 있는 분위기를 만드세요."
+        },
+        {
+          "question_theme": "Condition",
+          "bot_question": null,
+          "response_quality": "survey_only",
+          "member_response": null,
+          "coaching_hint": "서베이에서 '보통'을 선택했습니다. 가볍게 근황을 물어보며 대화를 시작하세요."
+        }
+      ],
+      "member_name": "최멤버",
+      "profile_card": null,
+      "language": "ko-KR"
+    }
+  },
+  {
+    "id": "gen_003",
+    "description": "avoided 응답 포함 - 팀 협업 주제 회피",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Work",
+          "bot_question": "요즘 주로 어떤 일 하고 계세요?",
+          "response_quality": "detailed",
+          "member_response": "프로젝트 막바지에요. 성능 최적화에서 좋은 결과 나왔어요. 응답 속도 50% 개선했습니다.",
+          "coaching_hint": "성과를 인정하며 시작하세요. 어떻게 달성했는지, 배운 점이 무엇인지 물어보세요."
+        },
+        {
+          "question_theme": "Team Culture",
+          "bot_question": "팀원들과 협업은 잘 되고 있나요?",
+          "response_quality": "avoided",
+          "member_response": "글쎄요... 넘어가도 될까요?",
+          "coaching_hint": "이 주제는 민감할 수 있습니다. 직접적으로 묻지 말고, 다른 안전한 주제로 전환하세요. 필요시 나중에 다시 접근하세요."
+        },
+        {
+          "question_theme": "Career",
+          "bot_question": "성장하고 싶은 부분이 있으신가요?",
+          "response_quality": "detailed",
+          "member_response": "클라우드 인프라 쪽으로 더 배우고 싶어요. AWS 자격증도 따볼까 생각 중이에요.",
+          "coaching_hint": "성장 의지를 지지하세요. 학습 기회나 자격증 취득 지원에 대해 구체적으로 이야기해보세요."
+        }
+      ],
+      "member_name": "강개발",
+      "profile_card": null,
+      "language": "ko-KR"
+    }
+  },
+  {
+    "id": "gen_004",
+    "description": "민감 주제 - 퇴사/이직 고민 감지됨",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Work",
+          "bot_question": "요즘 주로 어떤 일 하고 계세요?",
+          "response_quality": "detailed",
+          "member_response": "운영 업무요. 요즘 좀 지루하게 느껴져요. 매일 비슷한 일 반복이라 성장하는 느낌이 없어요.",
+          "coaching_hint": "지루함과 성장에 대한 고민을 공감하세요. 새로운 도전 기회나 역할 변화에 대해 조심스럽게 이야기해보세요."
+        },
+        {
+          "question_theme": "Career",
+          "bot_question": "리더님께 어떤 부분을 전달하고 싶으세요?",
+          "response_quality": "detailed",
+          "member_response": "새로운 프로젝트에 참여할 기회가 있을지 여쭤보고 싶어요.",
+          "coaching_hint": "새로운 기회에 대한 니즈를 긍정적으로 받아들이세요. 가능한 옵션이나 다음 단계에 대해 구체적으로 이야기하세요. 민감 주제(퇴사/이직)가 감지되었으니 장기적 비전 관점으로 접근하세요."
+        }
+      ],
+      "member_name": "임멤버",
+      "profile_card": null,
+      "language": "ko-KR"
+    }
+  },
+  {
+    "id": "gen_005",
+    "description": "민감 주제 - 평가/급여 불만 감지됨",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Work",
+          "bot_question": "요즘 주로 어떤 일 하고 계세요?",
+          "response_quality": "detailed",
+          "member_response": "프로젝트 리드하고 있어요. 근데 일은 많아졌는데 인정을 못 받는 느낌이에요. 작년에 큰 프로젝트 성공시켰는데 평가에 반영이 안 됐어요.",
+          "coaching_hint": "기여에 대한 인정 욕구를 공감하세요. 성과와 피드백에 대해 구체적으로 이야기할 준비를 하세요. 민감 주제(급여/평가)이니 인정 관점에서 접근하세요."
+        }
+      ],
+      "member_name": "조멤버",
+      "profile_card": {
+        "careerOrientation": "LEADER",
+        "communicationStyle": "DIRECT",
+        "feedbackStyle": "DIRECT",
+        "motivation": "RECOGNITION"
+      },
+      "language": "ko-KR"
+    }
+  },
+  {
+    "id": "gen_006",
+    "description": "survey_only 케이스 - 채팅 없이 서베이만",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Career",
+          "bot_question": null,
+          "response_quality": "survey_only",
+          "member_response": null,
+          "coaching_hint": "서베이에서 '커리어 성장'을 선택했습니다. 최근 커리어에 대해 어떤 생각을 하고 있는지 열린 질문으로 시작하세요."
+        }
+      ],
+      "member_name": "테스트멤버",
+      "profile_card": null,
+      "language": "ko-KR"
+    }
+  },
+  {
+    "id": "gen_007",
+    "description": "빈 question_context - 엣지 케이스",
+    "inputs": {
+      "question_context": [],
+      "member_name": "테스트멤버",
+      "profile_card": null,
+      "language": "ko-KR"
+    }
+  },
+  {
+    "id": "gen_008",
+    "description": "프로필카드 활용 - DATA 커뮤니케이션 스타일",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Work",
+          "bot_question": "요즘 주로 어떤 일 하고 계세요?",
+          "response_quality": "detailed",
+          "member_response": "데이터 분석 업무요. KPI 리포트 준비 중인데 데이터 품질이 좀 아쉬워요. 일부 누락된 데이터 보정이 필요해요.",
+          "coaching_hint": "데이터 품질 이슈에 대해 구체적으로 어떤 지원이 필요한지 물어보세요. 리포트 완성을 위해 필요한 리소스가 있는지 확인하세요."
+        }
+      ],
+      "member_name": "나분석가",
+      "profile_card": {
+        "careerOrientation": "SPECIALIST",
+        "communicationStyle": "DATA",
+        "feedbackStyle": "DIRECT",
+        "motivation": "GROWTH"
+      },
+      "language": "ko-KR"
+    }
+  },
+  {
+    "id": "gen_009",
+    "description": "English Case - career growth focus",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Work",
+          "bot_question": "What have you been working on lately?",
+          "response_quality": "detailed",
+          "member_response": "I'm working on the product launch campaign. Finished creative assets this week.",
+          "coaching_hint": "Acknowledge the progress and ask about any challenges in coordinating the campaign launch."
+        },
+        {
+          "question_theme": "Career",
+          "bot_question": "I noticed you mentioned wanting to discuss career growth. What's on your mind?",
+          "response_quality": "detailed",
+          "member_response": "I'd like to take on more leadership responsibilities. Maybe lead a small team.",
+          "coaching_hint": "Support the leadership aspiration. Discuss specific opportunities for team leadership or mentoring roles."
+        }
+      ],
+      "member_name": "John",
+      "profile_card": null,
+      "language": "en-US"
+    }
+  },
+  {
+    "id": "gen_010",
+    "description": "Vietnamese Case - basic flow",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Work",
+          "bot_question": "Gần đây bạn đang làm những công việc gì?",
+          "response_quality": "detailed",
+          "member_response": "Em đang làm dự án mới. Có nhiều việc cần học hỏi nhưng thú vị lắm.",
+          "coaching_hint": "Hỏi về những điều mới mà họ đang học được và cách bạn có thể hỗ trợ quá trình học hỏi của họ."
+        }
+      ],
+      "member_name": "Lan",
+      "profile_card": null,
+      "language": "vi-VN"
+    }
+  },
+  {
+    "id": "gen_011",
+    "description": "팀 문화 주제 - 긍정적 컨디션",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Work",
+          "bot_question": "요즘 주로 어떤 일 하고 계세요?",
+          "response_quality": "detailed",
+          "member_response": "신규 서비스 기획하고 있어요. 구독 서비스 도입인데 리서치랑 경쟁사 분석 끝내고 와이어프레임 시작해요.",
+          "coaching_hint": "기획 진행 상황을 인정하며, 다음 단계에서 필요한 지원이나 의사결정 사항을 물어보세요."
+        },
+        {
+          "question_theme": "Condition",
+          "bot_question": "서베이에서 컨디션을 '매우 좋음'으로 체크해주셨는데, 요즘 어떠세요?",
+          "response_quality": "detailed",
+          "member_response": "네, 요즘 프로젝트가 재밌어서 의욕이 넘쳐요!",
+          "coaching_hint": "긍정적인 에너지를 인정하고, 이 동력을 유지하기 위해 필요한 것이 있는지 물어보세요."
+        },
+        {
+          "question_theme": "Team Culture",
+          "bot_question": "팀 분위기에 대해서도 이야기하고 싶다고 하셨는데, 어떤 부분이에요?",
+          "response_quality": "detailed",
+          "member_response": "팀 회의 방식을 개선하고 싶어요. 지금은 너무 길어서요.",
+          "coaching_hint": "회의 개선에 대한 아이디어를 들어보세요. 구체적으로 어떤 부분이 비효율적인지, 어떻게 바꾸면 좋을지 함께 고민해보세요."
+        }
+      ],
+      "member_name": "정기획",
+      "profile_card": null,
+      "language": "ko-KR"
+    }
+  },
+  {
+    "id": "gen_012",
+    "description": "서베이/채팅 불일치 케이스",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Condition",
+          "bot_question": "서베이에서 컨디션을 '힘듦'으로 체크해주셨는데, 요즘 어떠세요?",
+          "response_quality": "detailed",
+          "member_response": "아 요즘 좋아요! 프로젝트 잘 되고 있고, 팀 분위기도 좋아요. 서베이는 그냥 별 생각 없이 눌렀어요.",
+          "coaching_hint": "현재 상태가 좋다고 하지만, 서베이 응답과 차이가 있습니다. 가볍게 근황을 더 들어보며 실제 상태를 파악해보세요."
+        },
+        {
+          "question_theme": "Work",
+          "bot_question": "요즘 주로 어떤 일 하고 계세요?",
+          "response_quality": "detailed",
+          "member_response": "신규 기능 개발 중이에요. 재밌어요!",
+          "coaching_hint": "개발 중인 기능에 대해 더 이야기 나눠보세요. 어려운 점이나 필요한 지원이 있는지 확인하세요."
+        }
+      ],
+      "member_name": "한멤버",
+      "profile_card": null,
+      "language": "ko-KR"
+    }
+  }
+]

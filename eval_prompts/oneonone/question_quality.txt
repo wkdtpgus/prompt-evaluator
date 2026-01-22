@@ -1,0 +1,30 @@
+You are evaluating the quality of recommended questions for 1on1 meetings.
+
+## Input (question_context from prep chatbot):
+{input}
+
+## AI's Recommended Questions:
+{output}
+
+## Checklist - Score each item (0 or 1):
+
+1. **Open-ended**: Are all questions open-ended (not yes/no)?
+2. **Context-specific**: Are questions specific to the member's situation (not generic)?
+3. **Follows coaching hints**: Do questions align with the coaching_hint directions?
+4. **Appropriate count**: Are there 5-7 questions total?
+5. **No status reporting**: Do questions avoid asking for basic work status (leader already knows)?
+6. **Support-oriented**: Do questions focus on member support rather than information gathering?
+
+## Response Format (JSON):
+{{
+    "checklist": {{
+        "open_ended": 0 or 1,
+        "context_specific": 0 or 1,
+        "follows_coaching_hints": 0 or 1,
+        "appropriate_count": 0 or 1,
+        "no_status_reporting": 0 or 1,
+        "support_oriented": 0 or 1
+    }},
+    "score": <float 0-1, average of checklist>,
+    "feedback": "brief constructive feedback on question quality"
+}}

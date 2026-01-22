@@ -65,6 +65,37 @@ def list_available_criteria() -> dict[str, str]:
     return criteria
 
 
+def _build_failure_comment(result: dict, failed_items: list[str]) -> str:
+    """0점 항목에 대한 상세 코멘트 생성.
+
+    Args:
+        result: LLM 평가 결과 전체
+        failed_items: 0점 받은 체크리스트 항목 키 목록
+
+    Returns:
+        사람이 읽기 쉬운 실패 이유 문자열
+    """
+    if not failed_items:
+        return result.get("reasoning", "") or result.get("feedback", "") or "All checks passed"
+
+    parts = []
+
+    # 1. 0점 항목 목록
+    parts.append(f"Failed: {', '.join(failed_items)}")
+
+    # 2. bad_examples가 있으면 추가
+    bad_examples = result.get("bad_examples", [])
+    if bad_examples:
+        parts.append("Issues: " + "; ".join(bad_examples[:3]))  # 최대 3개
+
+    # 3. reasoning/feedback이 있으면 추가
+    reasoning = result.get("reasoning", "") or result.get("feedback", "")
+    if reasoning:
+        parts.append(f"Reason: {reasoning}")
+
+    return " | ".join(parts)
+
+
 def run_checklist_evaluation(
     output: str,
     inputs: dict,
@@ -126,11 +157,16 @@ def run_checklist_evaluation(
             else:
                 score = result.get("score", 0)
 
+            # 0점 항목 추출 및 이유 생성
+            failed_items = [k for k, v in checklist.items() if v == 0]
+            details = _build_failure_comment(result, failed_items)
+
             results[criterion] = {
                 "score": float(score),
                 "checklist": checklist,
                 "passed": float(score) >= 0.6,
-                "details": result.get("issues") or result.get("hallucinations") or result.get("feedback", "")
+                "details": details,
+                "failed_items": failed_items,
             }
 
         except Exception as e:
@@ -181,10 +217,20 @@ def create_checklist_evaluator(
 
         criterion_result = result.get(criterion, {})
 
+        # comment에 0점 항목과 이유를 포함
+        details = criterion_result.get("details", "")
+        failed_items = criterion_result.get("failed_items", [])
+
+        # 0점인 경우에만 상세 정보 표시
+        if failed_items:
+            comment = details
+        else:
+            comment = "All checks passed" if criterion_result.get("score", 0) == 1.0 else details
+
         return EvaluationResult(
             key=criterion,
             score=criterion_result.get("score", 0.0),
-            comment=str(criterion_result.get("details", ""))[:500]
+            comment=str(comment)[:1000]  # 1000자로 확장
         )
 
     return evaluator

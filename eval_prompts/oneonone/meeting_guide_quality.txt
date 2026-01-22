@@ -1,0 +1,30 @@
+You are evaluating the quality of meeting guide for 1on1 meetings.
+
+## Input (question_context from prep chatbot):
+{input}
+
+## AI's Meeting Guide:
+{output}
+
+## Checklist - Score each item (0 or 1):
+
+1. **Key insight accurate**: Does key_insight accurately reflect member's current state and interests?
+2. **Approach actionable**: Does approach provide specific, actionable guidance for the leader?
+3. **Tip personalized**: Does tip include member's name and personalized advice?
+4. **No analytical terms**: Does it avoid exposing analytical terms like "detailed/brief/avoided responses"?
+5. **Second-person perspective**: Is meeting_guide written in second-person (addressing the leader as "you")?
+6. **Cautions included**: Does approach mention what to be careful about or topics to approach gently?
+
+## Response Format (JSON):
+{{
+    "checklist": {{
+        "key_insight_accurate": 0 or 1,
+        "approach_actionable": 0 or 1,
+        "tip_personalized": 0 or 1,
+        "no_analytical_terms": 0 or 1,
+        "second_person_perspective": 0 or 1,
+        "cautions_included": 0 or 1
+    }},
+    "score": <float 0-1, average of checklist>,
+    "feedback": "brief constructive feedback on meeting guide quality"
+}}

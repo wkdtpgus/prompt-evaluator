@@ -1,7 +1,7 @@
 [
   {
     "id": "case_001",
-    "description": "기본 흐름 - Phase 1(3턴) + Phase 1.5(요약) + Phase 2(서베이)",
+    "description": "기본 흐름 - Phase 1(3턴) + Phase 2(서베이) 상세 응답",
     "inputs": {
       "qa_pairs": [
         {"bot": "요즘 주로 어떤 일 하고 계세요?", "member": "요즘 캠페인 준비하고 있어요."},
@@ -17,7 +17,7 @@
   },
   {
     "id": "case_002",
-    "description": "Phase 1.5에서 조기 종료 - 수정 없이 바로 종료",
+    "description": "조기 종료 - 서베이 없이 채팅만",
     "inputs": {
       "qa_pairs": [
         {"bot": "요즘 주로 어떤 일 하고 계세요?", "member": "백엔드 API 개발하고 있어요."},
@@ -31,7 +31,7 @@
   },
   {
     "id": "case_003",
-    "description": "Phase 2에서 요약 수정 - 서베이 토픽 기반 추가 내용",
+    "description": "서베이 Q1(condition) + Q2(topic) 둘 다 있음 - 커리어 성장",
     "inputs": {
       "qa_pairs": [
         {"bot": "요즘 주로 어떤 일 하고 계세요?", "member": "고객 문의 대응하고 있어요."},
@@ -77,7 +77,7 @@
   },
   {
     "id": "case_006",
-    "description": "서베이 Q1(condition) + Q2(topic) 둘 다 있음",
+    "description": "서베이 Q1(condition) + Q2(topic) - 팀 문화",
     "inputs": {
       "qa_pairs": [
         {"bot": "요즘 주로 어떤 일 하고 계세요?", "member": "신규 서비스 기획하고 있어요."},
@@ -151,7 +151,7 @@
   },
   {
     "id": "case_011",
-    "description": "채팅 없음, 서베이만 있음",
+    "description": "채팅 없음, 서베이만 있음 (엣지 케이스)",
     "inputs": {
       "qa_pairs": [],
       "survey_answers": {"topic": "GROWTH_CAREER"},

@@ -1,0 +1,30 @@
+You are evaluating whether the 1on1 meeting output avoids common anti-patterns.
+
+## Input (question_context from prep chatbot):
+{input}
+
+## AI's Output (recommended_questions + meeting_guide):
+{output}
+
+## Checklist - Score each item (0 or 1):
+
+1. **No presumptuous phrasing**: Does it avoid assuming member's feelings (e.g., "You expressed concerns...")?
+2. **No over-interpreting survey**: Does it avoid over-interpreting survey choices as strong expressions?
+3. **No negativity amplification**: Does it avoid labeling or emphasizing negative states?
+4. **No audit-style questions**: Does it avoid questions that feel like an interrogation or audit?
+5. **No multiple questions stacked**: Are questions asked one at a time (not stacked)?
+6. **Sensitive topics handled**: For sensitive topics (resignation, salary), is the approach indirect?
+
+## Response Format (JSON):
+{{
+    "checklist": {{
+        "no_presumptuous_phrasing": 0 or 1,
+        "no_over_interpreting_survey": 0 or 1,
+        "no_negativity_amplification": 0 or 1,
+        "no_audit_style_questions": 0 or 1,
+        "no_multiple_questions_stacked": 0 or 1,
+        "sensitive_topics_handled": 0 or 1
+    }},
+    "score": <float 0-1, average of checklist>,
+    "feedback": "brief explanation of any anti-patterns found"
+}}

@@ -1,16 +1,13 @@
 """프롬프트 평가 CLI
 
 Usage:
-    # 로컬 평가
-    poetry run python main.py eval --name prep_analyzer
-    poetry run python main.py eval --name prep_analyzer --mode full
-
     # LangSmith Experiment (정식 평가)
-    poetry run python main.py experiment --name prep_analyzer
+    poetry run python main.py experiment --name coaching_analyzer
+    poetry run python main.py experiment --name question_generator
 
     # 프롬프트 버전 관리
-    poetry run python main.py prompt push --name prep_analyzer --tag v1.0
-    poetry run python main.py prompt versions --name prep_analyzer
+    poetry run python main.py prompt push --name coaching_analyzer --tag v1.0
+    poetry run python main.py prompt versions --name coaching_analyzer
 
     # 평가 세트 목록
     poetry run python main.py list
@@ -34,15 +31,7 @@ from src.data_loader import (
     upload_to_langsmith,
 )
 from src.evaluators.llm_judge import list_available_criteria
-from src.pipeline import run_langsmith_experiment, run_pipeline
-from src.report import (
-    generate_markdown_report,
-    print_case_details,
-    print_failed_cases,
-    print_summary,
-    save_results,
-)
-from utils.models import execution_llm
+from src.pipeline import run_langsmith_experiment
 
 load_dotenv()
 
@@ -50,61 +39,6 @@ app = typer.Typer(
     name="prompt-evaluator",
     help="프롬프트 평가 시스템 CLI"
 )
-
-
-@app.command()
-def eval(
-    name: Annotated[str, typer.Option("--name", "-n", help="평가 세트 이름 (예: prep_analyzer)")],
-    mode: Annotated[str, typer.Option("--mode", "-m", help="실행 모드 (quick/full)")] = "quick",
-    upload: Annotated[bool, typer.Option("--upload", "-u", help="LangSmith에 업로드 후 평가")] = False,
-    case_id: Annotated[Optional[str], typer.Option("--case-id", "-c", help="특정 케이스만 실행 (쉼표 구분)")] = None,
-    verbose: Annotated[bool, typer.Option("--verbose", "-v", help="상세 출력")] = False,
-    save: Annotated[bool, typer.Option("--save", help="결과 파일 저장")] = True,
-):
-    """프롬프트 평가 실행."""
-    # 모드 검증
-    if mode not in ["quick", "full"]:
-        typer.echo(f"Invalid mode: {mode}. Use quick/full")
-        raise typer.Exit(1)
-
-    # 케이스 ID 파싱
-    case_ids = None
-    if case_id:
-        case_ids = [c.strip() for c in case_id.split(",")]
-
-    typer.echo(f"\n프롬프트 평가 시작: {name}")
-    typer.echo(f"  모드: {mode}")
-    typer.echo(f"  모델: {execution_llm.model_name}")
-    if case_ids:
-        typer.echo(f"  케이스: {case_ids}")
-    typer.echo()
-
-    # LangSmith 업로드 (선택)
-    if upload:
-        typer.echo("LangSmith 데이터셋 업로드 중...")
-        dataset_name = upload_to_langsmith(name)
-        typer.echo(f"  완료: {dataset_name}\n")
-
-    # 파이프라인 실행
-    typer.echo("평가 실행 중...")
-    result = run_pipeline(
-        prompt_name=name,
-        mode=mode,
-        case_ids=case_ids,
-    )
-
-    # 결과 출력
-    print_summary(result)
-
-    if verbose:
-        print_case_details(result, verbose=True)
-    else:
-        print_failed_cases(result)
-
-    # 결과 저장
-    if save:
-        save_results(result)
-        generate_markdown_report(result)
 
 
 @app.command(name="list")
