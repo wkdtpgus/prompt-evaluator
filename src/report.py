@@ -27,7 +27,9 @@ def print_summary(result: dict[str, Any]) -> None:
     print(f"  총 케이스: {summary['total']}")
     print(f"  통과: {summary['passed']} ({summary['pass_rate']*100:.1f}%)")
     print(f"  실패: {summary['failed']}")
-    print(f"  평균 점수: {summary['avg_score']:.3f}")
+    avg_score = summary.get('avg_score')
+    if avg_score is not None:
+        print(f"  평균 점수: {avg_score:.3f}")
     print("=" * 60)
 
 
@@ -39,33 +41,53 @@ def print_case_details(result: dict[str, Any], verbose: bool = False) -> None:
 
     for case in result["cases"]:
         case_id = case["case_id"]
-        passed = case["evaluation"]["passed"]
-        score = case["evaluation"]["overall_score"]
+        eval_result = case["evaluation"]
+        passed = eval_result["passed"]
+        score = eval_result["overall_score"]
         status = "✓ PASS" if passed else "✗ FAIL"
 
-        print(f"\n[{case_id}] {status} (score: {score:.3f})")
+        score_str = f"{score:.3f}" if score is not None else "-"
+        print(f"\n[{case_id}] {status} (score: {score_str})")
         print(f"  설명: {case['description']}")
         print(f"  소요: {case['duration_ms']}ms")
 
-        eval_result = case["evaluation"]
+        # 실패 사유
+        if eval_result.get("fail_reason"):
+            print(f"  실패 사유: {eval_result['fail_reason']}")
 
-        if "rule_based" in eval_result:
-            print("  Rule-based:")
-            for check, result_detail in eval_result["rule_based"].items():
-                check_status = "✓" if result_detail["passed"] else "✗"
-                print(f"    {check_status} {check}: {result_detail['details']}")
+        # Sanity Checks
+        sanity = eval_result.get("sanity_checks", {})
+        if sanity.get("checks"):
+            sanity_status = "✓" if sanity.get("all_passed") else "✗"
+            print(f"  Sanity Checks: {sanity_status}")
+            for check, detail in sanity["checks"].items():
+                check_status = "✓" if detail["passed"] else "✗"
+                print(f"    {check_status} {check}: {detail['details']}")
 
-        if "string_distance" in eval_result:
-            sd = eval_result["string_distance"]
-            sd_status = "✓" if sd["passed"] else "✗"
-            print(f"  String Distance: {sd_status} {sd['details']}")
+        # Score Breakdown
+        breakdown = eval_result.get("score_breakdown", [])
+        if breakdown:
+            print(f"  Score Breakdown:")
+            for item in breakdown:
+                name = item["name"]
+                item_score = item["score"]
+                weight = item["weight"]
+                print(f"    - {name}: {item_score:.3f} (weight: {weight})")
 
-        if "llm_judge" in eval_result and not eval_result["llm_judge"].get("error"):
-            print("  LLM Judge:")
-            for criterion, result_detail in eval_result["llm_judge"].items():
-                if isinstance(result_detail, dict) and "score" in result_detail:
-                    crit_status = "✓" if result_detail["passed"] else "✗"
-                    print(f"    {crit_status} {criterion}: {result_detail['score']:.2f}")
+        # LLM Judge 상세 (체크리스트)
+        scoring = eval_result.get("scoring", {})
+        llm_judge = scoring.get("llm_judge", {})
+        if llm_judge.get("criteria"):
+            print(f"  LLM Judge 상세:")
+            for criterion, detail in llm_judge["criteria"].items():
+                if criterion == "overall":
+                    continue
+                if isinstance(detail, dict) and "checklist" in detail:
+                    crit_status = "✓" if detail.get("passed") else "✗"
+                    print(f"    {crit_status} {criterion}: {detail['score']:.2f}")
+                    for check_item, check_passed in detail.get("checklist", {}).items():
+                        item_status = "✓" if check_passed else "✗"
+                        print(f"      {item_status} {check_item}")
 
         if verbose:
             print("  출력:")
@@ -91,19 +113,32 @@ def print_failed_cases(result: dict[str, Any]) -> None:
 
     for case in failed:
         case_id = case["case_id"]
-        score = case["evaluation"]["overall_score"]
-        print(f"\n[{case_id}] score: {score:.3f}")
-        print(f"  설명: {case['description']}")
-
         eval_result = case["evaluation"]
-        if "rule_based" in eval_result:
-            for check, detail in eval_result["rule_based"].items():
+        score = eval_result["overall_score"]
+        fail_reason = eval_result.get("fail_reason", "unknown")
+
+        score_str = f"{score:.3f}" if score is not None else "-"
+        print(f"\n[{case_id}] score: {score_str}")
+        print(f"  설명: {case['description']}")
+        print(f"  실패 사유: {fail_reason}")
+
+        # Sanity check 실패 상세
+        sanity = eval_result.get("sanity_checks", {})
+        if not sanity.get("all_passed"):
+            print("  Sanity Check 실패:")
+            for check, detail in sanity.get("checks", {}).items():
                 if not detail["passed"]:
-                    print(f"  ✗ {check}: {detail['details']}")
+                    print(f"    ✗ {check}: {detail['details']}")
                     if "missing" in detail:
-                        print(f"    누락: {detail['missing']}")
+                        print(f"      누락: {detail['missing']}")
                     if "violations" in detail:
-                        print(f"    위반: {detail['violations']}")
+                        print(f"      위반: {detail['violations']}")
+
+        # 점수 미달 시 breakdown 표시
+        if "score_below_threshold" in fail_reason:
+            print("  Score Breakdown:")
+            for item in eval_result.get("score_breakdown", []):
+                print(f"    - {item['name']}: {item['score']:.3f}")
 
 
 def save_results(
@@ -111,11 +146,11 @@ def save_results(
     output_dir: str | Path = "results"
 ) -> Path:
     """결과를 JSON 파일로 저장"""
-    output_dir = Path(output_dir)
+    output_dir = Path(output_dir) / result['prompt_name']
     output_dir.mkdir(parents=True, exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"{result['prompt_name']}_{result['mode']}_{timestamp}.json"
+    filename = f"{result['mode']}_{timestamp}.json"
     filepath = output_dir / filename
 
     with open(filepath, "w", encoding="utf-8") as f:
@@ -130,13 +165,16 @@ def generate_markdown_report(
     output_dir: str | Path = "results"
 ) -> Path:
     """마크다운 리포트 생성"""
-    output_dir = Path(output_dir)
+    output_dir = Path(output_dir) / result['prompt_name']
     output_dir.mkdir(parents=True, exist_ok=True)
 
     summary = result["summary"]
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"{result['prompt_name']}_{result['mode']}_{timestamp}.md"
+    filename = f"{result['mode']}_{timestamp}.md"
     filepath = output_dir / filename
+
+    avg_score = summary.get('avg_score')
+    avg_score_str = f"{avg_score:.3f}" if avg_score is not None else "-"
 
     lines = [
         f"# 평가 리포트: {result['prompt_name']}",
@@ -152,20 +190,23 @@ def generate_markdown_report(
         f"| 총 케이스 | {summary['total']} |",
         f"| 통과 | {summary['passed']} ({summary['pass_rate']*100:.1f}%) |",
         f"| 실패 | {summary['failed']} |",
-        f"| 평균 점수 | {summary['avg_score']:.3f} |",
+        f"| 평균 점수 | {avg_score_str} |",
         "",
         "## 케이스 결과",
         "",
-        "| ID | 설명 | 상태 | 점수 | 소요시간 |",
-        "|-----|------|------|------|----------|",
+        "| ID | 설명 | 상태 | 점수 | 실패 사유 | 소요시간 |",
+        "|-----|------|------|------|-----------|----------|",
     ]
 
     for case in result["cases"]:
-        status = "✓" if case["evaluation"]["passed"] else "✗"
-        score = case["evaluation"]["overall_score"]
-        desc = case["description"][:30] + "..." if len(case["description"]) > 30 else case["description"]
+        eval_result = case["evaluation"]
+        status = "✓" if eval_result["passed"] else "✗"
+        score = eval_result["overall_score"]
+        score_str = f"{score:.2f}" if score is not None else "-"
+        fail_reason = eval_result.get("fail_reason", "-") or "-"
+        desc = case["description"][:25] + "..." if len(case["description"]) > 25 else case["description"]
         lines.append(
-            f"| {case['case_id']} | {desc} | {status} | {score:.2f} | {case['duration_ms']}ms |"
+            f"| {case['case_id']} | {desc} | {status} | {score_str} | {fail_reason} | {case['duration_ms']}ms |"
         )
 
     failed = [c for c in result["cases"] if not c["evaluation"]["passed"]]
@@ -173,18 +214,32 @@ def generate_markdown_report(
         lines.extend(["", "## 실패 케이스 상세", ""])
 
         for case in failed:
-            lines.append(f"### {case['case_id']}")
-            lines.append(f"")
-            lines.append(f"**설명**: {case['description']}")
-            lines.append(f"")
-
             eval_result = case["evaluation"]
-            if "rule_based" in eval_result:
-                lines.append("**Rule-based 검사**:")
-                for check, detail in eval_result["rule_based"].items():
+            lines.append(f"### {case['case_id']}")
+            lines.append("")
+            lines.append(f"**설명**: {case['description']}")
+            lines.append(f"**실패 사유**: {eval_result.get('fail_reason', 'unknown')}")
+            lines.append("")
+
+            # Sanity Checks
+            sanity = eval_result.get("sanity_checks", {})
+            if sanity.get("checks"):
+                lines.append("**Sanity Checks**:")
+                for check, detail in sanity["checks"].items():
                     status = "✓" if detail["passed"] else "✗"
                     lines.append(f"- {status} {check}: {detail['details']}")
-            lines.append("")
+                lines.append("")
+
+            # Score Breakdown
+            breakdown = eval_result.get("score_breakdown", [])
+            if breakdown:
+                lines.append("**Score Breakdown**:")
+                lines.append("")
+                lines.append("| 평가 항목 | 점수 | 가중치 |")
+                lines.append("|-----------|------|--------|")
+                for item in breakdown:
+                    lines.append(f"| {item['name']} | {item['score']:.3f} | {item['weight']} |")
+                lines.append("")
 
     content = "\n".join(lines)
 

@@ -24,15 +24,15 @@ The PURPOSE of 1on1 is:
 5. **Relationship Building**: Does it help build trust and open communication?
 
 ## Response Format (JSON):
-{
-    "checklist": {
+{{
+    "checklist": {{
         "focus_on_member": 0 or 1,
         "support_oriented": 0 or 1,
         "avoids_status_questions": 0 or 1,
         "explores_growth": 0 or 1,
         "relationship_building": 0 or 1
-    },
+    }},
     "score": <float 0-1, average of checklist>,
     "good_examples": ["list of hints that serve 1on1 purpose well"],
     "bad_examples": ["list of hints that feel like status reports"]
-}
+}}

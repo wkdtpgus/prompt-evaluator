@@ -1,8 +1,8 @@
 # 프롬프트 정량 평가 체계 구축 기획안
 
-> **문서 버전**: v2.1
-> **최종 수정일**: 2026-01-20
-> **수정 내역**: LangSmith 내장 기능 활용 명세 추가, 모듈화된 파이프라인 설계 추가, Embedding 섹션 간소화
+> **문서 버전**: v2.2
+> **최종 수정일**: 2026-01-22
+> **수정 내역**: 다중 프롬프트 형식 지원(.txt/.py/.xml), LangSmith Experiment 연동 완료, eval_prompts 중괄호 이스케이프 수정
 
 ## 1. 개요 (Overview)
 본 기획안은 **LangSmith**를 활용하여 LLM 프롬프트의 성능을 정량적으로 측정하고, 지속적으로 개선하기 위한 평가 체계를 구축하는 것을 목표로 합니다. 감에 의존한 수정이 아닌, 데이터에 기반한 의사결정을 가능하게 합니다.
@@ -252,10 +252,10 @@ datasets/ → LangSmith Dataset 업로드
 **CLI 인터페이스:**
 ```bash
 # 로컬 개발 (빠름, 결과 콘솔+파일)
-python main.py eval --name prep_analyzer
+poetry run python main.py eval --name prep_analyzer
 
-# 정식 평가 (LangSmith 연동)
-python main.py eval --name prep_analyzer --upload
+# 정식 평가 (LangSmith Experiment)
+poetry run python main.py experiment --name prep_analyzer
 ```
 
 #### 4.3.2. 평가 모드
@@ -263,8 +263,8 @@ python main.py eval --name prep_analyzer --upload
 | 모드 | 용도 | 데이터셋 | 평가자 |
 |------|------|----------|--------|
 | `quick` | 개발 중 빠른 검증 | 10개 샘플 | Rule-based만 |
-| `standard` | PR 검증 | 전체 | Rule + Embedding |
-| `full` | 릴리즈 전 전수 | 전체 | 모든 평가자 |
+| `standard` | PR 검증 | 전체 | Rule + String Distance |
+| `full` | 릴리즈 전 전수 | 전체 | 모든 평가자 + LLM Judge |
 
 #### 4.3.3. 병렬 처리 설정
 
@@ -294,9 +294,9 @@ TIMEOUT_SECONDS = 30     # 개별 요청 타임아웃
         ▼                                   ▼
 ┌─────────────────────┐       ┌─────────────────────────┐       ┌─────────────────┐
 │ targets/            │       │ datasets/               │       │ configs/        │
-│   {name}_prompt.txt │       │   {name}_data/          │       │   {name}.yaml   │
-│                     │       │     ├── test_cases.json │       │                 │
-│                     │       │     └── expected.json   │       │                 │
+│   {name}.txt        │       │   {name}_data/          │       │   {name}.yaml   │
+│   {name}.py         │       │     ├── test_cases.json │       │                 │
+│   {name}.xml        │       │     └── expected.json   │       │                 │
 └──────────┬──────────┘       └────────────┬────────────┘       └────────┬────────┘
            │                               │
            └───────────┬───────────────────┘
@@ -315,7 +315,15 @@ TIMEOUT_SECONDS = 30     # 개별 요청 타임아웃
 
 #### 4.4.2. 각 데이터 파일 형식
 
-**1) 평가 대상 프롬프트** (`targets/{name}_prompt.txt`)
+**1) 평가 대상 프롬프트 (다중 형식 지원)**
+
+| 형식 | 파일 패턴 | 설명 |
+|------|----------|------|
+| `.txt` | `{name}.txt` 또는 `{name}_prompt.txt` | 단일 템플릿 텍스트 |
+| `.py` | `{name}.py` 또는 `{name}_prompt.py` | Python 변수 (`*_PROMPT`) |
+| `.xml` | `{name}.xml` 또는 `{name}_prompt.xml` | XML 구조 (`<system>`, `<user>`) |
+
+**예시 - .txt 형식:**
 ```
 당신은 {role}입니다.
 
@@ -323,6 +331,29 @@ TIMEOUT_SECONDS = 30     # 개별 요청 타임아웃
 컨텍스트: {context}
 
 위 정보를 바탕으로 답변해주세요.
+```
+
+**예시 - .py 형식:**
+```python
+SYSTEM_PROMPT = """당신은 {role}입니다."""
+
+USER_PROMPT = """
+사용자 질문: {query}
+컨텍스트: {context}
+
+위 정보를 바탕으로 답변해주세요.
+"""
+```
+
+**예시 - .xml 형식:**
+```xml
+<prompts>
+    <system>당신은 {role}입니다.</system>
+    <user>
+        사용자 질문: {query}
+        컨텍스트: {context}
+    </user>
+</prompts>
 ```
 
 **2) 테스트케이스 데이터** (`datasets/{name}_data/test_cases.json`)
@@ -347,70 +378,80 @@ TIMEOUT_SECONDS = 30     # 개별 요청 타임아웃
 ]
 ```
 
-**3) 이상적 결과물** (`datasets/{name}_data/expected.json`)
+**3) 기대 결과물** (`datasets/{name}_data/expected.json`)
 ```json
 {
   "case_001": {
-    "reference": "환불은 구매일로부터 7일 이내에 가능합니다. 고객센터에 연락주시면 안내드리겠습니다.",
-    "keywords": ["7일", "환불", "고객센터"],
+    "reference": {},
+    "keywords": ["question_context", "coaching_hint"],
     "forbidden": ["불가능", "안됩니다"]
   },
   "case_002": {
-    "reference": "로그 파일을 확인하겠습니다. 에러 코드를 알려주시면 더 빠른 해결이 가능합니다.",
-    "keywords": ["로그", "에러"],
+    "reference": {},
+    "keywords": ["question_context", "coaching_hint"],
     "forbidden": []
   }
 }
 ```
 
+> **참고**: `reference`가 빈 객체(`{}`)인 경우 string_distance 평가는 스킵됩니다.
+
 **4) 평가 설정** (`configs/{name}.yaml`)
 ```yaml
+eval_prompts_domain: oneonone  # eval_prompts/{domain}/ 폴더 지정
+
 evaluators:
   - type: rule_based
     checks:
       - keyword_inclusion
       - forbidden_word_check
-      # - exact_match        # 선택: 분류 라벨 등 완전 일치 필요시 활성화
-      # - length_compliance  # 선택: 답변 길이 제한 필요시 활성화
-      # - format_validity    # 선택: JSON 출력 검증 필요시 활성화
+      - format_validity
 
-  - type: langsmith_builtin
+  - type: similarity
     name: embedding_distance
     threshold: 0.75
 
   - type: llm_judge
     criteria:
-      - helpfulness
-      - relevance
-    enabled: true  # false로 설정하면 비용 절감
+      - instruction_following
+      - output_quality
+      - purpose_alignment
+      - coaching_quality
+      - tone_appropriateness
+      - sensitive_topic_handling
+    enabled: true
 
 thresholds:
   pass_rate: 0.9
   min_score: 0.75
 
-run_mode: standard  # quick | standard | full
+run_mode: standard
 ```
 
 #### 4.4.3. 파이프라인 실행 인터페이스
 
 ```bash
 # 기본 실행 (이름 기반 - convention 따름)
-python main.py eval --name prep_analyzer
-# → targets/prep_analyzer_prompt.txt + datasets/prep_analyzer_data/
+poetry run python main.py eval --name prep_analyzer
+# → targets/prep_analyzer.txt + datasets/prep_analyzer_data/
 
 # 특정 케이스만 실행
-python main.py eval --name prep_analyzer --case-id case_001,case_002
+poetry run python main.py eval --name prep_analyzer --case-id case_001,case_002
 
 # 모드 지정
-python main.py eval --name prep_analyzer --mode full
+poetry run python main.py eval --name prep_analyzer --mode full
+
+# LangSmith Experiment 실행
+poetry run python main.py experiment --name prep_analyzer
 ```
 
 #### 4.4.4. 디렉토리 컨벤션 (분리 구조)
 
 ```
 targets/                              # 평가 대상 프롬프트
-├── prep_analyzer_prompt.txt          # 프롬프트 1
-└── code_review_prompt.txt            # 프롬프트 2
+├── prep_analyzer.txt                 # 프롬프트 1 (.txt 형식)
+├── code_review.py                    # 프롬프트 2 (.py 형식)
+└── customer_service.xml              # 프롬프트 3 (.xml 형식)
 
 datasets/                             # 평가 데이터
 ├── prep_analyzer_data/               # 데이터셋 1
@@ -427,10 +468,17 @@ configs/                              # 평가 설정
 
 eval_prompts/                         # LLM Judge 평가 프롬프트
 ├── general/                          # 범용 평가 기준
+│   ├── instruction_following.txt
+│   ├── factual_accuracy.txt
+│   └── output_quality.txt
 └── oneonone/                         # 1on1 특화 평가 기준
+    ├── purpose_alignment.txt
+    ├── coaching_quality.txt
+    ├── tone_appropriateness.txt
+    └── sensitive_topic_handling.txt
 ```
 
-> **사용법**: `python main.py eval --name prep_analyzer` 실행 시 `targets/prep_analyzer_prompt.txt`, `datasets/prep_analyzer_data/`, `configs/prep_analyzer.yaml` 자동 로드
+> **사용법**: `python main.py eval --name prep_analyzer` 실행 시 `targets/prep_analyzer.[txt|py|xml]`, `datasets/prep_analyzer_data/`, `configs/prep_analyzer.yaml` 자동 로드
 
 ### 4.5. 구조화된 출력 처리
 
@@ -491,33 +539,33 @@ eval_prompts/                         # LLM Judge 평가 프롬프트
 
 ### Phase 1: 환경 설정 및 기초 구축 (1주차)
 *   [x] 프로젝트 폴더 생성 (`prompt-evaluator`)
-*   [ ] 필수 라이브러리 설치 및 API Key 설정 (`.env`)
-*   [ ] 기본 디렉토리 구조 생성
-*   [ ] LangSmith 연동 테스트 스크립트 작성
+*   [x] 필수 라이브러리 설치 및 API Key 설정 (`.env`)
+*   [x] 기본 디렉토리 구조 생성
+*   [x] LangSmith 연동 테스트 스크립트 작성
 
 ### Phase 2: 데이터셋 구축 (2주차)
-*   [ ] 데이터셋 스키마 확정 (JSON 형식)
-*   [ ] 테스트용 데이터셋 10~20개 샘플 생성
-*   [ ] LangSmith 업로드 스크립트 (`scripts/create_dataset.py`)
-*   [ ] 데이터셋 버전 관리 체계 수립
+*   [x] 데이터셋 스키마 확정 (JSON 형식)
+*   [x] 테스트용 데이터셋 15개 샘플 생성
+*   [x] LangSmith 업로드 스크립트 (`src/data_loader.py`)
+*   [x] 데이터셋 버전 관리 체계 수립
 
 ### Phase 3: 평가자 구현 (3주차)
-*   [ ] Rule-based 평가자 구현 (keyword, forbidden, length)
-*   [ ] Embedding 기반 유사도 평가자 구현
-*   [ ] LLM-as-a-Judge 평가자 구현
-*   [ ] 평가자 단위 테스트 작성
+*   [x] Rule-based 평가자 구현 (keyword, forbidden, format)
+*   [x] 문자열 거리 기반 유사도 평가자 구현
+*   [x] LLM-as-a-Judge 평가자 구현 (체크리스트 기반)
+*   [x] 평가자 단위 테스트 작성
 
 ### Phase 4: 실행 파이프라인 구축 (4주차)
-*   [ ] 통합 실행 스크립트 (`scripts/run_eval.py`)
-*   [ ] 실행 모드 (quick/standard/full) 구현
-*   [ ] 병렬 처리 및 Rate Limiting 적용
-*   [ ] 결과 요약 리포트 생성 기능
+*   [x] 통합 실행 스크립트 (`main.py`)
+*   [x] 실행 모드 (quick/standard/full) 구현
+*   [x] LangSmith Experiment 연동 (`experiment` 명령어)
+*   [x] 결과 요약 리포트 생성 기능
 
 ### Phase 5: CI/CD 연동 및 자동화 (5주차)
 *   [ ] GitHub Actions 워크플로우 작성
 *   [ ] PR 체크 자동화 (회귀 테스트)
 *   [ ] Slack/이메일 알림 연동
-*   [ ] CLI 도구화 (argparse/typer 활용)
+*   [x] CLI 도구화 (typer 활용)
 
 ## 7. 디렉토리 구조
 
@@ -527,8 +575,10 @@ prompt-evaluator/
 ├── .env.example                # 환경 변수 템플릿
 ├── pyproject.toml              # 프로젝트 의존성
 │
-├── targets/                    # [평가 대상 프롬프트]
-│   └── prep_analyzer_prompt.txt
+├── targets/                    # [평가 대상 프롬프트 - 다중 형식]
+│   ├── prep_analyzer.txt       # .txt 형식
+│   ├── code_review.py          # .py 형식 (SYSTEM_PROMPT, USER_PROMPT)
+│   └── customer_service.xml    # .xml 형식
 │
 ├── datasets/                   # [테스트 데이터]
 │   └── prep_analyzer_data/
@@ -545,19 +595,25 @@ prompt-evaluator/
 │   │   └── output_quality.txt
 │   └── oneonone/               # 1on1 특화 평가 기준
 │       ├── purpose_alignment.txt
-│       └── coaching_quality.txt
+│       ├── coaching_quality.txt
+│       ├── tone_appropriateness.txt
+│       └── sensitive_topic_handling.txt
 │
 ├── src/
 │   ├── __init__.py
 │   ├── pipeline.py             # 핵심 파이프라인 로직
-│   ├── data.py                 # 데이터 로더
+│   ├── data_loader.py          # 데이터 로더 (다중 형식 지원)
 │   ├── report.py               # 결과 리포터
 │   └── evaluators/
 │       ├── __init__.py
 │       ├── rule_based.py       # Rule-based 평가자
+│       ├── similarity.py       # 유사도 평가자 (임베딩/문자열)
 │       └── llm_judge.py        # LLM-as-Judge 평가자
 │
 ├── results/                    # 평가 결과 저장
+│   └── {name}/                 # 프롬프트별 폴더
+│       ├── {mode}_{timestamp}.json
+│       └── {mode}_{timestamp}.md
 │
 ├── tests/                      # 단위 테스트
 │
@@ -570,11 +626,60 @@ prompt-evaluator/
 └── docs/                       # 문서
 ```
 
-> **사용법**: `python main.py eval --name prep_analyzer` 실행 시 `targets/prep_analyzer_prompt.txt`, `datasets/prep_analyzer_data/`, `configs/prep_analyzer.yaml` 자동 로드
+> **사용법**: `python main.py eval --name prep_analyzer` 실행 시 `targets/prep_analyzer.[txt|py|xml]`, `datasets/prep_analyzer_data/`, `configs/prep_analyzer.yaml` 자동 로드
 
-## 8. CI/CD 연동 계획
+## 8. CLI 명령어 (Command Reference)
 
-### 8.1. GitHub Actions 워크플로우
+### 8.1. 평가 명령어
+
+```bash
+# 로컬 평가 (빠른 개발용)
+poetry run python main.py eval --name prep_analyzer
+poetry run python main.py eval --name prep_analyzer --mode full
+poetry run python main.py eval --name prep_analyzer --case-id case_001,case_002
+
+# LangSmith Experiment (정식 평가)
+poetry run python main.py experiment --name prep_analyzer
+poetry run python main.py experiment --name prep_analyzer --mode full
+poetry run python main.py experiment --name prep_analyzer --prefix "v2.0-test"
+poetry run python main.py experiment --name prep_analyzer --version v1.0  # 특정 프롬프트 버전
+
+# 데이터셋 업로드
+poetry run python main.py upload --name prep_analyzer
+```
+
+### 8.2. 프롬프트 버전 관리
+
+```bash
+# 프롬프트 푸시 (LangSmith에 업로드)
+poetry run python main.py prompt push --name prep_analyzer
+poetry run python main.py prompt push --name prep_analyzer --tag v1.0
+poetry run python main.py prompt push --name prep_analyzer --key SYSTEM_PROMPT  # .py 파일의 특정 키
+
+# 프롬프트 풀 (LangSmith에서 가져오기)
+poetry run python main.py prompt pull --name prep_analyzer
+poetry run python main.py prompt pull --name prep_analyzer --tag v1.0 --save
+
+# 프롬프트 키 조회 (.py/.xml 파일용)
+poetry run python main.py prompt keys --name prep_analyzer
+
+# 프롬프트 버전 목록
+poetry run python main.py prompt versions --name prep_analyzer
+```
+
+### 8.3. 유틸리티 명령어
+
+```bash
+# 평가 세트 목록
+poetry run python main.py list
+
+# 사용 가능한 평가 기준
+poetry run python main.py criteria
+```
+
+## 9. CI/CD 연동 계획
+
+### 9.1. GitHub Actions 워크플로우
 
 ```yaml
 # .github/workflows/eval_on_pr.yml
@@ -605,7 +710,7 @@ jobs:
         run: python main.py check-regression --threshold 0.05
 ```
 
-### 8.2. 트리거 조건
+### 9.2. 트리거 조건
 
 | 트리거 | 평가 모드 | 용도 |
 |--------|----------|------|
@@ -613,9 +718,9 @@ jobs:
 | 수동 실행 | `full` | 릴리즈 전 전수 검사 |
 | 매일 스케줄 (선택) | `quick` | 모델 드리프트 감지 |
 
-## 9. 비용 및 성능 고려사항
+## 10. 비용 및 성능 고려사항
 
-### 9.1. 예상 비용 (100개 테스트 기준)
+### 10.1. 예상 비용 (100개 테스트 기준)
 
 | 구성요소 | 단가 | 100회 비용 |
 |----------|------|-----------|
@@ -624,14 +729,14 @@ jobs:
 | Embedding (ada-002) | ~$0.0001/call | ~$0.01 |
 | **총합** | | **~$2.00** |
 
-### 9.2. 성능 최적화 전략
+### 10.2. 성능 최적화 전략
 
 *   **캐싱**: 동일 입력에 대한 LLM 응답 캐싱 (개발 중)
 *   **샘플링**: LLM-Judge는 전체의 20%만 실행 (PR 검증 시)
 *   **병렬 처리**: 5개 동시 요청으로 처리 시간 단축
 *   **조기 종료**: Rule-based 실패 시 LLM-Judge 스킵
 
-## 10. 성공 지표 (KPI)
+## 11. 성공 지표 (KPI)
 
 | 지표 | 목표 | 측정 방법 |
 |------|------|----------|
@@ -642,20 +747,21 @@ jobs:
 
 ---
 
-## 11. Claude Skill: 평가기준 자동생성
+## 12. Claude Skill: 평가기준 자동생성
 
-### 11.1. 개요
+### 12.1. 개요
 
 프롬프트를 분석하여 LLM-as-Judge Evaluator를 자동으로 생성하는 Claude Skill입니다.
-Claude Code에서 프롬프트를 붙여넣고 "평가기준 만들어줘"라고 하면 `llm_judge.py`에 복붙 가능한 코드를 생성합니다.
+Claude Code에서 프롬프트를 붙여넣고 "평가기준 만들어줘"라고 하면 `eval_prompts/` 폴더에 평가 프롬프트 파일을 생성합니다.
 
-### 11.2. 사용법
+### 12.2. 사용법
 
 **Claude Code에서:**
 1. 이 프로젝트 폴더에서 Claude Code 실행
-2. 평가할 프롬프트 붙여넣기
-3. "평가기준 만들어줘" 입력
-4. 생성된 코드를 `src/evaluators/llm_judge.py`에 복붙
+2. 평가할 프롬프트명 확인 (`targets/` 폴더에 위치)
+3. `/eval-criteria [프롬프트명]` 또는 "평가기준 만들어줘" 입력
+4. 생성된 평가 프롬프트 파일이 `eval_prompts/{도메인}/` 폴더에 저장됨
+5. `configs/{프롬프트명}.yaml`에 criteria 자동 추가
 
 **스킬 파일 위치:**
 ```
@@ -666,7 +772,7 @@ Claude Code에서 프롬프트를 붙여넣고 "평가기준 만들어줘"라고
     └── oneonone_criteria.md    # 1on1 도메인 평가기준
 ```
 
-### 11.3. 현재 지원하는 평가 기준
+### 12.3. 현재 지원하는 평가 기준
 
 ```bash
 # 사용 가능한 평가 기준 확인
@@ -686,9 +792,9 @@ poetry run python main.py criteria
 
 ---
 
-## 12. 향후 계획 (Roadmap)
+## 13. 향후 계획 (Roadmap)
 
-### 12.1. 평가 체계 성숙도 로드맵
+### 13.1. 평가 체계 성숙도 로드맵
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -713,7 +819,7 @@ poetry run python main.py criteria
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 12.2. 실전 데이터 수집 파이프라인 (Stage 2 계획)
+### 13.2. 실전 데이터 수집 파이프라인 (Stage 2 계획)
 
 **목표**: 운영 중 발생하는 좋은/나쁜 출력을 수집하여 평가 체계 개선에 활용
 
@@ -775,7 +881,7 @@ poetry run python main.py analyze-failures \
 - sensitive_topic_handling: "회피 응답 시 대안 제시" 체크리스트 추가
 ```
 
-### 12.3. Claude Skill 고도화 계획
+### 13.3. Claude Skill 고도화 계획
 
 #### A. 단기 개선 (v1.1)
 - [ ] 프롬프트 언어 자동 감지 (한글/영문)
@@ -792,7 +898,7 @@ poetry run python main.py analyze-failures \
 - [ ] A/B 테스트 결과 기반 평가 기준 가중치 조정
 - [ ] 도메인별 평가 기준 템플릿 라이브러리
 
-### 12.4. 구현 우선순위
+### 13.4. 구현 우선순위
 
 | 우선순위 | 기능 | 예상 효과 | 예상 소요 |
 |---------|------|----------|----------|
@@ -804,21 +910,21 @@ poetry run python main.py analyze-failures \
 
 ---
 
-## 13. 참고: 평가 체계 설계 원칙
+## 14. 참고: 평가 체계 설계 원칙
 
-### 13.1. 자동생성이 효과적인 경우
+### 14.1. 자동생성이 효과적인 경우
 - 새 프롬프트 만들 때 초기 평가기준 빠르게 설정
 - "빠뜨린 평가 차원 없나?" 체크리스트 용도
 - 형식 검증 (JSON 구조, 필수 필드 등)
 - 명시적 규칙이 프롬프트에 있는 경우 (AVOID, MUST 등)
 
-### 13.2. 실전 데이터가 필수인 경우
+### 14.2. 실전 데이터가 필수인 경우
 - "이게 좋은 코칭 힌트인가?" 같은 품질 판단
 - Edge case (번아웃 신호, 회피 응답 등)
 - 실제 리더/유저 피드백 반영
 - 도메인 전문 지식이 필요한 판단
 
-### 13.3. 하이브리드 접근 권장
+### 14.3. 하이브리드 접근 권장
 ```
 자동생성 (Bootstrap)
     │
@@ -835,4 +941,59 @@ Golden Dataset 구축
 평가기준 재정의 (Refine)
     │
     └──▶ 반복
+```
+
+---
+
+## 15. 기술 구현 세부사항
+
+### 15.1. 다중 프롬프트 형식 지원
+
+`src/data_loader.py`에서 다음 파일 형식을 지원합니다:
+
+| 형식 | 로더 함수 | 추출 방식 |
+|------|----------|----------|
+| `.txt` | `load_prompt_file()` | 파일 전체를 `{"template": ...}`로 반환 |
+| `.py` | `_load_prompt_from_py()` | AST 파싱으로 `*_PROMPT` 변수 추출 |
+| `.xml` | `_load_prompt_from_xml()` | XML 파싱으로 자식 태그를 키로 추출 |
+
+**파일 탐색 우선순위:**
+1. `{name}_prompt.txt` → `{name}_prompt.py` → `{name}_prompt.xml`
+2. `{name}.txt` → `{name}.py` → `{name}.xml`
+
+### 15.2. eval_prompts 템플릿 작성 규칙
+
+LLM Judge 평가 프롬프트(`eval_prompts/**/*.txt`)에서 JSON 예시를 포함할 때:
+
+```
+## Response Format (JSON):
+{{
+    "checklist": {{
+        "item1": 0 or 1,
+        "item2": 0 or 1
+    }},
+    "score": <float 0-1>
+}}
+```
+
+> **중요**: Python의 `.format()` 메서드와 충돌을 방지하기 위해 JSON의 중괄호는 `{{`, `}}`로 이스케이프해야 합니다.
+> 플레이스홀더 `{prompt}`, `{input}`, `{output}`은 단일 중괄호를 사용합니다.
+
+### 15.3. LangSmith Experiment 연동
+
+`src/pipeline.py`의 `run_langsmith_experiment()` 함수가 다음을 수행합니다:
+
+1. 데이터셋을 LangSmith에 업로드 (기존 데이터셋은 삭제 후 재생성)
+2. `evaluate()` 함수로 Experiment 실행
+3. 설정된 LLM Judge 평가자 자동 추가
+4. 결과를 LangSmith 대시보드에 기록
+
+```python
+# 내부 동작
+results = evaluate(
+    target,
+    data=dataset_name,
+    evaluators=[keyword_evaluator, forbidden_evaluator, format_evaluator, ...],
+    experiment_prefix=experiment_prefix,
+)
 ```

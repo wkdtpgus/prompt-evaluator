@@ -1,17 +1,21 @@
-"""LangSmith built-in evaluators wrapper.
-
-LangSmith 제공 평가자들을 래핑하여 일관된 인터페이스 제공
-- embedding_distance: 임베딩 유사도 기반
-- string_distance: 문자열 거리 기반 (Levenshtein 등)
-- correctness: LLM 기반 정답 여부 판단
-"""
-
+import json
+import os
 from typing import Any, Callable
+
+import numpy as np
 from langsmith.evaluation import EvaluationResult
+
+from configs.config import (
+    DEFAULT_EMBEDDING_PROVIDER,
+    OPENAI_EMBEDDING_MODEL,
+    VERTEX_EMBEDDING_MODEL,
+    DEFAULT_EMBEDDING_THRESHOLD,
+)
 
 
 def create_embedding_distance_evaluator(
-    threshold: float = 0.75
+    threshold: float = DEFAULT_EMBEDDING_THRESHOLD,
+    provider: str | None = None
 ) -> Callable:
     """임베딩 거리 기반 평가자 생성.
 
@@ -20,14 +24,23 @@ def create_embedding_distance_evaluator(
 
     Args:
         threshold: 통과 기준 유사도 (0.0 ~ 1.0)
+        provider: 임베딩 프로바이더 ("openai" 또는 "vertex")
+                  None이면 환경변수 EMBEDDING_PROVIDER 사용
 
     Returns:
         LangSmith evaluate()에서 사용할 수 있는 평가자 함수
     """
-    from langsmith.evaluation import evaluate
-    from langchain_openai import OpenAIEmbeddings
+    # 프로바이더 결정 (파라미터 > 환경변수 > 기본값)
+    use_provider = (provider or os.getenv("EMBEDDING_PROVIDER", DEFAULT_EMBEDDING_PROVIDER)).lower()
 
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+    # NOTE: 지연 import - 프로바이더에 따라 선택적 로드 필요
+    # vertex/openai 중 하나만 사용하므로 불필요한 의존성 로드 방지
+    if use_provider == "vertex":
+        from langchain_google_vertexai import VertexAIEmbeddings
+        embeddings = VertexAIEmbeddings(model_name=VERTEX_EMBEDDING_MODEL)
+    else:
+        from langchain_openai import OpenAIEmbeddings
+        embeddings = OpenAIEmbeddings(model=OPENAI_EMBEDDING_MODEL)
 
     def evaluator(run, example) -> EvaluationResult:
         """LangSmith 평가자 함수."""
@@ -36,7 +49,6 @@ def create_embedding_distance_evaluator(
 
         # reference가 dict면 문자열로 변환
         if isinstance(reference, dict):
-            import json
             reference_text = json.dumps(reference, ensure_ascii=False)
         else:
             reference_text = str(reference)
@@ -53,7 +65,6 @@ def create_embedding_distance_evaluator(
         reference_embedding = embeddings.embed_query(reference_text)
 
         # 코사인 유사도 계산
-        import numpy as np
         similarity = np.dot(output_embedding, reference_embedding) / (
             np.linalg.norm(output_embedding) * np.linalg.norm(reference_embedding)
         )
@@ -61,7 +72,7 @@ def create_embedding_distance_evaluator(
         return EvaluationResult(
             key="embedding_distance",
             score=float(similarity),
-            comment=f"Similarity: {similarity:.3f} (threshold: {threshold})"
+            comment=f"Similarity: {similarity:.3f} (threshold: {threshold}, provider: {use_provider})"
         )
 
     return evaluator
@@ -86,7 +97,6 @@ def create_string_distance_evaluator(
         reference = example.outputs.get("reference", {})
 
         if isinstance(reference, dict):
-            import json
             reference_text = json.dumps(reference, ensure_ascii=False)
         else:
             reference_text = str(reference)
@@ -200,13 +210,13 @@ def _jaro_winkler_similarity(s1: str, s2: str) -> float:
 
 def get_langsmith_evaluators(
     evaluator_configs: list[dict],
-    threshold: float = 0.75
+    threshold: float = DEFAULT_EMBEDDING_THRESHOLD
 ) -> list[Callable]:
     """설정에 따라 LangSmith 평가자 목록 생성.
 
     Args:
         evaluator_configs: 평가자 설정 목록
-            [{"name": "embedding_distance", "threshold": 0.75}, ...]
+            [{"name": "embedding_distance", "threshold": 0.75, "provider": "vertex"}, ...]
         threshold: 기본 임계값
 
     Returns:
@@ -219,7 +229,8 @@ def get_langsmith_evaluators(
         thresh = config.get("threshold", threshold)
 
         if name == "embedding_distance":
-            evaluators.append(create_embedding_distance_evaluator(thresh))
+            provider = config.get("provider")  # None이면 환경변수 사용
+            evaluators.append(create_embedding_distance_evaluator(thresh, provider))
         elif name == "string_distance":
             metric = config.get("metric", "levenshtein")
             evaluators.append(create_string_distance_evaluator(metric, thresh))

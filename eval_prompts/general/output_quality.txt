@@ -18,14 +18,14 @@ You are evaluating overall output quality.
 5. **Professionalism**: Is the tone/style appropriate?
 
 ## Response Format (JSON):
-{
-    "checklist": {
+{{
+    "checklist": {{
         "clarity": 0 or 1,
         "completeness": 0 or 1,
         "usefulness": 0 or 1,
         "consistency": 0 or 1,
         "professionalism": 0 or 1
-    },
+    }},
     "score": <float 0-1, average of checklist>,
     "feedback": "brief constructive feedback"
-}
+}}

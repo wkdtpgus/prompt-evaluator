@@ -15,14 +15,14 @@ Coaching hints for leaders in 1on1 meeting preparation.
 5. **Language Match**: Is it in the requested language (Korean/English)?
 
 ## Response Format (JSON):
-{
-    "checklist": {
+{{
+    "checklist": {{
         "professional": 0 or 1,
         "non_judgmental": 0 or 1,
         "constructive": 0 or 1,
         "appropriate_length": 0 or 1,
         "language_match": 0 or 1
-    },
+    }},
     "score": <float 0-1, average of checklist>,
     "issues": ["list of tone/style issues, if any"]
-}
+}}

@@ -1,6 +1,9 @@
 # 1on1 Meeting Prep Analyzer 평가 설정
 # 프롬프트: 채팅 히스토리 + 서베이 → question_context 분석
 
+# LLM Judge 평가 프롬프트 도메인 (eval_prompts/{domain}/)
+eval_prompts_domain: oneonone
+
 evaluators:
   # Rule-based 평가자 (무료)
   - type: rule_based
@@ -10,10 +13,11 @@ evaluators:
       - format_validity      # JSON 출력 형식 검증
       # - exact_match        # 이 프롬프트는 자연어 출력이므로 비활성화
 
-  # LangSmith 내장 평가자 (저비용)
-  - type: langsmith_builtin
+  # 유사도 기반 평가자 (저비용)
+  - type: similarity
     name: embedding_distance
     threshold: 0.70  # 코칭 힌트 의미적 유사도
+    # provider: vertex  # GCP 사용 시 활성화
 
   # LLM-as-Judge (고비용, 선택적)
   - type: llm_judge
@@ -34,10 +38,9 @@ thresholds:
   min_score: 0.70      # 개별 케이스 최소 점수
 
 # 실행 모드
-# quick: Rule-based만
-# standard: Rule-based + Embedding
-# full: 모든 평가자
-run_mode: standard
+# quick: Sanity check만 (pass/fail)
+# full: Sanity check + LLM Judge (점수 평가)
+run_mode: quick
 
 # 출력 검증 스키마 (format_validity용)
 output_schema:

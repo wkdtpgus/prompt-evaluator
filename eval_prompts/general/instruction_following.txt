@@ -18,14 +18,14 @@ You are evaluating if the AI followed the prompt instructions.
 5. **No Extra Content**: Did the AI avoid adding unrequested content?
 
 ## Response Format (JSON):
-{
-    "checklist": {
+{{
+    "checklist": {{
         "output_format": 0 or 1,
         "required_fields": 0 or 1,
         "constraints": 0 or 1,
         "task_completion": 0 or 1,
         "no_extra_content": 0 or 1
-    },
+    }},
     "score": <float 0-1, average of checklist>,
     "issues": ["list of specific issues found, if any"]
-}
+}}

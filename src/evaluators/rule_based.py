@@ -1,9 +1,4 @@
-"""Rule-based evaluators for prompt evaluation.
-
-Rule-based 평가자: 빠르고 결정적인 평가를 위한 함수들
-- LLM 호출 없이 로컬에서 즉시 실행
-- quick 모드에서 기본 사용
-"""
+"""규칙 기반 평가자 (키워드, 금지어, 포맷 등)."""
 
 import json
 import re
@@ -262,7 +257,8 @@ def exact_match(
 def run_rule_evaluators(
     output: str,
     expected: dict[str, Any],
-    checks: list[str] | None = None
+    checks: list[str] | None = None,
+    eval_config: dict[str, Any] | None = None
 ) -> dict[str, dict[str, Any]]:
     """여러 rule-based 평가자를 한 번에 실행.
 
@@ -273,6 +269,7 @@ def run_rule_evaluators(
             - forbidden: list[str]
             - reference: dict (선택)
         checks: 실행할 평가자 목록 (None이면 모두 실행)
+        eval_config: configs/{name}.yaml의 설정 (output_schema 등)
 
     Returns:
         {
@@ -283,6 +280,7 @@ def run_rule_evaluators(
     """
     default_checks = ["keyword_inclusion", "forbidden_word_check", "format_validity"]
     checks = checks or default_checks
+    eval_config = eval_config or {}
 
     results = {}
 
@@ -299,10 +297,14 @@ def run_rule_evaluators(
         )
 
     if "format_validity" in checks:
+        # output_schema.required에서 필수 필드 가져오기
+        output_schema = eval_config.get("output_schema", {})
+        required_fields = output_schema.get("required", [])
+
         results["format_validity"] = format_validity(
             output=output,
             expected_format="json",
-            schema={"required_fields": ["question_context"]}
+            schema={"required_fields": required_fields} if required_fields else None
         )
 
     if "length_compliance" in checks:
@@ -313,7 +315,6 @@ def run_rule_evaluators(
         )
 
     if "exact_match" in checks and "reference" in expected:
-        # reference가 있을 때만 exact_match 실행
         results["exact_match"] = exact_match(
             output=output,
             reference=json.dumps(expected["reference"], ensure_ascii=False)

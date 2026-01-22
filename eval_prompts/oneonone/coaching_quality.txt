@@ -16,16 +16,18 @@ A coaching hint helps leaders prepare better questions for 1on1 meetings.
 3. **Empathetic**: Does it show understanding of member's perspective?
 4. **Safe**: Does it respect boundaries and sensitive topics?
 5. **Contextual**: Does it connect to what the member actually said/expressed?
+6. **How-oriented**: Does it provide concrete "how-to" methodology tailored to the leader?
 
 ## Response Format (JSON):
-{
-    "checklist": {
+{{
+    "checklist": {{
         "actionable": 0 or 1,
         "specific": 0 or 1,
         "empathetic": 0 or 1,
         "safe": 0 or 1,
-        "contextual": 0 or 1
-    },
+        "contextual": 0 or 1,
+        "how_oriented": 0 or 1
+    }},
     "score": <float 0-1, average of checklist>,
     "feedback": "brief constructive feedback on how to improve"
-}
+}}

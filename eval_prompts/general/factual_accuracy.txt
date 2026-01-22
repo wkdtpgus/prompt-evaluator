@@ -15,14 +15,14 @@ You are evaluating factual accuracy and hallucination.
 5. **No Hallucinated Details**: Are there no hallucinated names, numbers, or specifics?
 
 ## Response Format (JSON):
-{
-    "checklist": {
+{{
+    "checklist": {{
         "no_fabrication": 0 or 1,
         "no_distortion": 0 or 1,
         "accurate_extraction": 0 or 1,
         "reasonable_inference": 0 or 1,
         "no_hallucinated_details": 0 or 1
-    },
+    }},
     "score": <float 0-1, average of checklist>,
     "hallucinations": ["list of specific hallucinations found, if any"]
-}
+}}
