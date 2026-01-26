@@ -84,7 +84,6 @@ evaluators:
     checks:
       - keyword_inclusion
       - forbidden_word_check
-      - format_validity
 
   - type: similarity
     name: embedding_distance
@@ -100,10 +99,6 @@ evaluators:
 thresholds:
   pass_rate: 0.85
   min_score: 0.70
-
-output_schema:
-  required:
-    - question_context  # format_validity에서 사용
 ```
 
 ## 환경 변수

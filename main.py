@@ -54,7 +54,7 @@ def list_sets():
 
     if not sets:
         typer.echo("사용 가능한 평가 세트가 없습니다.")
-        typer.echo("targets/{name}_prompt.txt와 datasets/{name}_data/, configs/{name}.yaml 구조가 필요합니다.")
+        typer.echo("targets/{name}/prompt.*, targets/{name}/config.yaml, datasets/{name}/ 구조가 필요합니다.")
         return
 
     typer.echo("\n사용 가능한 평가 세트:")
@@ -126,7 +126,7 @@ def validate(
         valid_count = sum(1 for r in results.values() if r.valid)
         typer.echo(f"결과: {valid_count}/{len(results)} 통과")
     else:
-        config_file = Path("configs") / f"{name}.yaml"
+        config_file = Path("targets") / name / "config.yaml"
         if not config_file.exists():
             typer.echo(f"config 파일 없음: {config_file}")
             raise typer.Exit(1)
@@ -179,7 +179,7 @@ def criteria():
             typer.echo(f"    • {c}: {criteria_list[c]}")
 
     typer.echo("\n" + "-" * 60)
-    typer.echo("사용법: configs/{name}.yaml의 llm_judge.criteria에 추가")
+    typer.echo("사용법: targets/{name}/config.yaml의 llm_judge.criteria에 추가")
     typer.echo("  예: criteria: [purpose_alignment, coaching_quality]")
     typer.echo()
 

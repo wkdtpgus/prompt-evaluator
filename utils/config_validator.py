@@ -117,24 +117,28 @@ def validate_config(
 
 
 def validate_all_configs(
-    configs_dir: Path = Path("configs"),
     targets_dir: Path = Path("targets"),
     datasets_dir: Path = Path("datasets"),
     eval_prompts_dir: Path = Path("eval_prompts"),
 ) -> dict[str, ValidationResult]:
     """모든 config 파일 검증
 
+    targets/{name}/config.yaml 파일을 찾아서 검증합니다.
+
     Returns:
         {prompt_name: ValidationResult}
     """
     results = {}
 
-    for config_file in configs_dir.glob("*.yaml"):
-        # schema.yaml 제외
-        if config_file.stem == "schema":
+    for folder in targets_dir.iterdir():
+        if not folder.is_dir():
             continue
 
-        prompt_name = config_file.stem
+        config_file = folder / "config.yaml"
+        if not config_file.exists():
+            continue
+
+        prompt_name = folder.name
 
         with open(config_file, "r", encoding="utf-8") as f:
             config = yaml.safe_load(f)

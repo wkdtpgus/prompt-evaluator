@@ -19,13 +19,23 @@ def load_eval_prompt(criterion: str, domain: str | None = None) -> str | None:
     """평가 프롬프트 파일 로드.
 
     Args:
-        criterion: 평가 기준 이름 (예: "instruction_following", "purpose_alignment")
-        domain: 우선 검색할 도메인 (예: "oneonone"). None이면 general 우선.
+        criterion: 평가 기준 이름
+            - 단순: "instruction_following" → domain에서 검색
+            - 경로 포함: "oneonone/coaching_quality" → 해당 경로 직접 사용
+        domain: 우선 검색할 도메인 (예: "meeting_prep"). None이면 general 우선.
 
     Returns:
         프롬프트 텍스트 또는 None
     """
     if not PROMPTS_DIR.exists():
+        return None
+
+    # 0. criterion에 경로가 포함된 경우 (예: "oneonone/coaching_quality")
+    if "/" in criterion:
+        explicit_path = PROMPTS_DIR / f"{criterion}.txt"
+        if explicit_path.exists():
+            return explicit_path.read_text(encoding="utf-8")
+        # 경로가 명시되었는데 없으면 None 반환 (다른 곳에서 찾지 않음)
         return None
 
     # 1. 지정된 도메인에서 먼저 검색

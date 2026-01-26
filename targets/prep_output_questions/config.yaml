@@ -1,0 +1,24 @@
+# prep_output_questions 평가 설정
+# Phase 2: question_context → recommended_questions + meeting_guide 생성
+
+name: prep_output_questions
+output_format: json
+eval_prompts_domain: meeting_prep
+
+evaluators:
+  - type: llm_judge
+    enabled: true
+    criteria:
+      # 특화 기준 (meeting_prep) - 구조/형식
+      - questions_structure             # 질문 개수, 순서, 중복 없음
+      # 도메인 범용 기준 (oneonone)
+      - oneonone/question_quality       # 열린 질문, 맥락 특화, 지원 지향
+      - oneonone/meeting_guide_quality  # key_insight, approach, tip 품질
+      - oneonone/professional_tone      # 전문적/비판단적 톤
+      - oneonone/sensitive_topic_handling  # 민감 주제 처리
+
+thresholds:
+  pass_rate: 0.80
+  min_score: 0.70
+
+run_mode: full

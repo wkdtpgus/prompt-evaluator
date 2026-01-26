@@ -92,7 +92,7 @@ def run_evaluation(
     # ============================================================
     # 1. Sanity Checks (pass/fail만, 점수에 미반영)
     # ============================================================
-    rule_checks = ["keyword_inclusion", "forbidden_word_check", "format_validity"]
+    rule_checks = ["keyword_inclusion", "forbidden_word_check"]
     rule_results = run_rule_evaluators(output, expected, rule_checks, eval_config)
 
     sanity_all_passed = all(r["passed"] for r in rule_results.values())
@@ -427,34 +427,10 @@ def run_langsmith_experiment(
             comment=f"Violations: {violations}" if violations else "No violations"
         )
 
-    def format_evaluator(run, example) -> EvaluationResult:
-        """JSON 포맷 검증."""
-        output = run.outputs.get("output", "")
-
-        try:
-            parsed = json.loads(output)
-            if "question_context" in parsed:
-                return EvaluationResult(
-                    key="format_validity",
-                    score=1.0,
-                    comment="Valid JSON with question_context"
-                )
-            return EvaluationResult(
-                key="format_validity",
-                score=0.5,
-                comment="Valid JSON but missing question_context"
-            )
-        except json.JSONDecodeError as e:
-            return EvaluationResult(
-                key="format_validity",
-                score=0.0,
-                comment=f"Invalid JSON: {str(e)}"
-            )
-
     # 5. 모드에 따른 평가자 선택
     # Note: rule-based 평가자는 sanity check용으로만 사용 (LangSmith에서는 점수로 기록되지만
     # 실제 pass/fail 판정은 llm_judge 기준으로 함)
-    evaluators = [keyword_evaluator, forbidden_evaluator, format_evaluator]
+    evaluators = [keyword_evaluator, forbidden_evaluator]
 
     # 6. LLM Judge 평가자 추가 (full 모드 또는 eval_config에 설정된 경우)
     llm_judge_config = None

@@ -149,75 +149,6 @@ def length_compliance(
     }
 
 
-def format_validity(
-    output: str,
-    expected_format: str = "json",
-    schema: dict | None = None
-) -> dict[str, Any]:
-    """출력이 기대 포맷(JSON 등)을 따르는지 검사.
-
-    Args:
-        output: LLM 출력 텍스트
-        expected_format: "json" 또는 "yaml"
-        schema: JSON 스키마 (선택, 기본 검증만)
-
-    Returns:
-        {
-            "score": float (0.0 or 1.0),
-            "passed": bool,
-            "parsed": Any (파싱된 데이터, 실패 시 None),
-            "details": str
-        }
-    """
-    if expected_format == "json":
-        try:
-            # JSON 블록 추출 시도 (```json ... ``` 형식)
-            json_match = re.search(r'```json\s*([\s\S]*?)\s*```', output)
-            if json_match:
-                json_str = json_match.group(1)
-            else:
-                json_str = output.strip()
-
-            parsed = json.loads(json_str)
-
-            # 스키마 검증 (간단한 필드 존재 여부만)
-            if schema and "required_fields" in schema:
-                missing_fields = []
-                for field in schema["required_fields"]:
-                    if field not in parsed:
-                        missing_fields.append(field)
-
-                if missing_fields:
-                    return {
-                        "score": 0.5,
-                        "passed": False,
-                        "parsed": parsed,
-                        "details": f"Missing required fields: {missing_fields}"
-                    }
-
-            return {
-                "score": 1.0,
-                "passed": True,
-                "parsed": parsed,
-                "details": "Valid JSON format"
-            }
-
-        except json.JSONDecodeError as e:
-            return {
-                "score": 0.0,
-                "passed": False,
-                "parsed": None,
-                "details": f"Invalid JSON: {str(e)}"
-            }
-
-    return {
-        "score": 0.0,
-        "passed": False,
-        "parsed": None,
-        "details": f"Unsupported format: {expected_format}"
-    }
-
-
 def exact_match(
     output: str,
     reference: str,
@@ -278,7 +209,7 @@ def run_rule_evaluators(
             ...
         }
     """
-    default_checks = ["keyword_inclusion", "forbidden_word_check", "format_validity"]
+    default_checks = ["keyword_inclusion", "forbidden_word_check"]
     checks = checks or default_checks
     eval_config = eval_config or {}
 
@@ -294,17 +225,6 @@ def run_rule_evaluators(
         results["forbidden_word_check"] = forbidden_word_check(
             output=output,
             forbidden_words=expected.get("forbidden", [])
-        )
-
-    if "format_validity" in checks:
-        # output_schema.required에서 필수 필드 가져오기
-        output_schema = eval_config.get("output_schema", {})
-        required_fields = output_schema.get("required", [])
-
-        results["format_validity"] = format_validity(
-            output=output,
-            expected_format="json",
-            schema={"required_fields": required_fields} if required_fields else None
         )
 
     if "length_compliance" in checks:

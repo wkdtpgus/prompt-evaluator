@@ -1,0 +1,154 @@
+[
+  {
+    "id": "analyze_01_detailed_response",
+    "description": "상세 응답 - 블로커와 감정 표현 포함",
+    "inputs": {
+      "qa_pairs": [
+        {"bot_question": "안녕하세요! 요즘 업무는 어떻게 진행되고 있나요?", "member_response": "API 마이그레이션 작업 중인데, 레거시 코드 문서화가 너무 부족해서 예상보다 2주 정도 지연되고 있어요. 솔직히 좀 답답합니다."}
+      ],
+      "survey_answers": {"condition": "TIRED", "topic": "WORK_ISSUES"},
+      "language": "ko-KR",
+      "member_name": "박개발"
+    }
+  },
+  {
+    "id": "analyze_02_brief_response",
+    "description": "짧은 응답 - 최소한의 정보만 제공",
+    "inputs": {
+      "qa_pairs": [
+        {"bot_question": "요즘 어떤 업무를 하고 계세요?", "member_response": "그냥 이것저것요."},
+        {"bot_question": "좀 더 구체적으로 말씀해주실 수 있을까요?", "member_response": "뭐 별거 없어요."}
+      ],
+      "survey_answers": {"condition": "NORMAL", "topic": "WORK_ISSUES"},
+      "language": "ko-KR",
+      "member_name": "김간단"
+    }
+  },
+  {
+    "id": "analyze_03_avoided_response",
+    "description": "회피 응답 - 주제를 피하려는 패턴",
+    "inputs": {
+      "qa_pairs": [
+        {"bot_question": "팀 분위기는 어떠세요?", "member_response": "그건 좀... 다른 얘기 할까요?"},
+        {"bot_question": "혹시 불편한 부분이 있으신가요?", "member_response": "아뇨, 그냥 넘어가죠."}
+      ],
+      "survey_answers": {"condition": "NORMAL", "topic": "TEAM_CULTURE"},
+      "language": "ko-KR",
+      "member_name": "이회피"
+    }
+  },
+  {
+    "id": "analyze_04_survey_only",
+    "description": "서베이만 있는 케이스 - 대화 없음",
+    "inputs": {
+      "qa_pairs": [],
+      "survey_answers": {"condition": "VERY_BAD", "topic": "GROWTH_CAREER"},
+      "language": "ko-KR",
+      "member_name": "최서베이"
+    }
+  },
+  {
+    "id": "analyze_05_turnover_risk",
+    "description": "이탈 위험 - 퇴사/이직 암시",
+    "inputs": {
+      "qa_pairs": [
+        {"bot_question": "요즘 어떠세요?", "member_response": "솔직히 회사 다니는 게 힘들어요. 매일 똑같은 일만 하는 느낌이에요."},
+        {"bot_question": "어떤 부분이 힘드신가요?", "member_response": "성장하는 느낌이 없어요. 요즘 링크드인도 자주 보게 되고... 주변 친구들은 다 새로운 거 배우는데 저만 제자리인 것 같아요."}
+      ],
+      "survey_answers": {"condition": "VERY_BAD", "topic": "GROWTH_CAREER"},
+      "language": "ko-KR",
+      "member_name": "박이직"
+    }
+  },
+  {
+    "id": "analyze_06_compensation_issue",
+    "description": "보상 불만 - 평가/연봉 관련 불만",
+    "inputs": {
+      "qa_pairs": [
+        {"bot_question": "요즘 업무는 어떻게 진행되고 있나요?", "member_response": "업무는 잘 하고 있는데... 솔직히 허탈해요."},
+        {"bot_question": "어떤 일이 있으셨나요?", "member_response": "작년에 큰 프로젝트 두 개를 성공적으로 마무리했는데, 연말 평가에서 기대보다 낮은 등급을 받았어요. 보상 체계에 대해서도 좀 여쭤보고 싶습니다."}
+      ],
+      "survey_answers": {"condition": "TIRED", "topic": "PERFORMANCE_FEEDBACK"},
+      "language": "ko-KR",
+      "member_name": "김보상"
+    }
+  },
+  {
+    "id": "analyze_07_team_conflict",
+    "description": "팀 갈등 - 동료와의 갈등 상황",
+    "inputs": {
+      "qa_pairs": [
+        {"bot_question": "팀 협업은 어떻게 진행되고 있나요?", "member_response": "솔직히 요즘 좀 힘들어요. 특정 동료분이랑 계속 의견 충돌이 있어서..."},
+        {"bot_question": "어떤 상황인지 말씀해주실 수 있나요?", "member_response": "코드 리뷰할 때마다 제 의견을 무시하는 느낌이에요. 제안을 해도 항상 본인 방식대로만 하려고 해서 협업이 잘 안 됩니다."}
+      ],
+      "survey_answers": {"condition": "TIRED", "topic": "TEAM_CULTURE"},
+      "language": "ko-KR",
+      "member_name": "정갈등"
+    }
+  },
+  {
+    "id": "analyze_08_burnout_signal",
+    "description": "번아웃 신호 - 컨디션 저하와 피로 누적",
+    "inputs": {
+      "qa_pairs": [
+        {"bot_question": "컨디션이 안 좋으시다고 하셨는데, 괜찮으세요?", "member_response": "요즘 야근이 너무 많아서 지쳐있어요. 프로젝트 마감이 다가오면서 밤늦게까지 일하는 날이 많습니다."},
+        {"bot_question": "많이 힘드시겠어요. 일정 상황은 어떤가요?", "member_response": "80% 정도 완료했는데, 지금 페이스로는 건강에 무리가 갈 것 같아요. 일정 조율이 가능한지 논의하고 싶어요."}
+      ],
+      "survey_answers": {"condition": "VERY_BAD", "topic": "WORK_ISSUES"},
+      "language": "ko-KR",
+      "member_name": "이피로"
+    }
+  },
+  {
+    "id": "analyze_09_career_growth",
+    "description": "커리어 성장 - 역할 전환 희망",
+    "inputs": {
+      "qa_pairs": [
+        {"bot_question": "성장과 커리어에 대해 이야기하고 싶으시다고 하셨네요.", "member_response": "네, 요즘 테크리드 역할에 관심이 생겼어요. 현재 업무는 잘 하고 있는데, 다음 단계로 어떻게 준비해야 할지 모르겠어요."},
+        {"bot_question": "테크리드에 관심이 있으시군요! 구체적으로 어떤 조언이 필요하세요?", "member_response": "어떤 역량을 더 키워야 하는지, 그리고 팀 내에서 그런 기회가 있을지 여쭤보고 싶어요."}
+      ],
+      "survey_answers": {"condition": "GOOD", "topic": "GROWTH_CAREER"},
+      "language": "ko-KR",
+      "member_name": "정시니어"
+    }
+  },
+  {
+    "id": "analyze_10_mixed_quality",
+    "description": "혼합 품질 - 주제별로 다른 응답 패턴",
+    "inputs": {
+      "qa_pairs": [
+        {"bot_question": "요즘 업무는 어떻게 진행되고 있나요?", "member_response": "인증 시스템 마이그레이션 중인데, 서드파티 API 응답이 늦어서 테스트를 못 하고 있어요. 리더님 조언이 필요해요."},
+        {"bot_question": "블로커가 있군요. 다른 고민이 있으신가요?", "member_response": "음... 커리어 얘기는 좀..."},
+        {"bot_question": "편하게 말씀해주세요.", "member_response": "아뇨, 괜찮아요. 업무 얘기만 할게요."}
+      ],
+      "survey_answers": {"condition": "TIRED", "topic": "GROWTH_CAREER"},
+      "language": "ko-KR",
+      "member_name": "한복합"
+    }
+  },
+  {
+    "id": "analyze_11_positive_case",
+    "description": "긍정적 상황 - 순조로운 진행과 성취",
+    "inputs": {
+      "qa_pairs": [
+        {"bot_question": "요즘 업무는 어떻게 진행되고 있나요?", "member_response": "결제 시스템 리팩토링 1차 마일스톤을 완료했어요! 예정보다 일주일 빨리 끝났습니다."},
+        {"bot_question": "축하드려요! 어려운 점은 없으셨나요?", "member_response": "팀원들 도움을 많이 받아서 순조롭게 진행됐어요. 2차 작업도 다음 주 금요일까지 완료할 수 있을 것 같습니다."}
+      ],
+      "survey_answers": {"condition": "GOOD", "topic": "PERFORMANCE_FEEDBACK"},
+      "language": "ko-KR",
+      "member_name": "김성취"
+    }
+  },
+  {
+    "id": "analyze_12_english_output",
+    "description": "영어 출력 - 다국어 지원 테스트",
+    "inputs": {
+      "qa_pairs": [
+        {"bot_question": "How's your work going these days?", "member_response": "I'm working on the API migration. It's about 70% done, but the legacy code documentation is lacking, so it's taking longer than expected."}
+      ],
+      "survey_answers": {"condition": "NORMAL", "topic": "WORK_ISSUES"},
+      "language": "en-US",
+      "member_name": "John"
+    }
+  }
+]

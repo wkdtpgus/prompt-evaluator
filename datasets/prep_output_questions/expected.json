@@ -1,0 +1,98 @@
+{
+  "questions_01_detailed_work": {
+    "keywords": [],
+    "forbidden": [],
+    "reference": {
+      "question_count": "5-7",
+      "notes": "블로커 해결 지원 질문 포함"
+    }
+  },
+  "questions_02_brief_response": {
+    "keywords": [],
+    "forbidden": [],
+    "reference": {
+      "question_count": "5-7",
+      "notes": "부담 없는 열린 질문, 압박하지 않는 톤"
+    }
+  },
+  "questions_03_avoided_topic": {
+    "keywords": [],
+    "forbidden": [],
+    "reference": {
+      "question_count": "5-7",
+      "notes": "회피한 주제 다시 물어보지 않음"
+    }
+  },
+  "questions_04_survey_only_bad_condition": {
+    "keywords": [],
+    "forbidden": [],
+    "reference": {
+      "question_count": "5-7",
+      "notes": "부정적 상태 직접 언급 금지, 중립적 질문"
+    }
+  },
+  "questions_05_turnover_risk": {
+    "keywords": [],
+    "forbidden": [],
+    "reference": {
+      "question_count": "5-7",
+      "notes": "이탈 관련 직접 언급 금지, 장기 비전으로 접근"
+    }
+  },
+  "questions_06_compensation_issue": {
+    "keywords": [],
+    "forbidden": [],
+    "reference": {
+      "question_count": "5-7",
+      "notes": "보상 직접 언급 금지, 성과 인정 관점으로 접근"
+    }
+  },
+  "questions_07_team_conflict": {
+    "keywords": [],
+    "forbidden": [],
+    "reference": {
+      "question_count": "5-7",
+      "notes": "개인 비난 없이 프로세스 관점으로 접근"
+    }
+  },
+  "questions_08_burnout_signal": {
+    "keywords": [],
+    "forbidden": [],
+    "reference": {
+      "question_count": "5-7",
+      "notes": "부정적 상태 증폭 금지, 지원 중심 접근"
+    }
+  },
+  "questions_09_career_growth": {
+    "keywords": [],
+    "forbidden": [],
+    "reference": {
+      "question_count": "5-7",
+      "notes": "긍정적 커리어 탐색 질문"
+    }
+  },
+  "questions_10_multiple_contexts": {
+    "keywords": [],
+    "forbidden": [],
+    "reference": {
+      "question_count": "5-7",
+      "notes": "detailed 응답 우선, avoided 주제 언급 안 함"
+    }
+  },
+  "questions_11_positive_achievement": {
+    "keywords": [],
+    "forbidden": [],
+    "reference": {
+      "question_count": "5-7",
+      "notes": "성취 인정 + 학습/성장 탐색"
+    }
+  },
+  "questions_12_english_output": {
+    "keywords": [],
+    "forbidden": [],
+    "reference": {
+      "question_count": "5-7",
+      "notes": "영어 출력, 열린 질문"
+    }
+  }
+}

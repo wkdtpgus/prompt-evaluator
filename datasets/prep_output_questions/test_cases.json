@@ -1,0 +1,225 @@
+[
+  {
+    "id": "questions_01_detailed_work",
+    "description": "상세 업무 응답 - 블로커 있는 상황",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Work",
+          "bot_question": "요즘 업무는 어떻게 진행되고 있나요?",
+          "response_quality": "detailed",
+          "member_response": "API 마이그레이션 작업 중인데, 레거시 코드 문서화가 너무 부족해서 예상보다 2주 정도 지연되고 있어요. 솔직히 좀 답답합니다.",
+          "coaching_hint": "블로커로 인한 스트레스 감지. 문서화 문제 해결을 위해 어떤 지원이 필요한지 물어보고, 일정 조율 가능성도 함께 논의하세요."
+        }
+      ],
+      "profile_card": {"communicationStyle": "SUMMARY", "feedbackStyle": "DIRECT", "motivation": "GROWTH"},
+      "language": "ko-KR",
+      "member_name": "박개발"
+    }
+  },
+  {
+    "id": "questions_02_brief_response",
+    "description": "짧은 응답 - 부담 없이 접근 필요",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Work",
+          "bot_question": "요즘 어떤 업무를 하고 계세요?",
+          "response_quality": "brief",
+          "member_response": "그냥 이것저것요.",
+          "coaching_hint": "간단한 응답. 업무 세부사항보다는 전반적인 상태나 기분에 대해 편안하게 물어보세요."
+        }
+      ],
+      "profile_card": {},
+      "language": "ko-KR",
+      "member_name": "김간단"
+    }
+  },
+  {
+    "id": "questions_03_avoided_topic",
+    "description": "회피 응답 - 경계 존중 필요",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Team Culture",
+          "bot_question": "팀 분위기는 어떠세요?",
+          "response_quality": "avoided",
+          "member_response": "그건 좀... 다른 얘기 할까요?",
+          "coaching_hint": "팀 관련 주제 회피. 경계를 존중하고, 업무나 개인 웰빙 같은 안전한 주제로 전환하세요."
+        }
+      ],
+      "profile_card": {},
+      "language": "ko-KR",
+      "member_name": "이회피"
+    }
+  },
+  {
+    "id": "questions_04_survey_only_bad_condition",
+    "description": "서베이만 - 컨디션 나쁨 신호",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Condition",
+          "bot_question": null,
+          "response_quality": "survey_only",
+          "member_response": null,
+          "coaching_hint": "서베이에서 컨디션 '매우 나쁨' 선택. 업무량이나 피로에 대해 부드럽게 체크인하고, 어떤 지원이 필요한지 물어보세요."
+        }
+      ],
+      "profile_card": {},
+      "language": "ko-KR",
+      "member_name": "최서베이"
+    }
+  },
+  {
+    "id": "questions_05_turnover_risk",
+    "description": "이탈 위험 - 민감하게 접근 필요",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Career",
+          "bot_question": "요즘 어떠세요?",
+          "response_quality": "detailed",
+          "member_response": "솔직히 회사 다니는 게 힘들어요. 성장하는 느낌이 없어요. 요즘 링크드인도 자주 보게 되고...",
+          "coaching_hint": "이탈 위험 신호 감지. 퇴사/이직을 직접 언급하지 말고, 장기 비전과 성장 기회에 대해 대화하세요. 어떤 도전이 흥미로울지, 팀에서 새로운 기회가 있을지 탐색하세요."
+        }
+      ],
+      "profile_card": {"careerOrientation": "SPECIALIST", "motivation": "GROWTH"},
+      "language": "ko-KR",
+      "member_name": "박이직"
+    }
+  },
+  {
+    "id": "questions_06_compensation_issue",
+    "description": "보상 불만 - 간접 접근 필요",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Work",
+          "bot_question": "요즘 업무는 어떻게 진행되고 있나요?",
+          "response_quality": "detailed",
+          "member_response": "업무는 잘 하고 있는데 솔직히 허탈해요. 작년에 큰 프로젝트 두 개를 성공적으로 마무리했는데, 연말 평가에서 기대보다 낮은 등급을 받았어요.",
+          "coaching_hint": "보상 불만 감지. 연봉/급여를 직접 언급하지 말고, 성과 인정과 피드백 관점에서 접근하세요. 평가 기준에 대한 투명한 대화와 앞으로의 성장 방향을 논의하세요."
+        }
+      ],
+      "profile_card": {"communicationStyle": "DIRECT", "feedbackStyle": "DIRECT", "motivation": "RECOGNITION"},
+      "language": "ko-KR",
+      "member_name": "김보상"
+    }
+  },
+  {
+    "id": "questions_07_team_conflict",
+    "description": "팀 갈등 - 프로세스 관점으로 접근",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Team Culture",
+          "bot_question": "팀 협업은 어떻게 진행되고 있나요?",
+          "response_quality": "detailed",
+          "member_response": "솔직히 요즘 좀 힘들어요. 특정 동료분이랑 코드 리뷰할 때마다 제 의견을 무시하는 느낌이에요.",
+          "coaching_hint": "팀 내 갈등 감지. 특정 동료를 비난하는 방향을 피하고, 협업 프로세스 개선 관점에서 접근하세요. 코드 리뷰 방식이나 의견 조율 프로세스에 대해 논의하세요."
+        }
+      ],
+      "profile_card": {"feedbackStyle": "POSITIVE"},
+      "language": "ko-KR",
+      "member_name": "정갈등"
+    }
+  },
+  {
+    "id": "questions_08_burnout_signal",
+    "description": "번아웃 신호 - 지원 중심 접근",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Condition",
+          "bot_question": "컨디션이 안 좋으시다고 하셨는데, 괜찮으세요?",
+          "response_quality": "detailed",
+          "member_response": "요즘 야근이 너무 많아서 지쳐있어요. 지금 페이스로는 건강에 무리가 갈 것 같아요. 일정 조율이 가능한지 논의하고 싶어요.",
+          "coaching_hint": "번아웃 위험 신호. 일정 조율과 업무 우선순위 재조정에 대해 구체적으로 논의하세요. 건강을 우선시한다는 메시지를 전달하고, 어떤 지원이 필요한지 물어보세요."
+        }
+      ],
+      "profile_card": {},
+      "language": "ko-KR",
+      "member_name": "이피로"
+    }
+  },
+  {
+    "id": "questions_09_career_growth",
+    "description": "커리어 성장 - 긍정적 탐색",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Career",
+          "bot_question": "성장과 커리어에 대해 이야기하고 싶으시다고 하셨네요.",
+          "response_quality": "detailed",
+          "member_response": "네, 요즘 테크리드 역할에 관심이 생겼어요. 어떤 역량을 더 키워야 하는지, 팀 내에서 그런 기회가 있을지 여쭤보고 싶어요.",
+          "coaching_hint": "커리어 성장 욕구 표현. 테크리드에 필요한 역량과 팀 내 기회에 대해 구체적으로 논의하세요. 현재 프로젝트에서 리더십을 발휘할 수 있는 영역도 함께 탐색하세요."
+        }
+      ],
+      "profile_card": {"careerOrientation": "LEADER", "motivation": "GROWTH"},
+      "language": "ko-KR",
+      "member_name": "정시니어"
+    }
+  },
+  {
+    "id": "questions_10_multiple_contexts",
+    "description": "복수 컨텍스트 - 우선순위 결정 필요",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Work",
+          "bot_question": "요즘 업무는 어떻게 진행되고 있나요?",
+          "response_quality": "detailed",
+          "member_response": "인증 시스템 마이그레이션 중인데, 서드파티 API 응답이 늦어서 테스트를 못 하고 있어요.",
+          "coaching_hint": "외부 의존성 블로커. 서드파티 팀과의 소통 방법이나 대안적 접근에 대해 논의하세요."
+        },
+        {
+          "question_theme": "Career",
+          "bot_question": "다른 고민이 있으신가요?",
+          "response_quality": "avoided",
+          "member_response": "음... 커리어 얘기는 좀...",
+          "coaching_hint": "커리어 주제 회피. 지금은 언급하지 말고, 나중에 편한 시점에 대화할 수 있다고 안심시키세요."
+        }
+      ],
+      "profile_card": {},
+      "language": "ko-KR",
+      "member_name": "한복합"
+    }
+  },
+  {
+    "id": "questions_11_positive_achievement",
+    "description": "긍정적 성취 - 인정과 다음 단계",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Work",
+          "bot_question": "요즘 업무는 어떻게 진행되고 있나요?",
+          "response_quality": "detailed",
+          "member_response": "결제 시스템 리팩토링 1차 마일스톤을 완료했어요! 예정보다 일주일 빨리 끝났습니다. 팀원들 도움을 많이 받아서 순조롭게 진행됐어요.",
+          "coaching_hint": "성취 공유. 성과를 인정하고 축하하세요. 이 과정에서 배운 점이나 다음 단계에서 도전하고 싶은 것에 대해 물어보세요."
+        }
+      ],
+      "profile_card": {"motivation": "RECOGNITION"},
+      "language": "ko-KR",
+      "member_name": "김성취"
+    }
+  },
+  {
+    "id": "questions_12_english_output",
+    "description": "영어 출력 - 다국어 지원",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Work",
+          "bot_question": "How's your work going these days?",
+          "response_quality": "detailed",
+          "member_response": "I'm working on the API migration. It's about 70% done, but the legacy code documentation is lacking, so it's taking longer than expected.",
+          "coaching_hint": "Blocker detected due to documentation issues. Ask how you can support with the documentation problem and discuss timeline adjustment possibilities."
+        }
+      ],
+      "profile_card": {},
+      "language": "en-US",
+      "member_name": "John"
+    }
+  }
+]

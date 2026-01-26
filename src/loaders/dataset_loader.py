@@ -19,7 +19,6 @@ def load_evaluation_set(
     prompt_name: str,
     targets_dir: str | Path = "targets",
     datasets_dir: str | Path = "datasets",
-    configs_dir: str | Path = "configs"
 ) -> dict:
     """평가 대상 프롬프트와 데이터셋 로드
 
@@ -27,7 +26,6 @@ def load_evaluation_set(
         prompt_name: 프롬프트 이름 (예: "prep_chatbot")
         targets_dir: 평가 대상 프롬프트 폴더 경로
         datasets_dir: datasets 폴더 경로
-        configs_dir: configs 폴더 경로
 
     Returns:
         {
@@ -40,12 +38,11 @@ def load_evaluation_set(
     """
     targets_dir = Path(targets_dir)
     datasets_dir = Path(datasets_dir)
-    configs_dir = Path(configs_dir)
 
     # 파일 경로 구성
     prompt_file = find_prompt_file(prompt_name, targets_dir)
     data_dir = datasets_dir / prompt_name
-    config_file = configs_dir / f"{prompt_name}.yaml"
+    config_file = targets_dir / prompt_name / "config.yaml"
 
     # 필수 파일 확인
     required_data_files = ["test_cases.json", "expected.json"]
@@ -101,7 +98,6 @@ def _extract_template(prompts: dict[str, str]) -> str:
 def list_evaluation_sets(
     targets_dir: str | Path = "targets",
     datasets_dir: str | Path = "datasets",
-    configs_dir: str | Path = "configs"
 ) -> list[str]:
     """사용 가능한 평가 세트 목록
 
@@ -109,7 +105,6 @@ def list_evaluation_sets(
     """
     targets_dir = Path(targets_dir)
     datasets_dir = Path(datasets_dir)
-    configs_dir = Path(configs_dir)
     sets = []
 
     for folder in targets_dir.iterdir():
@@ -126,14 +121,16 @@ def list_evaluation_sets(
         if not has_prompt:
             continue
 
-        # 데이터셋 및 설정 파일 확인
-        data_dir = datasets_dir / name
-        config_file = configs_dir / f"{name}.yaml"
+        # config.yaml 존재 확인 (targets/{name}/config.yaml)
+        config_file = folder / "config.yaml"
+        if not config_file.exists():
+            continue
 
+        # 데이터셋 확인
+        data_dir = datasets_dir / name
         required_data = ["test_cases.json", "expected.json"]
         if (data_dir.exists()
-            and all((data_dir / f).exists() for f in required_data)
-            and config_file.exists()):
+            and all((data_dir / f).exists() for f in required_data)):
             sets.append(name)
 
     return sets

@@ -69,7 +69,6 @@ targets/{name}/prompt.*             datasets/{name}/
 |------|------|:----:|
 | `keyword_inclusion` | 필수 키워드 포함 비율 | 0.0~1.0 |
 | `forbidden_word_check` | 금지어 포함 여부 | 0 or 1 |
-| `format_validity` | JSON/구조 유효성 | 0 or 1 |
 
 #### LLM Judge 평가 기준
 
@@ -151,7 +150,7 @@ targets/{name}/prompt.*             datasets/{name}/
 }
 ```
 
-### 4.4. 평가 설정 (configs/{name}.yaml)
+### 4.4. 평가 설정 (targets/{name}/config.yaml)
 
 ```yaml
 name: prep_generate
@@ -183,95 +182,20 @@ run_mode: quick  # quick | full
 
 ## 5. CLI 명령어
 
-### 5.1. 평가 실행
+| 명령어 | 설명 |
+|--------|------|
+| `experiment --name {name}` | 평가 실행 |
+| `validate --name {name}` | config 검증 |
+| `prompt push/pull/versions` | 프롬프트 버전 관리 |
+| `list` | 평가 세트 목록 |
+| `criteria` | 사용 가능한 평가 기준 |
+| `upload --name {name}` | 데이터셋 LangSmith 업로드 |
 
-```bash
-# LangSmith Experiment 실행
-poetry run python main.py experiment --name prep_generate
-poetry run python main.py experiment --name prep_generate --mode full
-
-# 특정 프롬프트 버전으로 평가
-poetry run python main.py experiment --name prep_generate --version v1.0
-```
-
-### 5.2. 설정 검증
-
-```bash
-# 단일 config 검증
-poetry run python main.py validate --name prep_generate
-
-# 모든 config 검증
-poetry run python main.py validate --all
-```
-
-**출력 예시:**
-```
-prep_generate config 검증 중...
-------------------------------------------------------------
-✓ config 유효
-  ⚠ eval_prompt 파일 없음: eval_prompts/oneonone/instruction_following.txt
-```
-
-### 5.3. 프롬프트 버전 관리
-
-```bash
-# LangSmith에 업로드
-poetry run python main.py prompt push --name prep_generate --tag v1.0
-
-# LangSmith에서 가져오기
-poetry run python main.py prompt pull --name prep_generate --tag v1.0
-
-# 버전 목록 조회
-poetry run python main.py prompt versions --name prep_generate
-
-# 프롬프트 키 확인 (.py/.xml 파일용)
-poetry run python main.py prompt keys --name prep_generate
-```
-
-### 5.4. 유틸리티
-
-```bash
-# 평가 세트 목록
-poetry run python main.py list
-
-# 사용 가능한 평가 기준
-poetry run python main.py criteria
-
-# 데이터셋 업로드
-poetry run python main.py upload --name prep_generate
-```
+> 상세 사용법은 [사용 가이드](./GUIDE.md) 참조
 
 ---
 
-## 6. 새 프롬프트 추가 방법
-
-### 6.1. 폴더 생성
-
-```bash
-mkdir -p targets/my_prompt
-mkdir -p datasets/my_prompt
-```
-
-### 6.2. 파일 작성
-
-1. **프롬프트**: `targets/my_prompt/prompt.txt`
-2. **테스트 케이스**: `datasets/my_prompt/test_cases.json`
-3. **기대 결과**: `datasets/my_prompt/expected.json`
-4. **설정**: `configs/my_prompt.yaml`
-
-### 6.3. 검증 및 실행
-
-```bash
-# 설정 검증
-poetry run python main.py validate --name my_prompt
-
-# 평가 실행
-poetry run python main.py experiment --name my_prompt
-```
-
----
-
-## 7. 평가 워크플로우
+## 6. 평가 워크플로우
 
 ```
 [1. 데이터셋 구축]
@@ -286,7 +210,7 @@ poetry run python main.py experiment --name my_prompt
   LangSmith 기록      실패 케이스 분석
 ```
 
-### 7.1. 회귀 테스트 기준
+### 6.1. 회귀 테스트 기준
 
 | 지표 | 허용 변동폭 | 조치 |
 |------|:----------:|------|
@@ -296,7 +220,7 @@ poetry run python main.py experiment --name my_prompt
 
 ---
 
-## 8. 비용 추정 (100개 테스트 기준)
+## 7. 비용 추정 (100개 테스트 기준)
 
 | 구성요소 | 단가 | 100회 비용 |
 |----------|:----:|:----------:|
@@ -307,7 +231,7 @@ poetry run python main.py experiment --name my_prompt
 
 ---
 
-## 9. 향후 계획
+## 8. 향후 계획
 
 ### 미구현 항목
 
@@ -339,6 +263,7 @@ poetry run python main.py experiment --name my_prompt
 
 ---
 
-## 10. 참고 문서
+## 9. 참고 문서
 
-- [LangSmith 프롬프트 관리](./LANGSMITH_PROMPTS.md) - 버전 관리 사용법
+- [사용 가이드](./GUIDE.md) - 평가 체계 활용 방법
+- [LangSmith 프롬프트 관리](./LANGSMITH_PROMPTS.md) - 버전 관리 상세

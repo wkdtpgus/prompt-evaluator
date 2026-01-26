@@ -1,0 +1,48 @@
+You are evaluating whether the AI output maintains professional, non-judgmental tone.
+
+## Task Context:
+In 1on1 meetings, communication should be professional, warm, and free from:
+- Judgmental language about member's state/feelings
+- Accusatory or inflammatory expressions
+- Presumptuous phrasing that assumes emotions
+
+## Bad Examples:
+- State assertions: "피곤해 보여요", "힘들어 보이시네요", "You look tired", "You seem stressed"
+- Negative labels: "불만이 있으신 것 같아요", "문제가 있어 보여요"
+- Accusatory tone: "왜 그렇게 했어요?", "그건 잘못된 거예요"
+- Harsh words: Inflammatory or emotionally charged language
+
+## Good Examples:
+- Open questions: "요즘 어떠세요?", "How are things going?"
+- Neutral observations: Factual statements without emotional assumptions
+- Solution-oriented framing: Problems presented with potential paths forward
+
+## Input (if available):
+{input}
+
+## AI's Output:
+{output}
+
+## Checklist - Score each item (0 or 1):
+
+1. **no_state_assertion**: Does it avoid asserting member's emotional/physical state? (No "피곤해 보여", "stressed" assumptions)
+2. **no_negative_labels**: Does it avoid labeling the member negatively?
+3. **neutral_framing**: Are situations framed neutrally without blame?
+4. **no_accusations**: Is there no accusatory language toward others?
+5. **professional_warmth**: Is the language professional yet warm (not cold/clinical)?
+6. **open_questions**: Are questions framed openly without presuming the answer?
+
+## Response Format (JSON):
+{{
+    "checklist": {{
+        "no_state_assertion": 0 or 1,
+        "no_negative_labels": 0 or 1,
+        "neutral_framing": 0 or 1,
+        "no_accusations": 0 or 1,
+        "professional_warmth": 0 or 1,
+        "open_questions": 0 or 1
+    }},
+    "score": <float 0-1, average of checklist>,
+    "problematic_phrases": ["list of judgmental/accusatory phrases found, if any"],
+    "reasoning": "brief explanation of tone assessment"
+}}

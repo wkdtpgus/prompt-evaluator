@@ -1,0 +1,28 @@
+You are evaluating the quality of 1on1 meeting prep analysis - specifically how well the AI classified member responses.
+
+## Input:
+{input}
+
+## AI's Output:
+{output}
+
+## Checklist - Score each item (0 or 1):
+
+1. **Correct Theme Classification**: Is each question_theme correctly categorized as Work/Career/Team Culture/Condition based on the actual content?
+2. **Accurate Response Quality**: Is response_quality (detailed/brief/avoided/survey_only) accurately assigned based on the criteria (detailed: 20+ chars with specifics, brief: minimal/vague, avoided: deflects/refuses, survey_only: no chat data)?
+3. **Bot Question Preserved**: Does bot_question accurately reflect the original chatbot question (or null for survey_only)?
+4. **Member Response Preserved**: Does member_response accurately capture the original member response without interpretation (or null for survey_only)?
+5. **All Topics Covered**: Are all Q&A pairs and survey topics from the input represented in the output (no missing topics)?
+
+## Response Format (JSON):
+{{
+    "checklist": {{
+        "correct_theme_classification": 0 or 1,
+        "accurate_response_quality": 0 or 1,
+        "bot_question_preserved": 0 or 1,
+        "member_response_preserved": 0 or 1,
+        "all_topics_covered": 0 or 1
+    }},
+    "score": <float 0-1, average of checklist>,
+    "reasoning": "brief explanation"
+}}

@@ -6,7 +6,6 @@ from src.evaluators.rule_based import (
     keyword_inclusion,
     forbidden_word_check,
     length_compliance,
-    format_validity,
     exact_match,
     run_rule_evaluators,
 )
@@ -130,53 +129,6 @@ class TestLengthCompliance:
         assert result["actual_length"] == 5
 
 
-class TestFormatValidity:
-    """format_validity 평가자 테스트."""
-
-    def test_valid_json(self):
-        """유효한 JSON 형식."""
-        output = '{"question_context": [{"theme": "Work"}]}'
-
-        result = format_validity(output, expected_format="json")
-
-        assert result["passed"] is True
-        assert result["parsed"] is not None
-
-    def test_json_with_markdown(self):
-        """마크다운 블록 내 JSON."""
-        output = """```json
-{"question_context": [{"theme": "Work"}]}
-```"""
-
-        result = format_validity(output, expected_format="json")
-
-        assert result["passed"] is True
-        assert result["parsed"]["question_context"][0]["theme"] == "Work"
-
-    def test_invalid_json(self):
-        """유효하지 않은 JSON."""
-        output = "이건 JSON이 아닙니다 { broken"
-
-        result = format_validity(output, expected_format="json")
-
-        assert result["passed"] is False
-        assert result["parsed"] is None
-        assert "Invalid JSON" in result["details"]
-
-    def test_missing_required_field(self):
-        """필수 필드 누락."""
-        output = '{"other_field": "value"}'
-
-        result = format_validity(
-            output,
-            expected_format="json",
-            schema={"required_fields": ["question_context"]}
-        )
-
-        assert result["passed"] is False
-        assert "Missing required fields" in result["details"]
-
-
 class TestExactMatch:
     """exact_match 평가자 테스트."""
 
@@ -226,16 +178,12 @@ class TestRunRuleEvaluators:
 
         assert "keyword_inclusion" in results
         assert "forbidden_word_check" in results
-        assert "format_validity" in results
 
         # 키워드 검사 통과
         assert results["keyword_inclusion"]["passed"] is True
 
         # 금지어 검사 통과
         assert results["forbidden_word_check"]["passed"] is True
-
-        # JSON 포맷 검사 통과
-        assert results["format_validity"]["passed"] is True
 
     def test_selective_checks(self):
         """선택적 평가자 실행."""
