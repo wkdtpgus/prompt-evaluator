@@ -1,13 +1,16 @@
 """프롬프트 평가 CLI
 
 Usage:
+    # 설정 검증
+    poetry run python main.py validate --name prep_generate
+    poetry run python main.py validate --all
+
     # LangSmith Experiment (정식 평가)
-    poetry run python main.py experiment --name coaching_analyzer
-    poetry run python main.py experiment --name question_generator
+    poetry run python main.py experiment --name prep_generate
 
     # 프롬프트 버전 관리
-    poetry run python main.py prompt push --name coaching_analyzer --tag v1.0
-    poetry run python main.py prompt versions --name coaching_analyzer
+    poetry run python main.py prompt push --name prep_generate --tag v1.0
+    poetry run python main.py prompt versions --name prep_generate
 
     # 평가 세트 목록
     poetry run python main.py list
@@ -21,17 +24,20 @@ from typing import Annotated, Optional
 import typer
 from dotenv import load_dotenv
 
-from src.data_loader import (
+from src.loaders import (
     find_prompt_file,
     list_evaluation_sets,
-    list_prompt_versions,
     load_prompt_file,
+)
+from utils import (
+    list_prompt_versions,
     pull_prompt,
     push_prompt,
     upload_to_langsmith,
 )
 from src.evaluators.llm_judge import list_available_criteria
 from src.pipeline import run_langsmith_experiment
+from utils.config_validator import validate_config, validate_all_configs
 
 load_dotenv()
 
@@ -86,6 +92,70 @@ def experiment(
         experiment_prefix=prefix,
         prompt_version=version,
     )
+
+
+@app.command()
+def validate(
+    name: Annotated[Optional[str], typer.Option("--name", "-n", help="검증할 프롬프트 이름")] = None,
+    all_configs: Annotated[bool, typer.Option("--all", "-a", help="모든 config 검증")] = False,
+):
+    """config 파일 유효성 검증."""
+    from pathlib import Path
+    import yaml
+
+    if not name and not all_configs:
+        typer.echo("--name 또는 --all 옵션을 지정하세요.")
+        raise typer.Exit(1)
+
+    if all_configs:
+        typer.echo("\n모든 config 검증 중...")
+        typer.echo("-" * 60)
+
+        results = validate_all_configs()
+
+        for prompt_name, result in results.items():
+            status = "✓" if result.valid else "✗"
+            typer.echo(f"\n{status} {prompt_name}")
+
+            for error in result.errors:
+                typer.echo(f"  ✗ {error}")
+            for warning in result.warnings:
+                typer.echo(f"  ⚠ {warning}")
+
+        typer.echo("\n" + "-" * 60)
+        valid_count = sum(1 for r in results.values() if r.valid)
+        typer.echo(f"결과: {valid_count}/{len(results)} 통과")
+    else:
+        config_file = Path("configs") / f"{name}.yaml"
+        if not config_file.exists():
+            typer.echo(f"config 파일 없음: {config_file}")
+            raise typer.Exit(1)
+
+        with open(config_file, "r", encoding="utf-8") as f:
+            config = yaml.safe_load(f)
+
+        typer.echo(f"\n{name} config 검증 중...")
+        typer.echo("-" * 60)
+
+        result = validate_config(config, name)
+
+        if result.valid:
+            typer.echo(f"✓ config 유효")
+        else:
+            typer.echo(f"✗ config 오류 발견")
+
+        for error in result.errors:
+            typer.echo(f"  ✗ {error}")
+        for warning in result.warnings:
+            typer.echo(f"  ⚠ {warning}")
+
+        if not result.errors and not result.warnings:
+            typer.echo("  문제 없음")
+
+        typer.echo()
+
+        if not result.valid:
+            raise typer.Exit(1)
 
 
 @app.command()

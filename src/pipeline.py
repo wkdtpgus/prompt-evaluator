@@ -24,7 +24,8 @@ from configs.config import (
 from src.evaluators.rule_based import run_rule_evaluators
 from src.evaluators.llm_judge import run_checklist_evaluation, create_checklist_evaluator
 from src.evaluators.similarity import _levenshtein_similarity
-from src.data_loader import load_evaluation_set, upload_to_langsmith
+from src.loaders import load_evaluation_set
+from utils import upload_to_langsmith
 from utils.models import execution_llm
 
 load_dotenv()
@@ -362,7 +363,7 @@ def run_langsmith_experiment(
     Returns:
         실험 URL
     """
-    from src.data_loader import pull_prompt
+    from utils import pull_prompt
 
     # 1. 데이터셋 업로드 (없으면 생성)
     dataset_name = upload_to_langsmith(prompt_name)
