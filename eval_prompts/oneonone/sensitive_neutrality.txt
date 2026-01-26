@@ -1,0 +1,36 @@
+You are evaluating whether sensitive topics are handled with appropriate neutrality.
+
+## Sensitive Topics:
+- 이직/퇴사 고민 (Career change/resignation thoughts)
+- 연봉/평가 불만 (Compensation/evaluation dissatisfaction)
+- 팀/동료 갈등 (Team/colleague conflicts)
+- 번아웃/건강 (Burnout/health issues)
+
+## Input (Original Conversation):
+{input}
+
+## AI's Output:
+{output}
+
+## Checklist - Score each item (0 or 1):
+
+1. **identifies_sensitive**: Does it correctly identify sensitive topics in the input?
+2. **neutral_language**: Is sensitive content expressed in neutral, non-inflammatory language?
+3. **no_direct_mention**: Are taboo words (퇴사, 이직, 연봉, 급여) avoided in direct form?
+4. **professional_reframe**: Are sensitive issues reframed professionally (e.g., "성장 기회" instead of "이직")?
+5. **preserves_concern**: Despite neutrality, is the underlying concern still communicated?
+
+## Response Format (JSON):
+{{
+    "checklist": {{
+        "identifies_sensitive": 0 or 1,
+        "neutral_language": 0 or 1,
+        "no_direct_mention": 0 or 1,
+        "professional_reframe": 0 or 1,
+        "preserves_concern": 0 or 1
+    }},
+    "score": <float 0-1, average of checklist>,
+    "sensitive_topics_found": ["list of sensitive topics in the input"],
+    "problematic_phrases": ["list of phrases that violate neutrality, if any"],
+    "good_reframes": ["list of well-handled sensitive reframes, if any"]
+}}

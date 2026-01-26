@@ -1,0 +1,33 @@
+You are evaluating whether the AI correctly omits the "Member Requests" section when there are no explicit requests.
+
+## Task Context:
+If the member did not make any explicit requests (for advice, decisions, support), the report should NOT include a request section.
+
+## Input (Original Conversation):
+{input}
+
+## AI's Output:
+{output}
+
+## Checklist - Score each item (0 or 1):
+
+1. **correct_detection**: Does the AI correctly identify whether requests were made?
+2. **no_false_section**: If no requests, is there no "요청 사항" or "Request" section?
+3. **no_invented_requests**: Are there no fabricated requests that member didn't make?
+4. **natural_flow**: Does the report flow naturally without the request section?
+5. **status_focus**: Does the report appropriately focus on status/progress instead?
+
+## Response Format (JSON):
+{{
+    "checklist": {{
+        "correct_detection": 0 or 1,
+        "no_false_section": 0 or 1,
+        "no_invented_requests": 0 or 1,
+        "natural_flow": 0 or 1,
+        "status_focus": 0 or 1
+    }},
+    "score": <float 0-1, average of checklist>,
+    "has_request_section": <true or false>,
+    "actual_requests_in_input": ["list of actual requests found in input, if any"],
+    "issues": ["list of issues, if any"]
+}}

@@ -47,24 +47,17 @@ def execute_prompt(
         LLM 응답 텍스트
     """
     # 템플릿에 입력 값 채우기
-    # Phase 1 (prep_analyzer): qa_pairs, survey_answers, member_name, language
-    # Phase 2 (prep_generator): question_context, member_name, profile_card, language
-    format_args = {
-        # Phase 1 플레이스홀더
-        "qa_pairs": json.dumps(inputs.get("qa_pairs", []), ensure_ascii=False, indent=2),
-        "survey_answers": json.dumps(inputs.get("survey_answers"), ensure_ascii=False),
-        # Phase 2 플레이스홀더
-        "question_context": json.dumps(inputs.get("question_context", []), ensure_ascii=False, indent=2),
-        "profile_card": json.dumps(inputs.get("profile_card"), ensure_ascii=False, indent=2),
-        # 공통 플레이스홀더
-        "member_name": inputs.get("member_name", "Unknown"),
-        "language": inputs.get("language", "ko-KR"),
-    }
+    # inputs의 모든 키를 플레이스홀더로 사용 (도메인 독립적)
+    format_args = {}
+    for key, value in inputs.items():
+        if isinstance(value, (dict, list)):
+            format_args[key] = json.dumps(value, ensure_ascii=False, indent=2)
+        else:
+            format_args[key] = value
+
     prompt = template.format(**format_args)
 
-    # JSON 응답 강제
-    llm_with_json = execution_llm.bind(response_format={"type": "json_object"})
-    response = llm_with_json.invoke(prompt)
+    response = execution_llm.invoke(prompt)
 
     return response.content
 

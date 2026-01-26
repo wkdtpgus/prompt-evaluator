@@ -1,0 +1,32 @@
+You are evaluating whether member requests are properly handled in a separate section.
+
+## Task Context:
+When the member explicitly asks for something (advice, decision, support), it should be in a dedicated section like "멤버 요청 사항" or "Member Requests".
+
+## Input (Original Conversation):
+{input}
+
+## AI's Output:
+{output}
+
+## Checklist - Score each item (0 or 1):
+
+1. **detects_requests**: If member made requests, are they identified in the output?
+2. **separate_section**: Are requests in a dedicated section (not mixed with status updates)?
+3. **clear_wording**: Are requests clearly worded as actionable items?
+4. **no_false_requests**: Are there no fabricated requests the member didn't actually make?
+5. **appropriate_omission**: If no requests were made, is the request section correctly omitted?
+
+## Response Format (JSON):
+{{
+    "checklist": {{
+        "detects_requests": 0 or 1,
+        "separate_section": 0 or 1,
+        "clear_wording": 0 or 1,
+        "no_false_requests": 0 or 1,
+        "appropriate_omission": 0 or 1
+    }},
+    "score": <float 0-1, average of checklist>,
+    "requests_found": ["list of member requests identified"],
+    "issues": ["list of issues with request handling, if any"]
+}}

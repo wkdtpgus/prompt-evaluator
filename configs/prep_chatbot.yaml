@@ -1,0 +1,46 @@
+# 1on1 Meeting Prep Report Generator 평가 설정
+# 프롬프트: chat_summary_state + context → 1on1 Prep Report 생성
+
+# LLM Judge 평가 프롬프트 도메인 (eval_prompts/{domain}/)
+eval_prompts_domain: oneonone
+
+evaluators:
+  # Rule-based 평가자 (무료)
+  - type: rule_based
+    checks:
+      - keyword_inclusion    # 필수 키워드 포함 여부
+      - forbidden_word_check # 금지어 사용 여부 (민감 주제 직접 언급 방지)
+
+  # LLM-as-Judge (고비용, 선택적)
+  - type: llm_judge
+    criteria:
+      # 일반 평가 기준
+      - instruction_following  # 프롬프트 지시사항 준수
+      - output_quality         # 전반적 출력 품질
+      # Prep Report 특화 평가 기준
+      - tone_appropriateness   # 톤/어조 적절성 (1인칭, executive polish)
+      - sensitive_topic_handling # 민감한 주제 처리 (이직/연봉 등)
+      # 출력 품질 검증
+      - header_format          # 헤더에 컨디션, 핵심 주제 포함 (2줄)
+      - section_count          # 본문 섹션 2~5개 범위
+      - emotional_refinement   # 감정적 표현 → 사실 기반 정제
+      - intent_preservation    # 멤버 의도 왜곡 여부
+      - actionable_output      # 리더가 바로 판단/액션 가능한 형태
+      - request_section        # 멤버 요청 사항 별도 섹션 분리
+      - content_relevance      # 불필요한 섹션 없이 대화 내용에 맞게 구성
+      - negative_tone_check    # 부정적 사안 직접 표현 정제
+      # 엣지 케이스 검증
+      - short_conversation     # 대화 2턴 이하 → 최소 2섹션 생성
+      - no_request_handling    # 요청 없을 때 "멤버 요청 사항" 섹션 생략
+      - sensitive_neutrality   # 민감 주제 시 중립적 톤 유지
+    enabled: true
+
+# 통과 기준
+thresholds:
+  pass_rate: 0.85      # 전체 케이스 중 85% 통과
+  min_score: 0.70      # 개별 케이스 최소 점수
+
+# 실행 모드
+# quick: Sanity check만 (pass/fail)
+# full: Sanity check + LLM Judge (점수 평가)
+run_mode: quick

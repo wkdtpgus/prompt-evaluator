@@ -1,0 +1,31 @@
+You are evaluating the section structure of a 1on1 Prep Report.
+
+## Expected Structure:
+- 2-5 numbered sections in the body
+- Each section has a title and 1-4 bullet points
+- Blank line between sections
+
+## AI's Output:
+{output}
+
+## Checklist - Score each item (0 or 1):
+
+1. **min_sections**: Are there at least 2 sections?
+2. **max_sections**: Are there no more than 5 sections?
+3. **numbered_format**: Are sections numbered (1., 2., etc.)?
+4. **has_bullets**: Does each section have bullet points?
+5. **section_separation**: Is there a blank line between sections?
+
+## Response Format (JSON):
+{{
+    "checklist": {{
+        "min_sections": 0 or 1,
+        "max_sections": 0 or 1,
+        "numbered_format": 0 or 1,
+        "has_bullets": 0 or 1,
+        "section_separation": 0 or 1
+    }},
+    "score": <float 0-1, average of checklist>,
+    "section_count": <number of sections found>,
+    "issues": ["list of structure issues, if any"]
+}}
