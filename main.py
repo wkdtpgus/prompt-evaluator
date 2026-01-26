@@ -19,10 +19,25 @@ Usage:
     poetry run python main.py criteria
 """
 
+import subprocess
 from typing import Annotated, Optional
 
 import typer
 from dotenv import load_dotenv
+
+
+def get_git_user_email() -> str | None:
+    """git config에서 user.email 가져오기"""
+    try:
+        result = subprocess.run(
+            ["git", "config", "user.email"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return result.stdout.strip() or None
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
 
 from src.loaders import (
     find_prompt_file,
@@ -34,6 +49,17 @@ from utils import (
     pull_prompt,
     push_prompt,
     upload_to_langsmith,
+)
+from src.versioning.prompt_metadata import (
+    load_metadata,
+    init_metadata,
+    add_version,
+    get_version_history,
+    ensure_metadata_exists,
+    is_prompt_changed,
+    auto_version_and_push_info,
+    update_last_pushed_hash,
+    compute_prompt_hash,
 )
 from src.evaluators.llm_judge import list_available_criteria
 from src.pipeline import run_langsmith_experiment
@@ -79,18 +105,130 @@ def experiment(
     mode: Annotated[str, typer.Option("--mode", "-m", help="실행 모드 (quick/full)")] = "full",
     prefix: Annotated[Optional[str], typer.Option("--prefix", "-p", help="실험 이름 접두사")] = None,
     version: Annotated[Optional[str], typer.Option("--version", "-v", help="LangSmith 프롬프트 버전 태그")] = None,
+    changes: Annotated[Optional[str], typer.Option("--changes", "-c", help="변경 내용 (프롬프트 변경 시)")] = None,
+    no_push: Annotated[bool, typer.Option("--no-push", help="자동 push 비활성화")] = False,
 ):
-    """LangSmith Experiment 실행 (정식 평가, 버전 비교용)."""
+    """LangSmith Experiment 실행 (정식 평가, 버전 비교용).
+
+    자동화 플로우:
+    1. 메타데이터 없으면 자동 init
+    2. 프롬프트 변경 감지 시 자동 버전 증가 + LangSmith push
+    3. 평가 실행
+    """
+    from pathlib import Path
+    from datetime import datetime
+
     # 모드 검증
     if mode not in ["quick", "full"]:
         typer.echo(f"Invalid mode: {mode}. Use quick/full")
         raise typer.Exit(1)
 
+    # 프롬프트 폴더 존재 확인
+    prompt_dir = Path("targets") / name
+    if not prompt_dir.exists():
+        typer.echo(f"프롬프트 폴더 없음: {prompt_dir}")
+        raise typer.Exit(1)
+
+    # --no-push 또는 --version 지정 시 기존 로직 사용
+    if no_push or version:
+        run_langsmith_experiment(
+            prompt_name=name,
+            mode=mode,
+            experiment_prefix=prefix,
+            prompt_version=version,
+        )
+        return
+
+    # 자동화 플로우 시작
+    typer.echo(f"\n프롬프트 버전 관리 체크: {name}")
+    typer.echo("-" * 60)
+
+    # 1. 메타데이터 확인
+    author = get_git_user_email()
+    if author is None:
+        typer.echo("git config user.email이 설정되지 않았습니다.")
+        raise typer.Exit(1)
+
+    metadata = load_metadata(name)
+    is_first_init = metadata is None
+
+    if is_first_init:
+        # 첫 init: 메타데이터 생성 + 바로 push (변경 내용 입력 불필요)
+        typer.echo("  메타데이터 없음 → 자동 초기화")
+        metadata = init_metadata(name, author)
+        typer.echo(f"  ✓ 초기화 완료 (owner: {author}, version: v1.0)")
+
+        # 첫 push
+        typer.echo("  LangSmith에 업로드 중...")
+        prompt_hash = compute_prompt_hash(name)
+        metadata_info = {
+            "version": "v1.0",
+            "author": author,
+            "changes": "Initial version",
+            "date": datetime.now().strftime("%Y-%m-%d"),
+        }
+        try:
+            url = push_prompt(
+                name,
+                version_tag="v1.0",
+                metadata_info=metadata_info,
+            )
+            update_last_pushed_hash(name, prompt_hash)
+            typer.echo(f"  ✓ LangSmith 업로드 완료")
+        except Exception as e:
+            typer.echo(f"  ✗ LangSmith 업로드 실패: {e}")
+            raise typer.Exit(1)
+
+    elif is_prompt_changed(name):
+        # 2. 프롬프트 변경 감지 (기존 메타데이터가 있는 경우만)
+        typer.echo("  프롬프트 변경 감지됨")
+
+        # changes가 없으면 인터랙티브 입력
+        if changes is None:
+            changes = typer.prompt("  변경 내용을 입력하세요")
+
+        # 자동 버전 증가
+        version_info = auto_version_and_push_info(name, author, changes)
+        new_version = version_info["version"]
+        prompt_hash = version_info["prompt_hash"]
+
+        typer.echo(f"  ✓ 새 버전 생성: {new_version}")
+        typer.echo(f"    작성자: {author}")
+        typer.echo(f"    변경: {changes}")
+
+        # LangSmith에 push
+        typer.echo("  LangSmith에 업로드 중...")
+        metadata_info = {
+            "version": new_version,
+            "author": author,
+            "changes": changes,
+            "date": datetime.now().strftime("%Y-%m-%d"),
+        }
+        try:
+            url = push_prompt(
+                name,
+                version_tag=new_version,
+                metadata_info=metadata_info,
+            )
+            # push 성공 시 해시 업데이트
+            update_last_pushed_hash(name, prompt_hash)
+            typer.echo(f"  ✓ LangSmith 업로드 완료")
+        except Exception as e:
+            typer.echo(f"  ✗ LangSmith 업로드 실패: {e}")
+            raise typer.Exit(1)
+    else:
+        typer.echo("  프롬프트 변경 없음 → 기존 버전 사용")
+        current_version = metadata.get("current_version", "v1.0")
+        typer.echo(f"  현재 버전: {current_version}")
+
+    typer.echo("-" * 60)
+
+    # 3. 평가 실행
     run_langsmith_experiment(
         prompt_name=name,
         mode=mode,
         experiment_prefix=prefix,
-        prompt_version=version,
+        prompt_version=None,  # 최신 버전 사용
     )
 
 
@@ -190,6 +328,109 @@ def criteria():
 
 prompt_app = typer.Typer(help="프롬프트 버전 관리 (LangSmith)")
 app.add_typer(prompt_app, name="prompt")
+
+
+@prompt_app.command(name="info")
+def prompt_info(
+    name: Annotated[str, typer.Argument(help="프롬프트 이름")],
+):
+    """프롬프트 메타데이터 조회 (로컬 버전 이력).
+
+    Usage: prompt info prep_generate
+    """
+    typer.echo(f"\n📋 프롬프트 정보: {name}")
+    typer.echo("-" * 60)
+
+    metadata = load_metadata(name)
+
+    if metadata is None:
+        typer.echo("메타데이터 없음. 'prompt init'으로 초기화하세요.")
+        typer.echo()
+        return
+
+    typer.echo(f"  소유자: {metadata.get('owner', '(미지정)')}")
+    typer.echo(f"  생성일: {metadata.get('created_at', '(미지정)')}")
+    typer.echo(f"  현재 버전: {metadata.get('current_version', '(미지정)')}")
+
+    history = get_version_history(name)
+    if history:
+        typer.echo(f"\n  [버전 이력] ({len(history)}개)")
+        for v in history[:5]:  # 최근 5개만 표시
+            hash_str = f" | {v['langsmith_hash'][:8]}" if v.get('langsmith_hash') else ""
+            typer.echo(f"    • {v['version']} ({v['date']}) - {v['changes']}{hash_str}")
+        if len(history) > 5:
+            typer.echo(f"    ... 외 {len(history) - 5}개")
+
+    typer.echo()
+
+
+@prompt_app.command(name="init")
+def prompt_init(
+    name: Annotated[str, typer.Argument(help="프롬프트 이름")],
+    owner: Annotated[Optional[str], typer.Option("--owner", "-o", help="소유자 이메일 (생략시 git config 사용)")] = None,
+):
+    """프롬프트 메타데이터 초기화.
+
+    Usage: prompt init prep_generate
+    """
+    from pathlib import Path
+
+    # owner 자동 감지
+    if owner is None:
+        owner = get_git_user_email()
+        if owner is None:
+            typer.echo("git config user.email이 설정되지 않았습니다. --owner 옵션을 사용하세요.")
+            raise typer.Exit(1)
+
+    # 프롬프트 폴더 존재 확인
+    prompt_dir = Path("targets") / name
+    if not prompt_dir.exists():
+        typer.echo(f"프롬프트 폴더 없음: {prompt_dir}")
+        raise typer.Exit(1)
+
+    existing = load_metadata(name)
+    if existing:
+        typer.echo(f"이미 메타데이터가 존재합니다. (현재 버전: {existing.get('current_version')})")
+        raise typer.Exit(1)
+
+    metadata = init_metadata(name, owner)
+    typer.echo(f"\n✓ 메타데이터 초기화 완료: {name}")
+    typer.echo(f"  소유자: {owner}")
+    typer.echo(f"  버전: v1.0")
+    typer.echo(f"  파일: targets/{name}/.metadata.yaml")
+    typer.echo()
+
+
+@prompt_app.command(name="add-version")
+def prompt_add_version(
+    name: Annotated[str, typer.Argument(help="프롬프트 이름")],
+    version: Annotated[str, typer.Argument(help="버전 태그 (예: v1.2)")],
+    changes: Annotated[str, typer.Argument(help="변경 내용")],
+    author: Annotated[Optional[str], typer.Option("--author", "-a", help="작성자 이메일 (생략시 git config 사용)")] = None,
+):
+    """새 버전 추가.
+
+    Usage: prompt add-version prep_generate v1.2 "톤 개선"
+    """
+    # author 자동 감지
+    if author is None:
+        author = get_git_user_email()
+        if author is None:
+            typer.echo("git config user.email이 설정되지 않았습니다. --author 옵션을 사용하세요.")
+            raise typer.Exit(1)
+
+    try:
+        add_version(name, version, author, changes)
+        typer.echo(f"\n✓ 버전 추가 완료: {name} {version}")
+        typer.echo(f"  작성자: {author}")
+        typer.echo(f"  변경: {changes}")
+        typer.echo()
+    except FileNotFoundError as e:
+        typer.echo(f"오류: {e}")
+        raise typer.Exit(1)
+    except ValueError as e:
+        typer.echo(f"오류: {e}")
+        raise typer.Exit(1)
 
 
 @prompt_app.command(name="push")
