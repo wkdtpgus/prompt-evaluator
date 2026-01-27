@@ -76,7 +76,7 @@
 ```
 DevOps                          PromptOps
 ──────────────────────────────────────────────────────────
-코드 저장소 (Git)         →     프롬프트 저장소 (LangSmith)
+코드 저장소 (Git)         →     프롬프트 저장소 (LangSmith/Langfuse)
 버전 관리 (tag, branch)   →     프롬프트 버전 + 메타데이터
 CI/CD 파이프라인          →     평가 파이프라인
 유닛 테스트               →     Rule-based 평가 (빠른 검증)
@@ -302,6 +302,34 @@ prompt-evaluator/
 - `src/regression/comparator.py` - 회귀 비교
 
 **GitHub Actions CI**: 후순위 (필요 시 구현 예정)
+
+---
+
+### Phase 2.5: Langfuse 통합 ✅ 구현 완료
+
+> 📖 **상세 문서**: [docs/langfuse-migration-plan.md](./langfuse-migration-plan.md)
+
+LangSmith와 함께 Langfuse를 평가 백엔드로 지원합니다.
+
+**구현된 기능**:
+- Langfuse SDK 통합 (`run_experiment` 기반)
+- Docker 로컬 환경 구성 (`docker-compose.yml`)
+- `--backend` CLI 옵션 (langsmith/langfuse/both)
+- 기본값 `both`로 두 플랫폼 동시 실행
+
+**백엔드 옵션**:
+
+| 옵션 | 설명 |
+|------|------|
+| `both` (기본값) | Langfuse → LangSmith 순서로 동시 실행 |
+| `langfuse` | Langfuse만 실행 |
+| `langsmith` | LangSmith만 실행 (자동 버전 관리) |
+
+**핵심 모듈**:
+- `src/pipeline.py` - `_run_langfuse_experiment()` 추가
+- `cli/experiment.py` - `--backend` 옵션 추가
+
+**향후 계획**: Langfuse 단독 사용 + 커스텀 리포트 생성
 
 ---
 
@@ -583,6 +611,7 @@ reporting:                     # NEW
 ### 기능별 상세 문서
 - [버전 관리 (Versioning)](./features/versioning.md) - Phase 1 상세
 - [회귀 테스트 (Regression)](./features/regression.md) - Phase 2 상세
+- [Langfuse 마이그레이션 계획](./langfuse-migration-plan.md) - Phase 2.5 상세
 - [CLI 레퍼런스](./features/cli-reference.md) - 전체 CLI 명령어
 
 ### 내부 문서
@@ -597,6 +626,6 @@ reporting:                     # NEW
 
 ---
 
-**Version**: 1.4.0
+**Version**: 1.5.0
 **Created**: 2026-01-26
-**Updated**: 2026-01-26 (문서 분리: features/)
+**Updated**: 2026-01-27 (Langfuse 통합: Phase 2.5)

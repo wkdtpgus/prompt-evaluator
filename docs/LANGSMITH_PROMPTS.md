@@ -99,3 +99,19 @@ src/
 | `.md` | 마크다운 형식 | `prompt.md` |
 | `.py` | Python 변수 | `SYSTEM_PROMPT = """..."""` |
 | `.xml` | XML 구조 | `<prompts><system>...</system></prompts>` |
+
+---
+
+## Langfuse 대안
+
+LangSmith 외에 **Langfuse**도 평가 백엔드로 지원됩니다.
+
+```bash
+# Langfuse만 사용
+poetry run python main.py experiment --name prep_chatbot --backend langfuse
+
+# LangSmith + Langfuse 동시 사용 (기본값)
+poetry run python main.py experiment --name prep_chatbot --backend both
+```
+
+> Langfuse 설정 및 마이그레이션 가이드: [langfuse-migration-plan.md](./langfuse-migration-plan.md)

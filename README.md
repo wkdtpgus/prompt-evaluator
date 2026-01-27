@@ -1,6 +1,6 @@
 # Prompt Evaluator
 
-LangSmith 기반 프롬프트 정량 평가 시스템
+LangSmith / Langfuse 기반 프롬프트 정량 평가 시스템
 
 ## 빠른 시작
 
@@ -8,10 +8,16 @@ LangSmith 기반 프롬프트 정량 평가 시스템
 # 의존성 설치
 poetry install
 
-# 평가 실행
-poetry run python main.py eval --name prep_analyzer
+# 평가 실행 (Langfuse + LangSmith 동시 - 기본값)
+poetry run python main.py experiment --name prep_analyzer
 
-# LangSmith Experiment 실행
+# Langfuse만 실행
+poetry run python main.py experiment --name prep_analyzer --backend langfuse
+
+# LangSmith만 실행
+poetry run python main.py experiment --name prep_analyzer --backend langsmith
+
+# full 모드 (LLM Judge 포함)
 poetry run python main.py experiment --name prep_analyzer --mode full
 ```
 
@@ -105,8 +111,15 @@ thresholds:
 
 ```bash
 # .env
-LANGSMITH_API_KEY=your_key
 OPENAI_API_KEY=your_key
+
+# LangSmith (선택)
+LANGSMITH_API_KEY=your_key
+
+# Langfuse (선택 - Docker 로컬 또는 클라우드)
+LANGFUSE_HOST=http://localhost:3000  # Docker 로컬
+LANGFUSE_PUBLIC_KEY=your_key
+LANGFUSE_SECRET_KEY=your_key
 
 # 임베딩 프로바이더 (선택)
 EMBEDDING_PROVIDER=openai  # 또는 vertex
@@ -115,11 +128,16 @@ EMBEDDING_PROVIDER=openai  # 또는 vertex
 ## CLI 명령어
 
 ```bash
-# 평가 실행
-poetry run python main.py eval --name {name} --mode {quick|standard|full}
-
-# LangSmith Experiment
+# 평가 실행 (기본: Langfuse + LangSmith 동시)
 poetry run python main.py experiment --name {name}
+
+# 백엔드 지정
+poetry run python main.py experiment --name {name} --backend langfuse
+poetry run python main.py experiment --name {name} --backend langsmith
+poetry run python main.py experiment --name {name} --backend both  # 기본값
+
+# 모드 지정
+poetry run python main.py experiment --name {name} --mode {quick|full}
 
 # 평가 세트 목록
 poetry run python main.py list
@@ -138,6 +156,7 @@ poetry run python main.py criteria
 
 ## 문서
 
-- [기획안](docs/PROMPT_EVALUATION_PLAN.md)
-- [구현 TODO](docs/TODO.md)
-- [Claude Skill 가이드](docs/CLAUDE_SKILL_LLM_JUDGE.md)
+- [사용 가이드](docs/GUIDE.md)
+- [기능 명세서](docs/SPECIFICATION.md)
+- [CLI 레퍼런스](docs/features/cli-reference.md)
+- [Langfuse 마이그레이션 계획](docs/langfuse-migration-plan.md)

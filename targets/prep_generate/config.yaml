@@ -19,7 +19,7 @@ evaluators:
       - instruction_following  # 프롬프트 지시사항 준수
       - output_quality         # 전반적 출력 품질
       # Prep Report 특화 평가 기준
-      - tone_appropriateness   # 톤/어조 적절성 (1인칭, executive polish)
+      - professional_tone      # 톤/어조 적절성 + 부정적 표현 정제 + 민감 주제 중립성 (통합)
       - sensitive_topic_handling # 민감한 주제 처리 (이직/연봉 등)
       # 출력 품질 검증
       - header_format          # 헤더에 컨디션, 핵심 주제 포함 (2줄)
@@ -29,11 +29,9 @@ evaluators:
       - actionable_output      # 리더가 바로 판단/액션 가능한 형태
       - request_section        # 멤버 요청 사항 별도 섹션 분리
       - content_relevance      # 불필요한 섹션 없이 대화 내용에 맞게 구성
-      - negative_tone_check    # 부정적 사안 직접 표현 정제
       # 엣지 케이스 검증
       - short_conversation     # 대화 2턴 이하 → 최소 2섹션 생성
       - no_request_handling    # 요청 없을 때 "멤버 요청 사항" 섹션 생략
-      - sensitive_neutrality   # 민감 주제 시 중립적 톤 유지
     enabled: true
 
 # 통과 기준

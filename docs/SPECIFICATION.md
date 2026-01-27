@@ -1,14 +1,16 @@
 # Prompt Evaluator 기능 명세서
 
-> **버전**: 1.1.0
-> **최종 수정일**: 2026-01-26
+> **버전**: 1.2.0
+> **최종 수정일**: 2026-01-27
 
 ---
 
 ## 1. 개요
 
 LLM 프롬프트의 성능을 정량적으로 측정하고 지속적으로 개선하기 위한 평가 시스템입니다.
-LangSmith를 활용하여 데이터 기반 의사결정을 가능하게 합니다.
+**LangSmith** 또는 **Langfuse**를 활용하여 데이터 기반 의사결정을 가능하게 합니다.
+
+> **Note**: 기본값 `--backend both`로 두 플랫폼에서 동시에 실험 실행 및 모니터링 가능
 
 ### 1.1. 핵심 목표
 
@@ -90,12 +92,29 @@ targets/{name}/prompt.*             datasets/{name}/
 | `quick` | Rule-based만 | 개발 중 빠른 검증 |
 | `full` | Rule + LLM Judge | 정식 평가 |
 
-### 3.3. LangSmith 연동
+### 3.3. 평가 플랫폼 연동
 
+#### LangSmith
 - **Dataset**: 테스트 케이스를 LangSmith에 업로드
 - **Experiment**: 평가 실행 및 결과 기록
 - **Prompt Hub**: 프롬프트 버전 관리
 - **Tracing**: LLM 호출 추적/디버깅
+
+#### Langfuse
+- **Dataset**: Langfuse Dataset으로 테스트 케이스 관리
+- **Experiment**: `run_experiment()` 기반 평가 실행
+- **Scores**: 평가 결과를 Score로 기록
+- **Tracing**: LLM 호출 추적 (셀프호스팅 가능)
+
+#### 백엔드 선택
+
+| 백엔드 | 설명 | 자동 버전관리 |
+|--------|------|:-------------:|
+| `both` (기본값) | Langfuse → LangSmith 순서로 동시 실행 | LangSmith만 |
+| `langfuse` | Langfuse만 실행 | - |
+| `langsmith` | LangSmith만 실행 | ✅ |
+
+> 상세 설정: [Langfuse 마이그레이션 계획](./langfuse-migration-plan.md)
 
 ---
 
@@ -184,7 +203,8 @@ run_mode: quick  # quick | full
 
 | 명령어 | 설명 |
 |--------|------|
-| `experiment --name {name}` | 평가 실행 (자동 버전 관리 포함) |
+| `experiment --name {name}` | 평가 실행 (기본: Langfuse + LangSmith 동시) |
+| `experiment --name {name} --backend {backend}` | 백엔드 지정 (langsmith/langfuse/both) |
 | `regression --name {name} --experiment {exp}` | 회귀 테스트 실행 |
 | `validate --name {name}` | config 검증 |
 | `list` | 평가 세트 목록 |
@@ -280,6 +300,7 @@ run_mode: quick  # quick | full
 - [버전 관리](./features/versioning.md) - 프롬프트 버전 추적
 - [회귀 테스트](./features/regression.md) - 기준선 비교 및 성능 저하 감지
 - [CLI 레퍼런스](./features/cli-reference.md) - 전체 CLI 명령어
+- [Langfuse 마이그레이션 계획](./langfuse-migration-plan.md) - Langfuse 통합 상세
 
 ### 가이드
 - [사용 가이드](./GUIDE.md) - 평가 체계 활용 방법

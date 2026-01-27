@@ -1,10 +1,10 @@
 """실험 및 회귀 테스트 CLI 명령어"""
 
-from typing import Annotated, Optional
+from typing import Annotated, Literal, Optional
 
 import typer
 
-from src.pipeline import run_langsmith_experiment
+from src.pipeline import run_experiment, run_langsmith_experiment
 from src.versioning.prompt_metadata import (
     load_metadata,
     init_metadata,
@@ -23,16 +23,25 @@ def experiment(
     name: Annotated[str, typer.Option("--name", "-n", help="평가 세트 이름")],
     mode: Annotated[str, typer.Option("--mode", "-m", help="실행 모드 (quick/full)")] = "full",
     prefix: Annotated[Optional[str], typer.Option("--prefix", "-p", help="실험 이름 접두사")] = None,
-    version: Annotated[Optional[str], typer.Option("--version", "-v", help="LangSmith 프롬프트 버전 태그")] = None,
+    version: Annotated[Optional[str], typer.Option("--version", "-v", help="프롬프트 버전 태그")] = None,
     changes: Annotated[Optional[str], typer.Option("--changes", "-c", help="변경 내용 (프롬프트 변경 시)")] = None,
     no_push: Annotated[bool, typer.Option("--no-push", help="자동 push 비활성화")] = False,
+    backend: Annotated[str, typer.Option("--backend", "-b", help="실험 백엔드 (langsmith/langfuse/both)")] = "both",
 ):
-    """LangSmith Experiment 실행 (정식 평가, 버전 비교용).
+    """평가 실험 실행 (LangSmith 또는 Langfuse).
 
-    자동화 플로우:
+    자동화 플로우 (LangSmith만 해당):
     1. 메타데이터 없으면 자동 init
     2. 프롬프트 변경 감지 시 자동 버전 증가 + LangSmith push
     3. 평가 실행
+
+    Langfuse 사용 시:
+    - 로컬 파일 또는 --version으로 지정된 버전 사용
+    - 자동 버전 관리는 별도 구현 예정
+
+    both 사용 시 (기본값):
+    - Langfuse 먼저 실행 → LangSmith 실행
+    - 두 플랫폼에서 동시에 모니터링 가능
     """
     from pathlib import Path
     from datetime import datetime
@@ -41,12 +50,51 @@ def experiment(
         typer.echo(f"Invalid mode: {mode}. Use quick/full")
         raise typer.Exit(1)
 
+    if backend not in ["langsmith", "langfuse", "both"]:
+        typer.echo(f"Invalid backend: {backend}. Use langsmith/langfuse/both")
+        raise typer.Exit(1)
+
     prompt_dir = Path("targets") / name
     if not prompt_dir.exists():
         typer.echo(f"프롬프트 폴더 없음: {prompt_dir}")
         raise typer.Exit(1)
 
-    # --no-push 또는 --version 지정 시 기존 로직 사용
+    # both: Langfuse + LangSmith 동시 실행
+    if backend == "both":
+        typer.echo(f"\n🔬 [1/2] Langfuse Experiment 실행: {name}")
+        typer.echo("-" * 60)
+        run_experiment(
+            prompt_name=name,
+            mode=mode,
+            experiment_prefix=prefix,
+            prompt_version=version,
+            backend="langfuse",
+        )
+        typer.echo(f"\n🔬 [2/2] LangSmith Experiment 실행: {name}")
+        typer.echo("-" * 60)
+        run_experiment(
+            prompt_name=name,
+            mode=mode,
+            experiment_prefix=prefix,
+            prompt_version=version,
+            backend="langsmith",
+        )
+        return
+
+    # Langfuse 백엔드: 단순 실험 실행
+    if backend == "langfuse":
+        typer.echo(f"\n🔬 Langfuse Experiment 실행: {name}")
+        typer.echo("-" * 60)
+        run_experiment(
+            prompt_name=name,
+            mode=mode,
+            experiment_prefix=prefix,
+            prompt_version=version,
+            backend="langfuse",
+        )
+        return
+
+    # LangSmith 백엔드: --no-push 또는 --version 지정 시 기존 로직 사용
     if no_push or version:
         run_langsmith_experiment(
             prompt_name=name,
@@ -133,11 +181,12 @@ def experiment(
 
     typer.echo("-" * 60)
 
-    run_langsmith_experiment(
+    run_experiment(
         prompt_name=name,
         mode=mode,
         experiment_prefix=prefix,
         prompt_version=None,
+        backend="langsmith",
     )
 
 

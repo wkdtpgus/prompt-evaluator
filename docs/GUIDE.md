@@ -147,8 +147,14 @@ run_mode: quick  # quick: Rule만 | full: Rule + LLM Judge
 # 설정 검증
 poetry run python main.py validate --name my_prompt
 
-# 평가 실행 (quick 모드 - Rule-based만)
+# 평가 실행 (Langfuse + LangSmith 동시 - 기본값)
 poetry run python main.py experiment --name my_prompt
+
+# Langfuse만 실행
+poetry run python main.py experiment --name my_prompt --backend langfuse
+
+# LangSmith만 실행 (자동 버전 관리)
+poetry run python main.py experiment --name my_prompt --backend langsmith
 
 # 정식 평가 (full 모드 - Rule + LLM Judge)
 poetry run python main.py experiment --name my_prompt --mode full
@@ -161,8 +167,12 @@ poetry run python main.py experiment --name my_prompt --mode full
 ### 3.1. 평가 실행
 
 ```bash
-# 기본 실행
+# 기본 실행 (Langfuse + LangSmith 동시)
 poetry run python main.py experiment --name {name}
+
+# 백엔드 지정
+poetry run python main.py experiment --name {name} --backend langfuse  # Langfuse만
+poetry run python main.py experiment --name {name} --backend langsmith # LangSmith만
 
 # 모드 지정
 poetry run python main.py experiment --name {name} --mode full
@@ -267,13 +277,15 @@ poetry run python main.py experiment --name {name} --mode full
 
 ## 6. 결과 확인
 
-### 6.1. LangSmith 대시보드
+### 6.1. 평가 대시보드
 
-평가 결과는 LangSmith Experiments에서 확인합니다:
+평가 결과는 **LangSmith** 또는 **Langfuse** 대시보드에서 확인합니다:
 - 각 테스트 케이스별 점수
 - 평가 기준별 상세 결과
 - 실패 케이스 분석
 - 버전 간 비교
+
+> **Note**: 기본값 `--backend both`로 실행 시 두 플랫폼에서 동시에 결과 확인 가능
 
 ### 6.2. 회귀 테스트
 
@@ -342,3 +354,5 @@ KeyError: '{placeholder}'
 
 - [기능 명세서](./SPECIFICATION.md) - 시스템 상세 스펙
 - [LangSmith 프롬프트 관리](./LANGSMITH_PROMPTS.md) - 버전 관리 상세
+- [Langfuse 마이그레이션 계획](./langfuse-migration-plan.md) - Langfuse 통합 상세
+- [CLI 레퍼런스](./features/cli-reference.md) - 전체 CLI 명령어

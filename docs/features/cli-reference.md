@@ -53,13 +53,13 @@ main.py
 
 ### 2.1. experiment
 
-LangSmith Experiment 실행 (정식 평가, 버전 비교용)
+평가 실험 실행 (LangSmith, Langfuse, 또는 동시 실행)
 
 ```bash
 poetry run python main.py experiment --name <name> [options]
 ```
 
-**자동화 플로우**:
+**자동화 플로우** (LangSmith 백엔드):
 1. 메타데이터 없으면 자동 init
 2. 프롬프트 변경 감지 시 자동 버전 증가 + LangSmith push
 3. 평가 실행
@@ -69,18 +69,30 @@ poetry run python main.py experiment --name <name> [options]
 | `--name` | `-n` | 평가 세트 이름 | 필수 |
 | `--mode` | `-m` | 실행 모드 (quick/full) | full |
 | `--prefix` | `-p` | 실험 이름 접두사 | None |
-| `--version` | `-v` | LangSmith 프롬프트 버전 태그 | None |
+| `--version` | `-v` | 프롬프트 버전 태그 | None |
 | `--changes` | `-c` | 변경 내용 (프롬프트 변경 시) | None |
-| `--no-push` | | 자동 push 비활성화 | false |
+| `--no-push` | | 자동 push 비활성화 (LangSmith만) | false |
+| `--backend` | `-b` | 실험 백엔드 (langsmith/langfuse/both) | both |
+
+**백엔드 옵션**:
+- `both` (기본값): Langfuse → LangSmith 순서로 동시 실행
+- `langfuse`: Langfuse만 실행 (Docker 로컬 또는 클라우드)
+- `langsmith`: LangSmith만 실행 (자동 버전 관리 포함)
 
 **예시**:
 
 ```bash
-# 기본 실행 (자동 버전 관리)
+# 기본 실행 (Langfuse + LangSmith 동시)
 poetry run python main.py experiment --name prep_generate
 
-# 변경 내용 직접 지정
-poetry run python main.py experiment --name prep_generate --changes "톤 개선"
+# Langfuse만 실행
+poetry run python main.py experiment --name prep_generate --backend langfuse
+
+# LangSmith만 실행 (자동 버전 관리)
+poetry run python main.py experiment --name prep_generate --backend langsmith
+
+# 변경 내용 직접 지정 (LangSmith 백엔드)
+poetry run python main.py experiment --name prep_generate --backend langsmith --changes "톤 개선"
 
 # 빠른 테스트 (quick 모드)
 poetry run python main.py experiment --name prep_generate --mode quick
@@ -88,8 +100,8 @@ poetry run python main.py experiment --name prep_generate --mode quick
 # 특정 버전으로 평가
 poetry run python main.py experiment --name prep_generate --version v1.0
 
-# 자동 push 없이 실행
-poetry run python main.py experiment --name prep_generate --no-push
+# 자동 push 없이 실행 (LangSmith만)
+poetry run python main.py experiment --name prep_generate --backend langsmith --no-push
 ```
 
 ---
@@ -477,8 +489,14 @@ poetry run python main.py list
 # 2. 설정 검증
 poetry run python main.py validate --name prep_generate
 
-# 3. 평가 실행 (자동 버전 관리)
+# 3. 평가 실행 (Langfuse + LangSmith 동시 - 기본값)
 poetry run python main.py experiment --name prep_generate
+
+# 3-1. Langfuse만 실행
+poetry run python main.py experiment --name prep_generate --backend langfuse
+
+# 3-2. LangSmith만 실행 (자동 버전 관리)
+poetry run python main.py experiment --name prep_generate --backend langsmith
 
 # 4. 기준선 설정
 poetry run python main.py baseline set prep_generate "prep_generate-full-2026-01-26"
@@ -514,3 +532,4 @@ poetry run python main.py regression --name prep_generate --experiment "..." --f
 - [버전 관리](./versioning.md) - 프롬프트 버전 추적 상세
 - [회귀 테스트](./regression.md) - 회귀 테스트 상세
 - [PromptOps 기획서](../PROMPTOPS_PLAN.md) - 전체 로드맵
+- [Langfuse 마이그레이션 계획](../langfuse-migration-plan.md) - Langfuse 통합 상세
