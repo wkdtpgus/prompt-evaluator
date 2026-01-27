@@ -151,7 +151,13 @@ A/B 테스트                →     프롬프트 A/B 비교
 
 ```
 prompt-evaluator/
-├── main.py                      # CLI (Typer)
+├── main.py                      # CLI 엔트리포인트 (앱 조립만)
+├── cli/                         # CLI 명령어 모듈
+│   ├── prompt.py                # prompt 서브커맨드
+│   ├── baseline.py              # baseline 서브커맨드
+│   ├── experiment.py            # experiment, regression 명령어
+│   ├── config.py                # validate, criteria 명령어
+│   └── dataset.py               # list, upload 명령어
 ├── configs/
 │   └── config.py                # 기본 설정값
 ├── src/
@@ -160,20 +166,29 @@ prompt-evaluator/
 │   │   ├── rule_based.py
 │   │   ├── llm_judge.py
 │   │   └── similarity.py
-│   └── loaders/
-│       ├── prompt_loader.py
-│       └── dataset_loader.py
+│   ├── loaders/
+│   │   ├── prompt_loader.py
+│   │   └── dataset_loader.py
+│   ├── versioning/              # 버전 관리
+│   │   └── prompt_metadata.py
+│   └── regression/              # 회귀 테스트
+│       ├── baseline.py
+│       └── comparator.py
 ├── utils/
 │   ├── models.py
+│   ├── git.py                   # git 관련 유틸
 │   ├── config_validator.py
 │   ├── langsmith_prompts.py
 │   └── langsmith_datasets.py
 ├── targets/{name}/
 │   ├── prompt.*
-│   └── config.yaml
+│   ├── config.yaml
+│   └── .metadata.yaml           # 프롬프트 버전 메타데이터
 ├── datasets/{name}/
 │   ├── test_cases.json
 │   └── expected.json
+├── results/baselines/{name}/    # 기준선 저장
+│   └── {version}.json
 └── eval_prompts/{domain}/
     └── {criterion}.txt
 ```
@@ -249,331 +264,44 @@ prompt-evaluator/
 
 ## 6. 구현 계획
 
-### Phase 1: 버전 관리 강화
+### Phase 1: 버전 관리 강화 ✅ 구현 완료
 
-#### 6.1.1. 프롬프트 메타데이터
+> 📖 **상세 문서**: [docs/features/versioning.md](./features/versioning.md)
 
-**신규 파일**: `targets/{name}/.metadata.yaml`
+프롬프트 변경을 추적하고, 버전을 관리하며, LangSmith와 동기화하는 시스템입니다.
 
-```yaml
-owner: john@example.com
-created_at: "2026-01-20"
-current_version: v1.2
+**구현된 기능**:
+- 프롬프트 메타데이터 관리 (`.metadata.yaml`)
+- SHA256 해시 기반 자동 변경 감지
+- 자동 버전 증가 (v1.0 → v1.1)
+- LangSmith 자동 push 연동
+- `ChatPromptTemplate` 지원 (SYSTEM_PROMPT/USER_PROMPT 구분)
+- git config 연동 (owner/author 자동 감지)
 
-versions:
-  v1.0:
-    date: "2026-01-20"
-    author: john@example.com
-    changes: "Initial version"
-    langsmith_hash: "abc123"
-  v1.1:
-    date: "2026-01-22"
-    author: jane@example.com
-    changes: "톤 개선: 더 친근하게"
-    langsmith_hash: "def456"
-```
+**핵심 모듈**: `src/versioning/prompt_metadata.py`
 
-**신규 모듈**: `src/versioning/prompt_metadata.py` ✅ 구현 완료
-
-```python
-def load_metadata(prompt_name: str) -> dict
-def save_metadata(prompt_name: str, metadata: dict)
-def init_metadata(prompt_name: str, owner: str) -> dict
-def add_version(prompt_name: str, version: str, author: str, changes: str)
-def get_current_version(prompt_name: str) -> str
-def get_version_history(prompt_name: str) -> list[dict]
-def update_langsmith_hash(prompt_name: str, version: str, langsmith_hash: str)
-```
-
-**CLI 명령어** ✅ 구현 완료
-
-```bash
-# 메타데이터 초기화 (git config에서 owner 자동 감지)
-poetry run python main.py prompt init prep_generate
-
-# 버전 추가 (git config에서 author 자동 감지)
-poetry run python main.py prompt add-version prep_generate v1.2 "민감 주제 처리 강화"
-
-# 메타데이터 조회
-poetry run python main.py prompt info prep_generate
-```
+**데이터셋 버전 관리**: 후순위 (필요 시 구현 예정)
 
 ---
 
-#### 6.1.2. 프롬프트 버전 관리 워크플로우 ✅ 구현 완료
+### Phase 2: 회귀 테스트 체계 ✅ 구현 완료
 
-**완전 자동화 플로우**: `experiment` 명령어 하나로 모든 것을 처리
+> 📖 **상세 문서**: [docs/features/regression.md](./features/regression.md)
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│              완전 자동화 프롬프트 버전 관리 플로우              │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│   사용자가 실행하는 명령어는 이것 하나뿐:                       │
-│                                                             │
-│   ┌──────────────────────────────────────────────────────┐ │
-│   │ $ experiment --name prep_generate --changes "톤 개선" │ │
-│   └──────────────────────────────────────────────────────┘ │
-│                         │                                   │
-│                         ▼                                   │
-│   내부 자동 처리:                                            │
-│                                                             │
-│   1. 메타데이터 확인                                         │
-│   ┌──────────────────────────────────────────────────────┐ │
-│   │ .metadata.yaml 없음?                                 │ │
-│   │ → 자동 init (git config에서 owner 감지)              │ │
-│   │ → v1.0 생성                                          │ │
-│   └──────────────────────────────────────────────────────┘ │
-│                         │                                   │
-│                         ▼                                   │
-│   2. 프롬프트 변경 감지 (해시 비교)                           │
-│   ┌──────────────────────────────────────────────────────┐ │
-│   │ 변경됨?                                              │ │
-│   │ → 자동 버전 증가 (v1.0 → v1.1)                       │ │
-│   │ → .metadata.yaml 업데이트                            │ │
-│   │                                                      │ │
-│   │ 변경 없음?                                           │ │
-│   │ → 기존 버전 유지                                      │ │
-│   └──────────────────────────────────────────────────────┘ │
-│                         │                                   │
-│                         ▼                                   │
-│   3. LangSmith 자동 push                                    │
-│   ┌──────────────────────────────────────────────────────┐ │
-│   │ → 프롬프트 업로드                                     │ │
-│   │ → description에 메타데이터 자동 포함:                  │ │
-│   │   ┌────────────────────────────────────────────┐     │ │
-│   │   │ Prompt for prep_generate                   │     │ │
-│   │   │ ---                                        │     │ │
-│   │   │ version: v1.1                              │     │ │
-│   │   │ author: user@example.com                   │     │ │
-│   │   │ changes: 톤 개선                            │     │ │
-│   │   │ date: 2026-01-26                           │     │ │
-│   │   └────────────────────────────────────────────┘     │ │
-│   │ → last_pushed_hash 업데이트                          │ │
-│   └──────────────────────────────────────────────────────┘ │
-│                         │                                   │
-│                         ▼                                   │
-│   4. 평가 실행                                               │
-│   ┌──────────────────────────────────────────────────────┐ │
-│   │ → LangSmith Experiment 실행                          │ │
-│   │ → 결과 기록                                           │ │
-│   └──────────────────────────────────────────────────────┘ │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+프롬프트 변경이 품질에 미치는 영향을 감지하고, 성능 저하를 방지하는 시스템입니다.
 
-**CLI 사용법**:
+**구현된 기능**:
+- 기준선(Baseline) 저장/로드/삭제
+- RegressionReport 기반 버전 비교
+- 회귀 판정 (pass_rate 5% 이상 하락)
+- 개별 케이스 추적 (new_failures, fixed_cases)
+- CI/CD 연동용 `--fail` 옵션
 
-```bash
-# 기본 사용 (변경 감지 시 인터랙티브 입력)
-experiment --name prep_generate
+**핵심 모듈**:
+- `src/regression/baseline.py` - 기준선 관리
+- `src/regression/comparator.py` - 회귀 비교
 
-# 변경 내용 직접 지정
-experiment --name prep_generate --changes "톤 개선"
-
-# 자동 push 없이 기존 버전으로 평가
-experiment --name prep_generate --no-push
-
-# 특정 버전으로 평가 (수동 push한 경우)
-experiment --name prep_generate --version v1.0
-```
-
-**핵심 포인트**:
-- **완전 자동화**: `experiment` 하나로 init → 버전 관리 → push → 평가
-- **해시 기반 변경 감지**: 프롬프트 파일 변경 시에만 새 버전 생성
-- **인터랙티브 입력**: `--changes` 없이 실행하면 변경 내용 입력 프롬프트
-- **로컬 `.metadata.yaml`**: 버전 이력의 원본 (source of truth)
-- **git config 연동**: owner/author 자동 감지
-
-**구현 상태**:
-- [x] `src/versioning/prompt_metadata.py` - 메타데이터 관리 모듈
-- [x] 해시 계산 및 변경 감지 (`compute_prompt_hash`, `is_prompt_changed`)
-- [x] 자동 버전 증가 (`increment_version`, `auto_version_and_push_info`)
-- [x] CLI: `prompt init`, `prompt add-version`, `prompt info` (수동 제어용)
-- [x] `experiment` 명령어 자동화 통합
-- [x] `push_prompt()` 메타데이터 연동
-- [x] `ChatPromptTemplate` 지원 (SYSTEM_PROMPT/USER_PROMPT 구분 업로드)
-- [x] 첫 init 시 변경 내용 입력 없이 바로 v1.0 push
-
-**구현된 함수 목록** (`src/versioning/prompt_metadata.py`):
-
-| 함수 | 설명 |
-|------|------|
-| `load_metadata()` | 메타데이터 로드 |
-| `save_metadata()` | 메타데이터 저장 |
-| `init_metadata()` | 새 프롬프트 초기화 (v1.0) |
-| `add_version()` | 새 버전 추가 |
-| `get_version_history()` | 버전 이력 조회 |
-| `compute_prompt_hash()` | SHA256 해시 계산 (앞 16자리) |
-| `is_prompt_changed()` | 마지막 push 이후 변경 여부 |
-| `increment_version()` | v1.0 → v1.1 자동 증가 |
-| `update_last_pushed_hash()` | push 성공 시 해시 저장 |
-| `auto_version_and_push_info()` | 버전 증가 + push 정보 일괄 처리 |
-
-**LangSmith 업로드 형식** (`utils/langsmith_prompts.py`):
-
-| 프롬프트 구조 | 업로드 형식 |
-|--------------|------------|
-| 단일 템플릿 (`template` 키 또는 1개) | `PromptTemplate` |
-| 여러 프롬프트 (`SYSTEM_PROMPT` + `USER_PROMPT`) | `ChatPromptTemplate` (System/Human 구분) |
-
-플레이그라운드에서 System/Human 메시지가 분리되어 표시됨
-
-#### 6.1.2. 데이터셋 버전 관리
-
-**신규 파일**: `datasets/{name}/.versions.yaml`
-
-```yaml
-current_hash: "abc123"
-case_count: 15
-
-versions:
-  - hash: "abc123"
-    date: "2026-01-25"
-    case_count: 15
-    changes:
-      added: ["edge_case_03"]
-      modified: []
-      removed: []
-```
-
-**신규 모듈**: `src/versioning/dataset_snapshot.py`
-
-```python
-def compute_hash(dataset_path: str) -> str
-def track_changes(prompt_name: str) -> dict
-def create_snapshot(prompt_name: str, message: str)
-def list_snapshots(prompt_name: str) -> list
-```
-
----
-
-### Phase 2: 회귀 테스트 체계
-
-#### 6.2.1. 기준선(Baseline) 관리
-
-**신규 파일**: `results/{name}/baseline.json`
-
-```json
-{
-  "version": "v1.2",
-  "dataset_hash": "abc123",
-  "created_at": "2026-01-25T10:00:00",
-  "summary": {
-    "total": 15,
-    "passed": 13,
-    "failed": 2,
-    "pass_rate": 0.867,
-    "avg_score": 0.82
-  },
-  "by_evaluator": {
-    "keyword_inclusion": {"avg": 0.95, "failures": 1},
-    "tone_appropriateness": {"avg": 0.78, "failures": 2}
-  },
-  "cases": {
-    "scenario_01": {"passed": true, "score": 0.9},
-    "scenario_02": {"passed": false, "score": 0.6, "fail_reason": "tone"}
-  }
-}
-```
-
-**신규 모듈**: `src/regression/baseline.py`
-
-```python
-def save_baseline(prompt_name: str, results: dict)
-def load_baseline(prompt_name: str) -> dict | None
-def set_as_baseline(prompt_name: str, result_file: str)
-```
-
-#### 6.2.2. 회귀 비교
-
-**신규 모듈**: `src/regression/comparator.py`
-
-```python
-@dataclass
-class RegressionReport:
-    baseline_version: str
-    current_version: str
-    pass_rate_delta: float      # -0.05 = 5% 하락
-    avg_score_delta: float
-    is_regression: bool
-    regression_reasons: list[str]
-    new_failures: list[str]     # Pass → Fail
-    new_passes: list[str]       # Fail → Pass
-
-def compare_with_baseline(prompt_name: str, current: dict) -> RegressionReport
-```
-
-**회귀 판정 기준** (config 확장):
-
-```yaml
-# targets/{name}/config.yaml
-regression:
-  enabled: true
-  max_pass_rate_drop: 0.05      # 5% 초과 하락 시 회귀
-  max_avg_score_drop: 0.1       # 0.1점 초과 하락 시 회귀
-  block_on_new_failure: true    # Pass→Fail 발생 시 차단
-```
-
-**CLI 추가**:
-```bash
-poetry run python main.py baseline set --name prep_generate
-poetry run python main.py experiment --name prep_generate --compare-baseline
-poetry run python main.py regression check --name prep_generate
-```
-
-#### 6.2.3. GitHub Actions CI
-
-**신규 파일**: `.github/workflows/prompt-eval.yml`
-
-```yaml
-name: Prompt Evaluation
-
-on:
-  pull_request:
-    paths:
-      - 'targets/**'
-      - 'datasets/**'
-      - 'eval_prompts/**'
-
-jobs:
-  evaluate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install dependencies
-        run: |
-          pip install poetry
-          poetry install
-
-      - name: Detect changed prompts
-        id: changes
-        run: |
-          # targets/ 하위 변경된 프롬프트 감지
-
-      - name: Run evaluation
-        env:
-          LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: |
-          poetry run python main.py experiment --name ${{ steps.changes.outputs.prompt }}
-
-      - name: Check regression
-        run: |
-          poetry run python main.py regression check --name ${{ steps.changes.outputs.prompt }}
-
-      - name: Comment PR
-        uses: actions/github-script@v7
-        with:
-          script: |
-            // 평가 결과를 PR 코멘트로 작성
-```
+**GitHub Actions CI**: 후순위 (필요 시 구현 예정)
 
 ---
 
@@ -713,16 +441,34 @@ evaluators:
 
 ## 7. 리팩토링 항목
 
-### 7.1. 필수 리팩토링
+### 7.1. CLI 모듈화 ✅ 완료
 
-| 파일 | 변경 내용 | Phase |
-|------|----------|:-----:|
-| `main.py` | CLI 명령어 추가 (baseline, regression, report) | 1-3 |
-| `src/pipeline.py` | 결과 저장, 가중치, 리포트 연동 | 1-3 |
-| `utils/langsmith_prompts.py` | 메타데이터 자동 기록 | 1 |
-| `utils/langsmith_datasets.py` | 버전 추적 연동 | 1 |
-| `configs/config.py` | 회귀 임계값, 가중치 기본값 | 2 |
-| `utils/config_validator.py` | 새 필드 검증 | 2 |
+> 📖 **CLI 레퍼런스**: [docs/features/cli-reference.md](./features/cli-reference.md)
+
+main.py의 CLI 명령어들을 `cli/` 디렉토리로 분리하여 모듈화했습니다.
+
+| 파일 | 역할 | 줄 수 |
+|------|------|-------|
+| `main.py` | 앱 엔트리포인트 (조립만) | 57줄 |
+| `cli/prompt.py` | `prompt` 서브커맨드 (info, init, push, pull, versions 등) | 195줄 |
+| `cli/baseline.py` | `baseline` 서브커맨드 (list, set, delete) | 82줄 |
+| `cli/experiment.py` | `experiment`, `regression` 명령어 | 215줄 |
+| `cli/config.py` | `validate`, `criteria` 명령어 | 93줄 |
+| `cli/dataset.py` | `list`, `upload` 명령어 | 31줄 |
+
+기존 명령어는 모두 동일하게 유지됩니다.
+
+### 7.2. 필수 리팩토링
+
+| 파일 | 변경 내용 | Phase | 상태 |
+|------|----------|:-----:|:----:|
+| `main.py` | CLI 모듈화 | 1-2 | ✅ |
+| `cli/` | CLI 명령어 분리 | 1-2 | ✅ |
+| `utils/langsmith_prompts.py` | 메타데이터 자동 기록 | 1 | ✅ |
+| `utils/git.py` | git 유틸 분리 | 2 | ✅ |
+| `src/pipeline.py` | 결과 저장, 가중치, 리포트 연동 | 3 | - |
+| `configs/config.py` | 회귀 임계값, 가중치 기본값 | 3 | - |
+| `utils/config_validator.py` | 새 필드 검증 | 3 | - |
 
 ### 7.2. 스키마 변경
 
@@ -757,18 +503,15 @@ reporting:                     # NEW
 
 ### 8.1. 소스 코드
 
-| 경로 | 설명 |
-|------|------|
-| `src/versioning/__init__.py` | 버전 관리 모듈 |
-| `src/versioning/prompt_metadata.py` | 프롬프트 메타데이터 |
-| `src/versioning/dataset_snapshot.py` | 데이터셋 스냅샷 |
-| `src/regression/__init__.py` | 회귀 테스트 모듈 |
-| `src/regression/baseline.py` | 기준선 관리 |
-| `src/regression/comparator.py` | 회귀 비교 |
-| `src/reporters/__init__.py` | 리포트 모듈 |
-| `src/reporters/failure_analyzer.py` | 실패 분석 |
-| `src/reporters/markdown_reporter.py` | MD 리포트 |
-| `src/evaluators/human_feedback.py` | Human 평가 |
+| 경로 | 설명 | 상태 |
+|------|------|:----:|
+| `src/versioning/prompt_metadata.py` | 프롬프트 메타데이터 | ✅ |
+| `src/versioning/dataset_snapshot.py` | 데이터셋 스냅샷 | 후순위 |
+| `src/regression/baseline.py` | 기준선 관리 | ✅ |
+| `src/regression/comparator.py` | 회귀 비교 | ✅ |
+| `src/reporters/failure_analyzer.py` | 실패 분석 | - |
+| `src/reporters/markdown_reporter.py` | MD 리포트 | - |
+| `src/evaluators/human_feedback.py` | Human 평가 | - |
 
 ### 8.2. 설정/워크플로우
 
@@ -800,11 +543,11 @@ reporting:                     # NEW
 - [x] 첫 init 시 변경 내용 입력 없이 바로 v1.0 push ✅
 - [ ] `src/versioning/dataset_snapshot.py` (후순위 - 필요 시 구현)
 
-### Phase 2: 회귀 테스트 (Week 2)
-- [ ] `src/regression/baseline.py`
-- [ ] `src/regression/comparator.py`
-- [ ] `main.py`에 `baseline`, `regression` 명령어
-- [ ] `.github/workflows/prompt-eval.yml`
+### Phase 2: 회귀 테스트 (Week 2) ✅ 완료
+- [x] `src/regression/baseline.py` ✅
+- [x] `src/regression/comparator.py` ✅
+- [x] `main.py`에 `baseline`, `regression` 명령어 ✅
+- [ ] `.github/workflows/prompt-eval.yml` (후순위)
 
 ### Phase 3: 리포트 (Week 3)
 - [ ] `src/reporters/failure_analyzer.py`
@@ -837,6 +580,11 @@ reporting:                     # NEW
 
 ## 11. 참고
 
+### 기능별 상세 문서
+- [버전 관리 (Versioning)](./features/versioning.md) - Phase 1 상세
+- [회귀 테스트 (Regression)](./features/regression.md) - Phase 2 상세
+- [CLI 레퍼런스](./features/cli-reference.md) - 전체 CLI 명령어
+
 ### 내부 문서
 - [현재 기능 명세](./SPECIFICATION.md)
 - [사용 가이드](./GUIDE.md)
@@ -849,6 +597,6 @@ reporting:                     # NEW
 
 ---
 
-**Version**: 1.1.0
+**Version**: 1.4.0
 **Created**: 2026-01-26
-**Updated**: 2026-01-26
+**Updated**: 2026-01-26 (문서 분리: features/)

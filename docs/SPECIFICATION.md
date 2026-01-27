@@ -1,6 +1,6 @@
 # Prompt Evaluator 기능 명세서
 
-> **버전**: 1.0.0
+> **버전**: 1.1.0
 > **최종 수정일**: 2026-01-26
 
 ---
@@ -184,14 +184,16 @@ run_mode: quick  # quick | full
 
 | 명령어 | 설명 |
 |--------|------|
-| `experiment --name {name}` | 평가 실행 |
+| `experiment --name {name}` | 평가 실행 (자동 버전 관리 포함) |
+| `regression --name {name} --experiment {exp}` | 회귀 테스트 실행 |
 | `validate --name {name}` | config 검증 |
-| `prompt push/pull/versions` | 프롬프트 버전 관리 |
 | `list` | 평가 세트 목록 |
 | `criteria` | 사용 가능한 평가 기준 |
 | `upload --name {name}` | 데이터셋 LangSmith 업로드 |
+| `prompt info/init/push/pull/versions` | 프롬프트 버전 관리 |
+| `baseline list/set/delete` | 기준선 관리 |
 
-> 상세 사용법은 [사용 가이드](./GUIDE.md) 참조
+> 상세 사용법은 [CLI 레퍼런스](./features/cli-reference.md) 참조
 
 ---
 
@@ -233,13 +235,22 @@ run_mode: quick  # quick | full
 
 ## 8. 향후 계획
 
+### 구현 완료
+
+| 항목 | 상태 | 문서 |
+|------|:----:|------|
+| 프롬프트 버전 관리 (Phase 1) | ✅ | [versioning.md](./features/versioning.md) |
+| 회귀 테스트 체계 (Phase 2) | ✅ | [regression.md](./features/regression.md) |
+| CLI 모듈화 | ✅ | [cli-reference.md](./features/cli-reference.md) |
+
 ### 미구현 항목
 
 | 항목 | 우선순위 | 상태 |
 |------|:--------:|:----:|
 | GitHub Actions CI/CD | P1 | 대기 |
-| 회귀 테스트 자동화 | P1 | 대기 |
+| 실패 분석 리포트 (Phase 3) | P1 | 대기 |
 | LLM 응답 캐싱 | P2 | 대기 |
+| Human spot-check (Phase 4) | P2 | 대기 |
 | Slack 알림 연동 | P3 | 대기 |
 
 ### 평가 체계 성숙도 로드맵
@@ -265,5 +276,12 @@ run_mode: quick  # quick | full
 
 ## 9. 참고 문서
 
+### 기능별 상세
+- [버전 관리](./features/versioning.md) - 프롬프트 버전 추적
+- [회귀 테스트](./features/regression.md) - 기준선 비교 및 성능 저하 감지
+- [CLI 레퍼런스](./features/cli-reference.md) - 전체 CLI 명령어
+
+### 가이드
 - [사용 가이드](./GUIDE.md) - 평가 체계 활용 방법
-- [LangSmith 프롬프트 관리](./LANGSMITH_PROMPTS.md) - 버전 관리 상세
+- [LangSmith 프롬프트 관리](./LANGSMITH_PROMPTS.md) - LangSmith 연동 상세
+- [PromptOps 기획서](./PROMPTOPS_PLAN.md) - 전체 로드맵
