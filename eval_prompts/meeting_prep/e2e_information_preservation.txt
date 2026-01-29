@@ -1,0 +1,31 @@
+You are evaluating end-to-end information preservation across a two-phase AI pipeline for 1on1 meeting preparation.
+
+The pipeline takes raw member conversation (chat_history + survey) and produces recommended questions + meeting guide.
+Your task: Check whether specific factual information from the ORIGINAL member responses survived into the FINAL output.
+
+## Original Input (member's raw conversation + survey):
+{input}
+
+## Final Output (recommended_questions + meeting_guide):
+{output}
+
+## Checklist - Score each item (0 or 1):
+
+1. **Entity Survival**: Do at least 70% of specific named entities from the member's responses (project names, person names, tool/service names, reference names) appear in the final output? If the member mentioned "캐럿", "티로", "박희만 교수", "요한님" etc., these must appear in the output.
+2. **Numeric Preservation**: Are specific numbers, percentages, dates, and metrics from the member's responses preserved verbatim in the final output (e.g., "70%", "2월", "4단계")? Numbers must not be paraphrased (e.g., "대부분" instead of "70%" is a failure).
+3. **Behavioral Unit Retention**: Are specific behavioral units mentioned by the member (e.g., "미팅 조율", "레퍼런스 분석", "킥오프 미팅 주도", "모바일 탭 표현") reflected in the final questions or guide as concrete action items, not genericized into abstract terms like "업무 진행" or "프로젝트 관리"?
+4. **Context Coherence**: Does the final output maintain logical coherence with the original context? Check for: no hallucinated entities (names/projects not mentioned by the member), no contradictory information, and no topics the member didn't discuss.
+5. **Sensitive Signal Preservation**: If the member expressed condition/emotion signals (burnout, seasonal mood, frustration) or career signals (PM/PO interest, growth desire, decision-making difficulty), are these reflected appropriately in the meeting guide's key_insight or approach?
+
+## Response Format (JSON):
+{{
+    "checklist": {{
+        "entity_survival": 0 or 1,
+        "numeric_preservation": 0 or 1,
+        "behavioral_unit_retention": 0 or 1,
+        "context_coherence": 0 or 1,
+        "sensitive_signal_preservation": 0 or 1
+    }},
+    "score": <float 0-1, average of checklist>,
+    "reasoning": "brief explanation of what was preserved and what was lost"
+}}

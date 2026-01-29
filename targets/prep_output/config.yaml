@@ -1,0 +1,21 @@
+# prep_output 통합 파이프라인 평가 설정
+# E2E: chat_history → Phase 1(analyze) → Phase 2(questions) → 최종 출력 정보 보존 검증
+
+name: prep_output
+pipeline_type: chain
+eval_prompts_domain: meeting_prep
+
+chain:
+  phase1: prep_output_analyze    # ANALYZE_SYSTEM_PROMPT + ANALYZE_USER_PROMPT
+  phase2: prep_output_questions  # SYSTEM_PROMPT + USER_PROMPT
+
+evaluators:
+  - type: llm_judge
+    criteria:
+      - e2e_information_preservation
+
+thresholds:
+  pass_rate: 0.80
+  min_score: 0.65
+
+run_mode: full

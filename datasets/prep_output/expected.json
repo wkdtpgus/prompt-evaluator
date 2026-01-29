@@ -1,0 +1,45 @@
+{
+  "prep_13_mobile_app_reference": {
+    "keywords": [],
+    "forbidden": [],
+    "preservation_criteria": {
+      "must_preserve_entities": ["캐럿", "티로", "경영진"],
+      "must_preserve_numbers": ["2월"],
+      "notes": "레퍼런스(캐럿/티로) 보존, 경영진 컨펌 엔티티 보존, 모바일 탭 표현 고민 행동단위 반영, 업성 반응 파고들지 않음"
+    }
+  },
+  "prep_14_professor_collaboration": {
+    "keywords": [],
+    "forbidden": [],
+    "preservation_criteria": {
+      "must_preserve_entities": ["박희만 교수"],
+      "notes": "박희만 교수 고유명사 보존, 비정량적 업무 행동단위(미팅 조율/컨퍼런스 제안/의전) 반영, 업성/없어 파고들지 않음, 컨디션(겨울 예민) 신호 반영"
+    }
+  },
+  "prep_15_goal_module_collaboration": {
+    "keywords": [],
+    "forbidden": [],
+    "preservation_criteria": {
+      "must_preserve_entities": ["요한님", "목표관리 모듈", "워크스페이스 설정", "목표 페이지", "MBO가중치", "권한설정"],
+      "must_preserve_numbers": ["70%", "4단계"],
+      "notes": "역할구분(멤버: 지침전달, 요한님: 개발실행) 보존, 불확실성 속 의사결정 맥락 반영, 고객사 피드백 동기 반영"
+    }
+  },
+  "prep_16_meeting_prep_dev": {
+    "keywords": [],
+    "forbidden": [],
+    "preservation_criteria": {
+      "must_preserve_entities": ["미팅 프렙", "챗봇 응답", "사용자 피드백"],
+      "notes": "순조로운 진행 상황 반영, 챗봇 응답 자연스러움 검증 맥락 보존, brief 응답(미팅 프렙 기능개발/테스트하고 버그 수정중) 파고들지 않음"
+    }
+  },
+  "prep_17_onboarding_process": {
+    "keywords": [],
+    "forbidden": [],
+    "preservation_criteria": {
+      "must_preserve_entities": ["고객 온보딩 프로세스", "킥오프 미팅", "고객 여정 맵", "개발팀", "디자인팀", "CS팀"],
+      "must_preserve_numbers": [],
+      "notes": "다팀 협업 엔티티 보존, 킥오프 미팅 주도 성과 반영, PM/PO 커리어 신호 반영, 갈등 의사결정 어려움 맥락 보존"
+    }
+  }
+}

@@ -4,7 +4,7 @@ from typing import Annotated, Literal, Optional
 
 import typer
 
-from src.pipeline import run_experiment, run_langsmith_experiment
+from src.pipelines.pipeline import run_experiment, run_langsmith_experiment
 from src.versioning.prompt_metadata import (
     load_metadata,
     init_metadata,
@@ -58,6 +58,30 @@ def experiment(
     if not prompt_dir.exists():
         typer.echo(f"프롬프트 폴더 없음: {prompt_dir}")
         raise typer.Exit(1)
+
+    # Chain 파이프라인 감지 → E2E 파이프라인으로 위임
+    import yaml
+    config_file = prompt_dir / "config.yaml"
+    if config_file.exists():
+        with open(config_file, "r", encoding="utf-8") as f:
+            eval_config = yaml.safe_load(f)
+        if eval_config.get("pipeline_type") == "chain":
+            from src.pipelines.e2e_chain import (
+                run_e2e_pipeline,
+                run_e2e_langfuse_experiment,
+                run_e2e_langsmith_experiment,
+            )
+            typer.echo(f"\nChain Pipeline: {name}")
+            if backend == "both":
+                typer.echo("-" * 60)
+                run_e2e_langfuse_experiment(prompt_name=name, mode=mode, experiment_prefix=prefix)
+                typer.echo("-" * 60)
+                run_e2e_langsmith_experiment(prompt_name=name, mode=mode, experiment_prefix=prefix)
+            elif backend == "langfuse":
+                run_e2e_langfuse_experiment(prompt_name=name, mode=mode, experiment_prefix=prefix)
+            elif backend == "langsmith":
+                run_e2e_langsmith_experiment(prompt_name=name, mode=mode, experiment_prefix=prefix)
+            return
 
     # both: Langfuse + LangSmith 동시 실행
     if backend == "both":
