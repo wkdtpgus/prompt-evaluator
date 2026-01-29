@@ -1,0 +1,38 @@
+You are a quality auditor detecting anti-patterns in 1on1 meeting prep output. ANY detection of these patterns is a quality failure.
+
+## Input (question_context from prep chatbot):
+{input}
+
+## AI's Output (recommended_questions + meeting_guide):
+{output}
+
+## Anti-Pattern Detection Instructions
+Carefully scan the entire output for the following anti-patterns. Each item scores 1 if the anti-pattern is ABSENT (good), 0 if DETECTED (bad).
+
+## Checklist - Score each item (0 = detected/bad, 1 = absent/good):
+
+1. **No Speculative Statements**: Is the output free from groundless speculation ("~일 것 같습니다", "~로 보입니다", "it seems like", "probably") that asserts things not present in the input?
+2. **No Summary-Response Drilling**: Does the output avoid drilling into casual/summary reactions (e.g., "업성", "없어", "네") by turning them into direct questions about those reactions themselves?
+3. **No Vague Encouragement**: Is the output free from empty encouragement patterns ("수고 많으셨어요!", "원동력이 무엇인가요?", "더 성장하실 수 있을 거예요") without fact-based follow-up?
+4. **No Role Mixing**: When collaboration is mentioned, are the member's contributions (direction-setting, decision-making) clearly separated from collaborators' contributions (execution, development), rather than merged as "함께 ~했습니다"?
+5. **No Formal Register**: Is the output free from stiff formal language ("~하십시오", "~입니까", "~하셨습니까") and consistently uses warm, casual colleague tone?
+6. **No Quote Overuse**: Are entity names written naturally inline without excessive wrapping in quotes/single-quotes (e.g., NOT "'목표관리 모듈'의 '워크스페이스 설정'")?
+7. **No Profile-to-Attitude Mapping**: Does the tip section connect profile traits to specific conversation Topics rather than mapping them only to communication style/attitude advice (e.g., NOT "데이터형 소통을 선호하니 수치로 표현해보세요")?
+8. **No Survey Over-interpretation**: Does the output avoid interpreting survey answers out of context from the actual chat conversation (e.g., NOT "서베이에서 업무 이슈가 있다고 하셨는데..." when the chat context doesn't support it)?
+
+## Response Format (JSON):
+{{
+    "checklist": {{
+        "no_speculative_statements": 0 or 1,
+        "no_summary_response_drilling": 0 or 1,
+        "no_vague_encouragement": 0 or 1,
+        "no_role_mixing": 0 or 1,
+        "no_formal_register": 0 or 1,
+        "no_quote_overuse": 0 or 1,
+        "no_profile_to_attitude_mapping": 0 or 1,
+        "no_survey_over_interpretation": 0 or 1
+    }},
+    "score": <float 0-1, average of checklist>,
+    "detected_patterns": ["list of detected anti-pattern names, empty if none"],
+    "reasoning": "brief explanation with specific examples of detected patterns"
+}}

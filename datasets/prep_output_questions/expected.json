@@ -94,5 +94,56 @@
       "question_count": "5-7",
       "notes": "영어 출력, 열린 질문"
     }
+  },
+  "questions_13_mobile_app_reference": {
+    "keywords": [],
+    "forbidden": [],
+    "reference": {
+      "notes": "캐럿/티로 고유명사 반드시 포함, 2월 전 시기 보존, 경영진 컨펌 언급, 모바일 탭 표현 고민 행동단위 질문, 업성 반응을 파고들지 않음, 인사말 없이 직접 시작, 회고+향후계획 분리",
+      "must_include_entities": ["캐럿", "티로", "경영진"],
+      "must_include_numbers": ["2월"],
+      "anti_pattern_check": ["업성 파고들기 금지", "인사말 금지"]
+    }
+  },
+  "questions_14_professor_collaboration": {
+    "keywords": [],
+    "forbidden": [],
+    "reference": {
+      "notes": "박희만 교수 고유명사 반드시 포함, 비정량적 업무를 행동단위(미팅 조율/컨퍼런스 제안/의전)로 쪼갠 질문, 감각적 판단→프로세스화 향후계획 질문, 업성/없어 반응 파고들지 않음, 컨디션은 별도 웰빙 질문으로 처리, 역할구분(멤버 vs 교수)",
+      "must_include_entities": ["박희만 교수"],
+      "anti_pattern_check": ["업성/없어 파고들기 금지", "인사말 금지", "뭉뚱그린 회고 금지"],
+      "retrospective_behavioral_units": ["미팅 조율", "컨퍼런스 제안", "의전"],
+      "future_planning": "감각적 판단을 프로세스화/체크리스트화"
+    }
+  },
+  "questions_15_goal_module_collaboration": {
+    "keywords": [],
+    "forbidden": [],
+    "reference": {
+      "notes": "요한님 협업 역할구분(멤버: 방향설정/지침, 요한님: 개발/실행) 명확히, 70% 수치 원문 인용, 4단계 엔티티 보존, 불확실성 속 선행 의사결정 논리 질문, 고객사 피드백→원온원 연계 차별점 질문, filler 금지",
+      "must_include_entities": ["요한님", "목표관리 모듈", "워크스페이스 설정", "목표 페이지", "MBO가중치", "권한설정"],
+      "must_include_numbers": ["70%"],
+      "role_attribution": "멤버(지침/방향) vs 요한님(개발/실행) 구분",
+      "anti_pattern_check": ["역할 혼합 금지", "인사말 금지", "따옴표 남용 금지"]
+    }
+  },
+  "questions_16_meeting_prep_dev": {
+    "keywords": [],
+    "forbidden": [],
+    "reference": {
+      "notes": "순조로운 진행에서 구체적 후속 질문(챗봇 응답 자연스러움 검증 방법론, 시나리오 테스트 기준), 사용자 피드백→품질 개선 향후계획 연결, brief 응답(미팅 프렙 기능개발) 파고들지 않음, 맥락 기반 질문만 생성(filler 금지)",
+      "key_entities": ["미팅 프렙", "챗봇 응답", "사용자 피드백"],
+      "anti_pattern_check": ["막연한 격려 금지", "인사말 금지"]
+    }
+  },
+  "questions_17_onboarding_process": {
+    "keywords": [],
+    "forbidden": [],
+    "reference": {
+      "notes": "다팀 협업 엔티티(개발팀/디자인팀/CS팀) 보존, 킥오프 미팅 행동단위 회고 질문, 고객 여정 맵/병목 파악 구체 질문, 갈등 의사결정 제약→대안→결정 구조 질문, PM/PO 커리어 향후계획 연결, 회고+향후계획 분리",
+      "must_include_entities": ["고객 온보딩 프로세스", "킥오프 미팅", "고객 여정 맵", "개발팀", "디자인팀", "CS팀"],
+      "career_signal": "PM/PO 역할 희망",
+      "anti_pattern_check": ["인사말 금지", "뭉뚱그린 회고 금지", "추상적 성장 조언 금지"]
+    }
   }
 }

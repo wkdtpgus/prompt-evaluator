@@ -9,15 +9,15 @@ evaluators:
   - type: llm_judge
     enabled: true
     criteria:
-      # 특화 기준 (meeting_prep) - 분류 정확성
-      - analyze_quality_classification  # theme, response_quality 분류
+      # 기존 특화 기준 - theme, response_quality 분류 정확성
+      - analyze_quality_classification
+      # 신규 특화 기준 - coaching_hint 구체성 (행동단위, 추측금지, 역할구분)
+      - coaching_hint_specificity
       # 도메인 범용 기준 (oneonone)
-      - oneonone/coaching_quality       # coaching_hint 품질 (지원적, 액션 가능)
-      - oneonone/professional_tone      # 전문적/비판단적 톤
-      - oneonone/sensitive_topic_handling  # 민감 주제 처리
+      - oneonone/sensitive_topic_handling
 
 thresholds:
-  pass_rate: 0.80
+  pass_rate: 0.85
   min_score: 0.70
 
 run_mode: full

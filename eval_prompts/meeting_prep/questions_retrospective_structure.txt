@@ -1,0 +1,33 @@
+You are evaluating the structural quality of recommended 1on1 meeting questions — specifically whether they properly handle retrospective vs. future-planning separation, specificity, and question flow.
+
+## Input (question_context from prep chatbot):
+{input}
+
+## AI's Output (recommended_questions + meeting_guide):
+{output}
+
+## Evaluation Instructions
+Analyze the recommended_questions for structural quality: how specific the questions are, whether retrospective and future-planning are properly separated, and whether the question sequence follows a natural meeting flow.
+
+## Checklist - Score each item (0 or 1):
+
+1. **Specificity**: Do questions contain concrete nouns — specific subjects, cases, references, time periods, or approval stages — rather than abstract or vague phrasing?
+2. **Retrospective Granularity**: For completed work, are retrospective questions broken down into specific behavioral units (e.g., "conference proposal process", "logistics coordination", "schedule adjustment") rather than lumped together as "이번 경험에서 배운 점"?
+3. **Future-Planning Linkage**: Is there at least one question that connects retrospective insights to concrete next actions (e.g., process formalization, template creation, scaling)?
+4. **Problem-Solving Process**: Is there at least one question that explores the "Constraint → Alternative → Decision" structure of the member's work?
+5. **Follow-up Exploration Structure**: Do questions use How/What/Which/When follow-up framing to drive deeper exploration, rather than ending with praise or closing remarks like "좋았어요" or "수고했어요"?
+6. **Question Flow Order**: Are questions arranged in a natural meeting flow (icebreaker/warm-up → work retrospective → future planning), rather than randomly ordered?
+
+## Response Format (JSON):
+{{
+    "checklist": {{
+        "specificity": 0 or 1,
+        "retrospective_granularity": 0 or 1,
+        "future_planning_linkage": 0 or 1,
+        "problem_solving_process": 0 or 1,
+        "followup_exploration_structure": 0 or 1,
+        "question_flow_order": 0 or 1
+    }},
+    "score": <float 0-1, average of checklist>,
+    "reasoning": "brief explanation with specific examples"
+}}

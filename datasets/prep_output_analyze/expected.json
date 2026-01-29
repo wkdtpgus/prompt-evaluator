@@ -98,5 +98,55 @@
       "expected_theme": "Work",
       "notes": "영어 출력 검증"
     }
+  },
+  "analyze_13_mobile_app_reference": {
+    "keywords": [],
+    "forbidden": [],
+    "reference": {
+      "expected_theme": "Work",
+      "notes": "레퍼런스(캐럿/티로) 보존, 경영진 컨펌 엔티티 보존, '2월 전' 시기 보존, 요약반응(업성) brief 분류, 모바일 탭 표현 고민을 행동단위로 분해",
+      "key_entities": ["캐럿", "티로", "경영진", "2월"],
+      "summary_reactions": ["업성"]
+    }
+  },
+  "analyze_14_professor_collaboration": {
+    "keywords": [],
+    "forbidden": [],
+    "reference": {
+      "expected_theme": "Work",
+      "notes": "박희만 교수 고유명사 보존, 비정량적 업무 행동단위 분해(미팅 조율/컨퍼런스 제안/의전), 요약반응(업성/없어) brief 분류, 컨디션(겨울 예민) Condition 분류, 역할구분(멤버 vs 교수)",
+      "key_entities": ["박희만 교수"],
+      "summary_reactions": ["업성", "없어"],
+      "condition_signal": "겨울 타는 건지 예민하고 신경질적"
+    }
+  },
+  "analyze_15_goal_module_collaboration": {
+    "keywords": [],
+    "forbidden": [],
+    "reference": {
+      "expected_theme": "Work",
+      "notes": "요한님 협업 역할구분(멤버: 지침/가이드 전달, 요한님: 개발/실행), 70% 수치 보존, 4단계(워크스페이스 설정/목표 페이지/MBO가중치/권한설정) 엔티티 보존, 불확실성 속 의사결정 맥락, 고객사 피드백 동기",
+      "key_entities": ["요한님", "목표관리 모듈", "워크스페이스 설정", "목표 페이지", "MBO가중치 페이지", "권한설정"],
+      "key_numbers": ["70%", "4단계"],
+      "role_attribution": {"member": "지침 전달, 방향 설정", "collaborator": "요한님 - 개발, 실행"}
+    }
+  },
+  "analyze_16_meeting_prep_dev": {
+    "keywords": [],
+    "forbidden": [],
+    "reference": {
+      "expected_theme": "Work",
+      "notes": "순조로운 진행 상황에서 구체적 행동단위 분해(테스트/버그 수정/챗봇 응답 검증), 사용자 피드백 기반 다음 단계 계획 연결, brief 응답(미팅 프렙 기능개발/테스트하고 버그 수정중) 적절 분류",
+      "key_entities": ["미팅 프렙", "챗봇 응답"]
+    }
+  },
+  "analyze_17_onboarding_process": {
+    "keywords": [],
+    "forbidden": [],
+    "reference": {
+      "notes": "업무(Work): 온보딩 프로세스 개선 detailed, 커리어(Career): PM/PO 역할 희망 detailed - 복합 패턴. 다팀 협업 행동단위 분해(고객 여정 맵/병목 파악/킥오프 미팅 주도/일정 조율), 갈등 상황 의사결정 어려움 맥락",
+      "key_entities": ["고객 온보딩 프로세스", "킥오프 미팅", "고객 여정 맵", "개발팀", "디자인팀", "CS팀"],
+      "career_signal": "PM/PO 역할 희망"
+    }
   }
 }

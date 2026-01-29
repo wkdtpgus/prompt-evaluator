@@ -221,5 +221,193 @@
       "language": "en-US",
       "member_name": "John"
     }
+  },
+  {
+    "id": "questions_13_mobile_app_reference",
+    "description": "모바일 앱 기획 - 레퍼런스(캐럿/티로) 보존, 경영진 컨펌, 2월 전 마무리, 모바일 탭 표현 고민, 요약반응(업성)",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Work",
+          "bot_question": "지난 1on1 이후로 진행하셨던 주요 업무나 프로젝트에 대해 말씀해주실 수 있을까요?",
+          "response_quality": "brief",
+          "member_response": "모바일 앱 기획을 했어",
+          "coaching_hint": "간단한 업무 언급. 모바일 앱 기획의 구체적 내용과 진척 상황에 대해 더 탐색하세요."
+        },
+        {
+          "question_theme": "Work",
+          "bot_question": "그 기획은 어떤 방식으로 진행하셨고, 현재 어느 정도까지 진척되었는지 궁금합니다.",
+          "response_quality": "detailed",
+          "member_response": "캐럿과 티로 서비스 참고하면서 했고, 마무리됐어",
+          "coaching_hint": "캐럿과 티로를 레퍼런스로 활용한 기획 완료. 이 레퍼런스들에서 구체적으로 어떤 요소를 참고했는지, 자사 모바일 앱에 어떻게 적용했는지 물어보세요."
+        },
+        {
+          "question_theme": "Work",
+          "bot_question": "이번 모바일 앱 기획을 진행하면서 특별히 기억에 남는 어려움이나 반대로 성과라고 할 만한 부분이 있으셨을까요?",
+          "response_quality": "detailed",
+          "member_response": "어려운점은 딱히? 어떻게 많은 탭을 모바일에 맞게 표현할지가 고민됐었는데, 레퍼런스참고를 잘했어. 성과는 빠르게 2월전에 기획 마무리해서 경영진에도 컨펌을 받았다는 거야",
+          "coaching_hint": "모바일 탭 UI 표현 방식 고민을 레퍼런스(캐럿/티로)로 해결. 2월 전 경영진 컨펌까지 빠르게 달성. 레퍼런스 분석 방법론과 경영진 설득 과정에서의 의사결정 논리를 물어보세요."
+        },
+        {
+          "question_theme": "Work",
+          "bot_question": "혹시 이 내용 중에 수정하거나 추가할 내용이 있으신가요?",
+          "response_quality": "brief",
+          "member_response": "음 업성",
+          "coaching_hint": "요약 확인 반응. 추가 정보 없음."
+        }
+      ],
+      "profile_card": {"careerOrientation": "GENERALIST", "communicationStyle": "SUMMARY", "feedbackStyle": "SELF_REFLECTION", "motivation": "IMPACT"},
+      "language": "ko-KR",
+      "member_name": "다이슨"
+    }
+  },
+  {
+    "id": "questions_14_professor_collaboration",
+    "description": "외부 교수 협업 - 박희만 교수 고유명사, 비정량적 업무(미팅 조율/컨퍼런스 제안/의전), 감각적 판단, 컨디션(겨울 예민), 요약반응(업성/없어)",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Work",
+          "bot_question": "지난 1on1 이후부터 현재까지 진행하고 있는 주요 업무나 프로젝트는 무엇인가요?",
+          "response_quality": "detailed",
+          "member_response": "박희만 교수님 로비하기",
+          "coaching_hint": "박희만 교수님과의 외부 협업 업무. 구체적으로 미팅 조율, 컨퍼런스 제안, 의전 등 행동 단위를 분해하여 어떤 부분에서 판단이 필요했는지 물어보세요."
+        },
+        {
+          "question_theme": "Work",
+          "bot_question": "이 프로젝트를 진행하면서 특별히 어려웠던 점이나 기억에 남는 성과가 있으셨나요?",
+          "response_quality": "detailed",
+          "member_response": "아무래도 정량적/표준화된 업무가 아니다보니 어려웠던 것 같아. 그래도 감각적으로, 이전 경험에 근거해서 슬기롭게 잘 해낸 것 같아. 실제로도 교수님과 다음 미팅 일정을 확정했고, 협업에 대해 긍정적인 답변을 이끌어냈어.",
+          "coaching_hint": "비정량적 업무에서 경험 기반 감각적 판단으로 성과 달성. 다음 미팅 일정 확정 및 협업 긍정 답변 확보. 이 감각적 판단 과정을 프로세스화할 수 있는 방법(체크리스트, 의전 가이드 등)을 제안하세요."
+        },
+        {
+          "question_theme": "Work",
+          "bot_question": "요약 내용을 확인해 보시고, 수정하거나 추가할 내용이 있으신가요?",
+          "response_quality": "brief",
+          "member_response": "업성",
+          "coaching_hint": "요약 확인 반응. 추가 정보 없음."
+        },
+        {
+          "question_theme": "Work",
+          "bot_question": "좀 더 자세히 알려주시면 반영해 드릴게요.",
+          "response_quality": "brief",
+          "member_response": "없어",
+          "coaching_hint": "추가 정보 없음 확인."
+        },
+        {
+          "question_theme": "Condition",
+          "bot_question": "혹시 최근 컨디션이나 업무 외적으로 힘든 점은 없으셨을까요?",
+          "response_quality": "detailed",
+          "member_response": "음.. 요즘 겨울을 타는건지 부쩍 예민하고 신경질적여졌어",
+          "coaching_hint": "계절적 컨디션 저하 신호. 부드럽게 공감하되 상태를 단정짓지 말고, 업무 외 리프레시 방법이나 필요한 지원에 대해 열린 질문으로 접근하세요."
+        }
+      ],
+      "profile_card": {"careerOrientation": "EXPLORER", "communicationStyle": "DATA", "feedbackStyle": "SELF_REFLECTION", "motivation": "GROWTH"},
+      "language": "ko-KR",
+      "member_name": "민"
+    }
+  },
+  {
+    "id": "questions_15_goal_module_collaboration",
+    "description": "목표관리 모듈 개발 - 요한님 협업(역할구분), 70% 진척, 4단계 구조, 불확실성 속 의사결정, 고객사 피드백 동기",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Work",
+          "bot_question": "지난 1on1 이후 현재 가장 집중하고 있는 주요 업무나 프로젝트는 무엇인가요?",
+          "response_quality": "brief",
+          "member_response": "요한님이랑 목표관리 모듈 만드는 중이야.",
+          "coaching_hint": "요한님과 협업 중인 목표관리 모듈 개발. 멤버의 역할(지침/방향 설정)과 요한님의 역할(개발/실행)을 구분하여 멤버의 기여를 구체적으로 탐색하세요."
+        },
+        {
+          "question_theme": "Work",
+          "bot_question": "그 목표관리 모듈은 현재 어느 단계까지 진행되었고, 어떤 방식으로 접근하고 계신가요?",
+          "response_quality": "detailed",
+          "member_response": "워크스페이스 설정, 목표 페이지, MBO가중치 페이지, 권한설정 이렇게 4단계인데. 지금은 워크스페이스설정, 목표페이지를 70퍼센트정도함.\n일단 완성되진 않아도 한사이클 돌리고, QA주어서 완성도를 높일 예정",
+          "coaching_hint": "4단계 구조(워크스페이스 설정/목표 페이지/MBO가중치/권한설정) 중 2개 모듈 70% 진행. 한 사이클 돌린 후 QA로 완성도 높이는 전략. QA 시점 판단 기준과 나머지 2개 모듈 계획에 대해 물어보세요."
+        },
+        {
+          "question_theme": "Work",
+          "bot_question": "이 프로젝트를 진행하면서 특별히 기억에 남는 성과나 보람 있었던 점이 있으신가요?",
+          "response_quality": "detailed",
+          "member_response": "사실 내가 여기에 직접 기획을 하지는 않았어. 요한님이 참고할 수 있는 타 제품 가이드 링크를 전달하고 어떻게 작업할지 대략적인 지침을 주었는데, 요한님이 그래도 열심히 찾아보고 개발해주고 계심. 이게 안해봤으니 목표관리 시스템에 대해서 잘 모를텐데도. 그래서 감사하기도 하고, 내가 꼼꼼히 봐줘야 하는 시점을 잘 잡아야겠다는 생각도 듦.\n고민되는 점은 이 목표관리모듈을 만드는 이유가 고객사들에게서 같은 목소리가 여러번 들려서인데, 어떻게 원온원과엮어 차별점을 만들어내느냐. 그리고 이걸 어떻게 구현되게 하느냐. 연계방안에 따라 목표관리 모듈 틀 자체를 바꿔야할 수 있지만 기본적인 틀이 있고 없고는 차원이 다른 상황이라고 판단. 미리 움직였다. 하지만 늘 그렇듯 불확실성은 높고 가끔은 잘못된 판단일까 두렵지만 그래도 앞으로 나가야 함.",
+          "coaching_hint": "멤버 역할: 지침 전달/방향 설정, 요한님 역할: 개발/실행. 리뷰 시점 판단에 대한 고민 있음. 고객사 피드백 기반 의사결정이지만 불확실성 속에서 선행적으로 움직인 판단. 이 의사결정의 근거(고객 목소리)를 정리하는 방법과 원온원 연계 차별점 구상을 구체화할 수 있도록 물어보세요."
+        }
+      ],
+      "profile_card": {"careerOrientation": "LEADER", "communicationStyle": "SUMMARY", "feedbackStyle": "SOLUTION", "motivation": "IMPACT"},
+      "language": "ko-KR",
+      "member_name": "이미니"
+    }
+  },
+  {
+    "id": "questions_16_meeting_prep_dev",
+    "description": "미팅 프렙 기능 개발 - 순조로운 진행, 테스트/버그 수정, 챗봇 응답 자연스러움 검증, 사용자 피드백 기반 다음 단계",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Work",
+          "bot_question": "지난 1on1 이후로 어떤 주요 업무나 프로젝트를 진행하고 계신가요?",
+          "response_quality": "brief",
+          "member_response": "미팅 프렙 기능개발",
+          "coaching_hint": "미팅 프렙 기능 개발 업무 언급. 구체적인 진행 상황과 기술적 챌린지에 대해 더 탐색하세요."
+        },
+        {
+          "question_theme": "Work",
+          "bot_question": "그 기능 개발은 어떤 방식으로 진행하고 계신지, 그리고 현재 어느 정도까지 진행되었는지 궁금합니다.",
+          "response_quality": "brief",
+          "member_response": "지금 테스트하고 버그 수정중",
+          "coaching_hint": "테스트 및 버그 수정 단계. 간결한 응답이지만 현재 단계는 명확. 테스트 과정에서의 구체적 발견이나 버그 패턴에 대해 물어보세요."
+        },
+        {
+          "question_theme": "Work",
+          "bot_question": "혹시 이번 미팅 프렙 기능 개발을 진행하면서 특별히 어려웠던 점이나 기억에 남는 성과가 있으실까요?",
+          "response_quality": "detailed",
+          "member_response": "아직까지 큰 문제는 없고, 버그들도 예상 범위 안에서 나오고 있어서 순조롭게 진행 중입니다. 다만 다양한 시나리오에서 챗봇 응답이 자연스럽게 나오는지 확인하는 부분이 좀 시간이 걸리고 있어요.",
+          "coaching_hint": "순조로운 진행이지만 챗봇 응답 자연스러움 검증에 시간 소요. 다양한 시나리오 테스트 방법론이나 자연스러움 판단 기준에 대해 논의하세요."
+        },
+        {
+          "question_theme": "Work",
+          "bot_question": "이 요약 내용 중에서 수정하거나 추가할 내용이 있으신가요?",
+          "response_quality": "detailed",
+          "member_response": "아니요, 요약이 잘 된 것 같아요! 추가로 말씀드리자면, 이번 기능 출시 후에 사용자 피드백을 바탕으로 챗봇 응답 품질을 개선하는 것도 다음 단계로 생각하고 있습니다.",
+          "coaching_hint": "출시 후 사용자 피드백 기반 챗봇 응답 품질 개선을 다음 단계로 계획. 피드백 수집 방법과 품질 개선 기준 수립에 대해 물어보세요."
+        }
+      ],
+      "profile_card": {},
+      "language": "ko-KR",
+      "member_name": "4년차 개발자"
+    }
+  },
+  {
+    "id": "questions_17_onboarding_process",
+    "description": "고객 온보딩 프로세스 개선 - 다팀 협업 조율(개발팀/디자인팀/CS팀), 킥오프 미팅 주도 성과, 갈등 의사결정 어려움, PM/PO 커리어 고민",
+    "inputs": {
+      "question_context": [
+        {
+          "question_theme": "Work",
+          "bot_question": "지난 1on1 이후 현재 가장 중점적으로 진행하고 있는 업무나 프로젝트는 무엇인가요?",
+          "response_quality": "detailed",
+          "member_response": "요즘 신규 고객 온보딩 프로세스 개선 프로젝트를 맡아서 진행하고 있어요. 기존에 수동으로 하던 작업들을 자동화하고, 고객 경험을 더 좋게 만드는 게 목표예요. 생각보다 범위가 넓어서 여러 팀이랑 협업해야 하는 부분이 많더라고요.",
+          "coaching_hint": "고객 온보딩 프로세스 개선 프로젝트 리딩 중. 수동→자동화, 고객 경험 개선이 목표. 여러 팀 협업 범위가 넓어 조율 부담 있음. 구체적으로 어떤 수동 작업을 자동화하는지, 협업 범위를 어떻게 정의했는지 물어보세요."
+        },
+        {
+          "question_theme": "Work",
+          "bot_question": "그 프로젝트는 현재 어느 정도 진행되었고, 어떤 방식으로 접근하고 계신지 궁금합니다.",
+          "response_quality": "detailed",
+          "member_response": "현재 기획 단계를 마치고 개발 1차 스프린트에 들어갔어요. 처음에는 고객 여정 맵을 다시 그려보면서 병목 지점을 파악했고, 그 중에서 가장 임팩트가 큰 부분부터 우선순위를 정해서 진행하고 있어요. 다만 개발팀, 디자인팀, CS팀 일정을 맞추는 게 쉽지 않아서 제가 중간에서 조율하는 역할을 많이 하고 있는데, 이 부분이 조금 버겁기도 해요.",
+          "coaching_hint": "고객 여정 맵 기반 병목 파악 후 임팩트 순 우선순위 결정. 개발 1차 스프린트 진행 중. 개발팀/디자인팀/CS팀 일정 조율이 부담. 조율 과정에서 사용하는 방법(회의 구조, 소통 채널 등)과 우선순위 결정 기준에 대해 물어보세요."
+        },
+        {
+          "question_theme": "Career",
+          "bot_question": "혹시 이 프로젝트를 진행하면서 특별히 어려웠던 점이나 기억에 남는 성과가 있으실까요?",
+          "response_quality": "detailed",
+          "member_response": "성과라고 하면, 여러 팀 이해관계자들을 모아서 킥오프 미팅을 직접 주도한 게 있어요. 처음엔 긴장됐는데 생각보다 잘 진행됐고, 팀장님께도 칭찬을 받았어요. 근데 솔직히 말씀드리면, 이런 프로젝트 리딩 경험을 더 쌓고 싶은데 아직 제가 부족한 것 같아서요. 특히 갈등 상황에서 의사결정을 내리는 게 어렵더라고요. 나중에 PM이나 프로덕트 오너 역할을 해보고 싶은데, 어떻게 역량을 키워가야 할지 리더님과 이야기해보고 싶어요.",
+          "coaching_hint": "킥오프 미팅 주도 성과 + PM/PO 커리어 희망 표현. 갈등 상황 의사결정 역량 부족 인식. 킥오프 미팅에서 구체적으로 어떤 준비를 했는지(제약→대안→결정 구조)와 갈등 상황에서의 의사결정 연습 기회를 탐색하세요."
+        }
+      ],
+      "profile_card": {"careerOrientation": "LEADER", "communicationStyle": "CONTEXT", "feedbackStyle": "SOLUTION", "motivation": "GROWTH"},
+      "language": "ko-KR",
+      "member_name": "이민희"
+    }
   }
 ]
