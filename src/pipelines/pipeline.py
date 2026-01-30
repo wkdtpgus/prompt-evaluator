@@ -47,12 +47,14 @@ Backend = Literal["langsmith", "langfuse"]
 def execute_prompt(
     template: str,
     inputs: dict,
+    callbacks: list | None = None,
 ) -> str:
     """프롬프트를 LLM에 실행하고 응답 반환.
 
     Args:
         template: 프롬프트 템플릿 (플레이스홀더 포함)
         inputs: 템플릿에 채울 입력 데이터
+        callbacks: LangChain 콜백 핸들러 목록 (Langfuse 트레이싱 등)
 
     Returns:
         LLM 응답 텍스트
@@ -68,7 +70,11 @@ def execute_prompt(
 
     prompt = template.format(**format_args)
 
-    response = execution_llm.invoke(prompt)
+    invoke_kwargs = {}
+    if callbacks:
+        invoke_kwargs["config"] = {"callbacks": callbacks}
+
+    response = execution_llm.invoke(prompt, **invoke_kwargs)
 
     return response.content
 
@@ -79,7 +85,8 @@ def run_evaluation(
     expected: dict,
     inputs: dict,
     mode: RunMode = "quick",
-    eval_config: dict | None = None
+    eval_config: dict | None = None,
+    callbacks: list | None = None,
 ) -> dict[str, Any]:
     """출력에 대한 평가 실행.
 
@@ -89,6 +96,7 @@ def run_evaluation(
         inputs: 원본 입력 (LLM Judge용)
         mode: 실행 모드 (quick/standard/full)
         eval_config: 평가 설정
+        callbacks: LangChain 콜백 핸들러 목록 (Langfuse 트레이싱 등)
 
     Returns:
         {
@@ -156,6 +164,7 @@ def run_evaluation(
                 inputs=inputs,
                 criteria=criteria,
                 domain=domain,
+                callbacks=callbacks,
             )
             scoring_results["llm_judge"] = {
                 "criteria": llm_results,
@@ -572,10 +581,11 @@ def _run_langfuse_experiment(
         if domain:
             print(f"  eval_prompts 도메인: {domain}")
 
-    # 5. Task 함수 정의 (LLM 호출)
+    # 5. Task 함수 정의 (LLM 호출 + Langfuse 트레이싱)
     def task(item):
         """Langfuse 실험의 타겟 함수 - 각 데이터셋 아이템에 대해 실행됨."""
-        output = execute_prompt(template, item.input)
+        handler = get_langfuse_handler()
+        output = execute_prompt(template, item.input, callbacks=[handler])
         return {"output": output}
 
     # 6. Evaluator 함수들 정의
@@ -625,12 +635,14 @@ def _run_langfuse_experiment(
             def make_llm_judge_evaluator(crit, dom):
                 def llm_judge_evaluator(*, output, expected_output, input, metadata, **kwargs):
                     text = output.get("output", "") if isinstance(output, dict) else str(output)
+                    judge_handler = get_langfuse_handler()
                     try:
                         results = run_checklist_evaluation(
                             output=text,
                             inputs=input,
                             criteria=[crit],
                             domain=dom,
+                            callbacks=[judge_handler],
                         )
                         if crit in results:
                             return LangfuseEvaluation(

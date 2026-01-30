@@ -7,6 +7,7 @@ import typer
 from src.regression.baseline import (
     list_baselines,
     set_as_baseline,
+    set_baseline_from_local,
     delete_baseline,
 )
 from src.versioning.prompt_metadata import load_metadata
@@ -64,6 +65,42 @@ def baseline_set(
     try:
         path = set_as_baseline(name, experiment, version)
         typer.echo(f"\n✓ 기준선 저장 완료: {path}")
+    except Exception as e:
+        typer.echo(f"\n✗ 기준선 설정 실패: {e}")
+        raise typer.Exit(1)
+
+
+@app.command(name="set-local")
+def baseline_set_local(
+    name: Annotated[str, typer.Argument(help="프롬프트 이름")],
+    experiment_file: Annotated[Optional[str], typer.Option("--experiment", "-e", help="실험 결과 파일명 (기본: latest)")] = None,
+    version: Annotated[Optional[str], typer.Option("--version", "-v", help="버전 태그")] = None,
+):
+    """로컬 실험 결과(Langfuse 등)를 기준선으로 설정.
+
+    Usage:
+        # 최신 실험 결과로 기준선 설정
+        baseline set-local prep_output_analyze
+
+        # 특정 실험 결과로 기준선 설정
+        baseline set-local prep_output_analyze --experiment "prep_output_analyze-full-20260129-143000"
+    """
+    typer.echo(f"\n기준선 설정 (로컬): {name}")
+
+    if version is None:
+        metadata = load_metadata(name)
+        version = metadata.get("current_version", "latest") if metadata else "latest"
+
+    typer.echo(f"  버전: {version}")
+    typer.echo(f"  소스: {'latest' if not experiment_file else experiment_file}")
+
+    try:
+        path = set_baseline_from_local(name, experiment_file=experiment_file, version=version)
+        typer.echo(f"\n✓ 기준선 저장 완료: {path}")
+    except FileNotFoundError as e:
+        typer.echo(f"\n✗ {e}")
+        typer.echo("먼저 experiment 명령으로 실험을 실행하세요.")
+        raise typer.Exit(1)
     except Exception as e:
         typer.echo(f"\n✗ 기준선 설정 실패: {e}")
         raise typer.Exit(1)

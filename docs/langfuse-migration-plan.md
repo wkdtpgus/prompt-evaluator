@@ -328,14 +328,17 @@ LANGFUSE_HOST=http://localhost:3000
 
 ## 6. 예상 일정
 
-| Phase | 작업 내용 | 우선순위 |
-|-------|----------|---------|
-| Phase 1 | Docker 서버 구축 | 높음 |
-| Phase 2 | SDK 설치 및 기본 연동 | 높음 |
-| Phase 3 | 프롬프트 관리 마이그레이션 | 중간 |
-| Phase 4 | 데이터셋 마이그레이션 | 중간 |
-| Phase 5 | 실험 기능 마이그레이션 | 높음 |
-| Phase 6 | 트레이싱 추가 | 낮음 |
+| Phase | 작업 내용 | 우선순위 | 상태 |
+|-------|----------|---------|------|
+| Phase 1 | Docker 로컬 서버 구축 | 높음 | ✅ |
+| Phase 2 | SDK 설치 및 기본 연동 | 높음 | ✅ |
+| Phase 3 | 프롬프트 관리 마이그레이션 | 중간 | ✅ |
+| Phase 4 | 데이터셋 마이그레이션 | 중간 | ✅ |
+| Phase 5 | 실험 기능 마이그레이션 | 높음 | ✅ |
+| Phase 6 | 트레이싱 추가 | 중간 | ✅ |
+| Phase 7 | GCP 클라우드 배포 | 높음 | |
+| Phase 8 | 스코어링 리포트 고도화 | 낮음 | |
+| Phase 9 | 프로덕션 트레이스 → 테스트 데이터 자동 수집 | 중간 | |
 
 ---
 
@@ -464,23 +467,132 @@ else:
 
 ---
 
-### Phase 6: 트레이싱 옵션 추가 (기존 로직에 통합)
+### Phase 6: 트레이싱 옵션 추가 (기존 로직에 통합) ✅
 
 **목표**: 기존 평가자/로더에 Langfuse 트레이싱 옵션 추가
 
-- [ ] src/pipeline.py 수정
-  - [ ] `execute_prompt()`에 `trace_to_langfuse` 옵션 추가
-  - [ ] CallbackHandler 조건부 적용
-- [ ] src/evaluators/llm_judge.py 수정
-  - [ ] LLM Judge 호출 시 트레이싱 옵션 추가
-- [ ] utils/models.py 수정
-  - [ ] LLM 인스턴스에 기본 콜백 핸들러 옵션 추가
-- [ ] 테스트
-  - [ ] 전체 파이프라인 실행 테스트
-  - [ ] Langfuse UI에서 트레이스 계층 구조 확인
-  - [ ] 성능 지표 (latency, token usage) 확인
+- [x] src/pipelines/pipeline.py 수정
+  - [x] `execute_prompt()`에 `callbacks` 파라미터 추가
+  - [x] `run_evaluation()`에 `callbacks` 파라미터 추가 → `run_checklist_evaluation()`에 전달
+  - [x] `_run_langfuse_experiment()` task/evaluator 함수에서 `get_langfuse_handler()` 생성 후 전달
+- [x] src/evaluators/llm_judge.py 수정
+  - [x] `run_checklist_evaluation()`에 `callbacks` 파라미터 추가
+  - [x] `llm_with_json.invoke(messages, **invoke_kwargs)` 로 콜백 전달
+- [x] src/pipelines/e2e_chain.py 수정
+  - [x] `_run_e2e_chain()`에 `callbacks` 파라미터 추가 → `execute_prompt()`에 전달
+  - [x] `run_e2e_langfuse_experiment()` task/evaluator 함수에서 `get_langfuse_handler()` 생성 후 전달
+- [x] 테스트
+  - [x] E2E 파이프라인 full 모드 실행 (4/5 통과, 평균 0.800)
+  - [x] 개별 LLM 호출 트레이싱 확인
 
-### Phase 7: 스코어링 리포트 고도화 (마이그레이션 완료 후)
+### Phase 7: GCP 클라우드 배포
+
+**목표**: 로컬 Docker 환경의 Langfuse를 GCP에 배포하여 팀 공유 환경 구축
+
+#### 7-1. 인프라 아키텍처 선택
+
+**Option A: GCE 단일 VM + Docker Compose** (권장 - 간단, 저비용)
+
+```
+┌─────────────────────────────────────────────────┐
+│  GCE VM (e2-standard-4)                         │
+│  ┌───────────────────────────────────────────┐  │
+│  │  Docker Compose                           │  │
+│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐   │  │
+│  │  │ Langfuse │ │ClickHouse│ │PostgreSQL│   │  │
+│  │  │ (3000)   │ │ (8123)   │ │ (5432)   │   │  │
+│  │  └──────────┘ └──────────┘ └──────────┘   │  │
+│  │  ┌──────────┐ ┌──────────┐                │  │
+│  │  │  Redis   │ │  MinIO   │                │  │
+│  │  │ (6379)   │ │ (9000)   │                │  │
+│  │  └──────────┘ └──────────┘                │  │
+│  └───────────────────────────────────────────┘  │
+│  Persistent Disk (SSD 50GB)                     │
+└─────────────────────────────────────────────────┘
+        │
+   Cloud Load Balancer (HTTPS)
+        │
+   langfuse.{domain}
+```
+
+**Option B: Cloud Run + Managed Services** (확장성, 고비용)
+
+```
+Cloud Run (Langfuse) → Cloud SQL (PostgreSQL)
+                     → Memorystore (Redis)
+                     → GCE (ClickHouse) ← 매니지드 없음
+```
+
+#### 7-2. TODO 체크리스트
+
+**인프라 프로비저닝**
+
+- [ ] GCP 프로젝트/네트워크 확인
+  - [ ] 사용할 프로젝트 확인
+  - [ ] VPC/서브넷 확인
+  - [ ] 방화벽 규칙 (3000 포트 or LB 경유)
+- [ ] GCE VM 생성
+  - [ ] 머신타입: `e2-standard-4` (4 vCPU, 16GB RAM) 이상
+  - [ ] OS: Ubuntu 22.04 LTS
+  - [ ] 디스크: SSD Persistent Disk 50GB+
+  - [ ] 고정 외부 IP 할당
+- [ ] Docker 설치
+  - [ ] Docker Engine + Docker Compose 설치
+  - [ ] 방화벽에서 필요 포트 오픈
+
+**Langfuse 배포**
+
+- [ ] Langfuse Docker Compose 설정
+  - [ ] `docker-compose.yml` 작성 (로컬 설정 기반)
+  - [ ] 환경변수 설정 (`NEXTAUTH_SECRET`, `SALT`, `ENCRYPTION_KEY` 등)
+  - [ ] 볼륨 마운트 (PostgreSQL, ClickHouse 데이터 영속화)
+- [ ] 컨테이너 실행 및 헬스체크
+  - [ ] `docker compose up -d`
+  - [ ] 각 서비스 상태 확인 (PostgreSQL, ClickHouse, Redis, Langfuse)
+  - [ ] http://{외부IP}:3000 접속 확인
+
+**도메인/SSL 설정**
+
+- [ ] 도메인 연결 (선택)
+  - [ ] Cloud Load Balancer 또는 Caddy/Nginx 리버스 프록시
+  - [ ] SSL 인증서 (Let's Encrypt or Google-managed)
+  - [ ] DNS 레코드 등록
+
+**보안**
+
+- [ ] IAP (Identity-Aware Proxy) 또는 VPN 설정
+  - [ ] 팀 멤버만 접근 가능하도록 제한
+  - [ ] 또는 Langfuse 자체 인증 (이메일 가입 비활성화, SSO 설정)
+- [ ] Secret Manager로 환경변수 관리
+  - [ ] `NEXTAUTH_SECRET`, `SALT`, `ENCRYPTION_KEY`
+  - [ ] `LANGFUSE_SECRET_KEY`, `LANGFUSE_PUBLIC_KEY`
+
+**운영**
+
+- [ ] 백업 설정
+  - [ ] PostgreSQL 정기 백업 (pg_dump cron 또는 Cloud SQL 자동 백업)
+  - [ ] ClickHouse 데이터 스냅샷
+  - [ ] Persistent Disk 스냅샷 스케줄
+- [ ] 모니터링
+  - [ ] Cloud Monitoring 대시보드 (CPU, 메모리, 디스크)
+  - [ ] Uptime Check (3000 포트 헬스체크)
+  - [ ] 디스크 용량 알림 (80% 초과 시)
+- [ ] 자동 시작 설정
+  - [ ] systemd 서비스로 Docker Compose 등록
+  - [ ] VM 재시작 시 자동 복구
+
+**코드 수정 (프로젝트)**
+
+- [ ] `.env` 업데이트
+  - [ ] `LANGFUSE_HOST` → 클라우드 서버 URL로 변경
+  - [ ] `.env.example`에 클라우드 설정 예시 추가
+- [ ] 연결 테스트
+  - [ ] 로컬에서 클라우드 Langfuse로 실험 실행
+  - [ ] 트레이싱/데이터셋/실험 결과 확인
+
+---
+
+### Phase 8: 스코어링 리포트 고도화
 
 **목표**: 실험 실행 시 상세 스코어 리포트 자동 생성
 
@@ -492,6 +604,65 @@ else:
   - [ ] Langfuse API로 스코어 데이터 추출 → JSON 파싱
   - [ ] 실패 케이스 상세 분석 포함
   - [ ] 결과를 `results/{experiment_name}/report.md` 저장
+
+### Phase 9: 프로덕션 트레이스 → 테스트 데이터 자동 수집
+
+**목표**: Langfuse 프로덕션 트레이스에서 실제 사용자 데이터를 자동 추출하여 평가 데이터셋에 추가
+
+**전제 조건**: Phase 7 (GCP 배포) 완료, 프로덕션 앱의 트레이싱이 Langfuse로 전환된 상태
+
+#### CLI 커맨드
+
+```bash
+# Langfuse 트레이스에서 데이터 수집
+python main.py dataset collect \
+  --name prep_output_analyze \
+  --source langfuse \
+  --limit 10 \
+  --since 2026-01-25
+
+# 수집 후 Langfuse/LangSmith 데이터셋에 재업로드
+python main.py dataset upload --name prep_output_analyze
+```
+
+#### 구현 범위
+
+- [ ] `utils/trace_collector.py` — 트레이스 데이터 수집 모듈
+  - [ ] Langfuse `client.fetch_traces()` 활용
+  - [ ] 필터링: 날짜 범위, 프로젝트/세션 단위, 성공/실패 여부
+  - [ ] 트레이스 input → `test_cases.json` 형식 변환
+  - [ ] 중복 제거 (기존 데이터셋의 inputs와 비교)
+- [ ] `cli/dataset.py` — `collect` 커맨드
+  - [ ] `--source langfuse|langsmith` 트레이스 소스 선택
+  - [ ] `--name` 타겟 데이터셋 이름
+  - [ ] `--limit` 최대 수집 건수
+  - [ ] `--since` / `--until` 날짜 필터
+  - [ ] `--append` 기존 데이터셋에 추가 (기본) vs `--overwrite`
+  - [ ] `--dry-run` 미리보기 (저장 없이 추출 결과만 출력)
+- [ ] `expected.json` 스텁 자동 생성
+  - [ ] 수집된 케이스에 대해 빈 껍데기 엔트리 추가
+  - [ ] `{"keywords": [], "forbidden": [], "reference": {}}`
+- [ ] 입력 키 매핑
+  - [ ] 프로덕션 트레이스 input 키 → 프롬프트 플레이스홀더 변수명 자동 매핑
+  - [ ] 매핑 불일치 시 경고 + 수동 매핑 설정 지원 (`config.yaml`의 `input_mapping` 필드)
+- [ ] `cli/dataset.py` — `upload` 커맨드 (기존 기능 통합)
+  - [ ] 로컬 `test_cases.json` + `expected.json` → Langfuse/LangSmith 데이터셋 업로드
+
+#### 데이터 흐름
+
+```
+프로덕션 앱 → Langfuse 트레이스
+                  ↓ dataset collect
+              datasets/{name}/test_cases.json  (로컬, 추가)
+              datasets/{name}/expected.json    (스텁 추가)
+                  ↓ 수동 큐레이션 (expected 보강)
+                  ↓ dataset upload
+              Langfuse/LangSmith dataset items (평가용)
+                  ↓ experiment
+              평가 실행
+```
+
+---
 
 ### 마이그레이션 완료 후
 

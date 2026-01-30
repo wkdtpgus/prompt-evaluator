@@ -112,6 +112,7 @@ def run_checklist_evaluation(
     prompt_template: str = "",
     criteria: list[str] | None = None,
     domain: str | None = None,
+    callbacks: list | None = None,
 ) -> dict[str, Any]:
     """체크리스트 기반 LLM 평가 실행.
 
@@ -121,6 +122,7 @@ def run_checklist_evaluation(
         prompt_template: 원본 프롬프트 (instruction_following용)
         criteria: 평가 기준 목록 (None이면 기본 3개)
         domain: eval_prompts 도메인 (예: "oneonone")
+        callbacks: LangChain 콜백 핸들러 목록 (Langfuse 트레이싱 등)
 
     Returns:
         각 기준별 점수 및 상세 결과
@@ -132,6 +134,10 @@ def run_checklist_evaluation(
 
     # JSON 응답 강제
     llm_with_json = judge_llm.bind(response_format={"type": "json_object"})
+
+    invoke_kwargs = {}
+    if callbacks:
+        invoke_kwargs["config"] = {"callbacks": callbacks}
 
     for criterion in criteria:
         template = load_eval_prompt(criterion, domain)
@@ -156,7 +162,7 @@ def run_checklist_evaluation(
                 ("system", "You are a precise evaluator. Score each checklist item as 0 (fail) or 1 (pass). Be strict but fair. Always respond with valid JSON."),
                 ("user", eval_prompt)
             ]
-            response = llm_with_json.invoke(messages)
+            response = llm_with_json.invoke(messages, **invoke_kwargs)
 
             result = json.loads(response.content)
 

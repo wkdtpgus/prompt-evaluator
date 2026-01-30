@@ -12,6 +12,7 @@ from langsmith import Client
 
 
 BASELINES_DIR = Path("results/baselines")
+RESULTS_DIR = Path("results/experiments")
 
 
 def get_baseline_path(prompt_name: str, version: Optional[str] = None) -> Path:
@@ -219,3 +220,157 @@ def delete_baseline(prompt_name: str, version: str) -> bool:
         baseline_path.unlink()
         return True
     return False
+
+
+# ============================================================
+# 실험 결과 로컬 저장/로드 (Langfuse 등)
+# ============================================================
+
+
+def save_experiment_result(
+    prompt_name: str,
+    experiment_result: dict,
+    experiment_name: Optional[str] = None,
+) -> Path:
+    """실험 결과를 로컬에 저장
+
+    Args:
+        prompt_name: 프롬프트 이름
+        experiment_result: 실험 결과 딕셔너리
+        experiment_name: 실험 이름 (None이면 결과에서 추출)
+
+    Returns:
+        저장된 파일 경로
+    """
+    exp_name = experiment_name or experiment_result.get("experiment_name", "unknown")
+
+    result_dir = RESULTS_DIR / prompt_name
+    result_dir.mkdir(parents=True, exist_ok=True)
+
+    # 개별 실험 결과 저장
+    result_path = result_dir / f"{exp_name}.json"
+    with open(result_path, "w", encoding="utf-8") as f:
+        json.dump(experiment_result, f, ensure_ascii=False, indent=2)
+
+    # latest.json도 동시 저장
+    latest_path = result_dir / "latest.json"
+    with open(latest_path, "w", encoding="utf-8") as f:
+        json.dump(experiment_result, f, ensure_ascii=False, indent=2)
+
+    return result_path
+
+
+def load_latest_experiment(prompt_name: str) -> dict | None:
+    """최신 실험 결과 로드
+
+    Args:
+        prompt_name: 프롬프트 이름
+
+    Returns:
+        실험 결과 딕셔너리 또는 None
+    """
+    latest_path = RESULTS_DIR / prompt_name / "latest.json"
+    if not latest_path.exists():
+        return None
+
+    with open(latest_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def load_experiment_result(prompt_name: str, experiment_name: str) -> dict | None:
+    """특정 실험 결과 로드
+
+    Args:
+        prompt_name: 프롬프트 이름
+        experiment_name: 실험 이름
+
+    Returns:
+        실험 결과 딕셔너리 또는 None
+    """
+    result_path = RESULTS_DIR / prompt_name / f"{experiment_name}.json"
+    if not result_path.exists():
+        return None
+
+    with open(result_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def normalize_experiment_to_baseline(experiment_result: dict) -> dict:
+    """로컬 실험 결과를 baseline 비교 형식으로 정규화
+
+    Langfuse 실험 결과 형식 → baseline compare_results() 호환 형식 변환
+
+    Args:
+        experiment_result: 실험 결과 (run_experiment의 반환값)
+
+    Returns:
+        baseline 호환 딕셔너리 {"version", "results": {"summary", "cases"}}
+    """
+    summary = experiment_result.get("summary", {})
+    results = experiment_result.get("results", [])
+
+    cases = []
+    for r in results:
+        scores = r.get("scores", {})
+        # scores → feedback_stats 형식 변환
+        feedback_stats = {}
+        for name, value in scores.items():
+            feedback_stats[name] = {"avg": value}
+
+        cases.append({
+            "case_id": r.get("case_id", ""),
+            "inputs": {},
+            "outputs": {"output": r.get("output", "")},
+            "feedback_stats": feedback_stats,
+            "passed": r.get("passed", False),
+        })
+
+    return {
+        "version": "current",
+        "results": {
+            "summary": summary,
+            "cases": cases,
+        },
+    }
+
+
+def set_baseline_from_local(
+    prompt_name: str,
+    experiment_file: Optional[str] = None,
+    version: Optional[str] = None,
+    metadata: Optional[dict] = None,
+) -> Path:
+    """로컬 실험 결과에서 baseline 생성
+
+    Args:
+        prompt_name: 프롬프트 이름
+        experiment_file: 실험 결과 파일명 (None이면 latest.json)
+        version: 버전 태그 (None이면 .metadata.yaml의 current_version)
+        metadata: 추가 메타데이터
+
+    Returns:
+        저장된 baseline 파일 경로
+
+    Raises:
+        FileNotFoundError: 실험 결과 파일이 없는 경우
+    """
+    if experiment_file:
+        experiment = load_experiment_result(prompt_name, experiment_file)
+    else:
+        experiment = load_latest_experiment(prompt_name)
+
+    if experiment is None:
+        raise FileNotFoundError(
+            f"실험 결과를 찾을 수 없습니다: {prompt_name} "
+            f"({'latest' if not experiment_file else experiment_file})"
+        )
+
+    # baseline 형식으로 변환
+    normalized = normalize_experiment_to_baseline(experiment)
+
+    return save_baseline(
+        prompt_name,
+        experiment_results=normalized["results"],
+        version=version,
+        metadata=metadata,
+    )

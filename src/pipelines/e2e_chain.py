@@ -25,7 +25,7 @@ from langsmith.evaluation import EvaluationResult, evaluate
 
 # Langfuse imports (lazy)
 try:
-    from utils.langfuse_client import get_langfuse_client, flush as langfuse_flush
+    from utils.langfuse_client import get_langfuse_client, get_langfuse_handler, flush as langfuse_flush
     from utils.langfuse_datasets import upload_from_files, get_dataset
     from langfuse.experiment import Evaluation as LangfuseEvaluation
     LANGFUSE_AVAILABLE = True
@@ -330,8 +330,12 @@ def _run_e2e_chain(
     phase1_template: str,
     phase2_template: str,
     inputs: dict,
+    callbacks: list | None = None,
 ) -> dict[str, str]:
     """E2E 체인 실행 (Phase 1 → Phase 2)
+
+    Args:
+        callbacks: LangChain 콜백 핸들러 목록 (Langfuse 트레이싱 등)
 
     Returns:
         {"output": phase2_output, "phase1_output": phase1_output}
@@ -346,7 +350,7 @@ def _run_e2e_chain(
         "survey_answers_json": inputs.get("survey_answers", {}),
         "language": inputs.get("language", "ko-KR"),
     }
-    phase1_output = execute_prompt(phase1_template, phase1_inputs)
+    phase1_output = execute_prompt(phase1_template, phase1_inputs, callbacks=callbacks)
 
     # 3. Phase 1 JSON 파싱
     try:
@@ -362,7 +366,7 @@ def _run_e2e_chain(
         "member_name": inputs.get("member_name", ""),
         "language": inputs.get("language", "ko-KR"),
     }
-    phase2_output = execute_prompt(phase2_template, phase2_inputs)
+    phase2_output = execute_prompt(phase2_template, phase2_inputs, callbacks=callbacks)
 
     return {"output": phase2_output, "phase1_output": phase1_output}
 
@@ -443,9 +447,10 @@ def run_e2e_langfuse_experiment(
     if use_llm_judge:
         print(f"  LLM Judge: {criteria}")
 
-    # 6. Task 함수 (E2E 체인 실행)
+    # 6. Task 함수 (E2E 체인 실행 + Langfuse 트레이싱)
     def task(item):
-        return _run_e2e_chain(phase1_template, phase2_template, item.input)
+        handler = get_langfuse_handler()
+        return _run_e2e_chain(phase1_template, phase2_template, item.input, callbacks=[handler])
 
     # 7. Evaluator 함수
     evaluators = []
@@ -457,12 +462,14 @@ def run_e2e_langfuse_experiment(
                     text = output.get("output", "") if isinstance(output, dict) else str(output)
                     if not text:
                         return LangfuseEvaluation(name=f"llm_judge_{crit}", value=0.0, comment="Empty output (phase1 parse error?)")
+                    judge_handler = get_langfuse_handler()
                     try:
                         results = run_checklist_evaluation(
                             output=text,
                             inputs=input,
                             criteria=[crit],
                             domain=dom,
+                            callbacks=[judge_handler],
                         )
                         if crit in results:
                             return LangfuseEvaluation(

@@ -93,6 +93,7 @@ def init_metadata(
                 "author": owner,
                 "changes": "Initial version",
                 "langsmith_hash": None,
+                "langfuse_version": None,
             }
         },
     }
@@ -107,6 +108,7 @@ def add_version(
     author: str,
     changes: str,
     langsmith_hash: Optional[str] = None,
+    langfuse_version: Optional[int] = None,
     targets_dir: Path = Path("targets"),
 ) -> dict:
     """새 버전 추가
@@ -117,6 +119,7 @@ def add_version(
         author: 작성자 이메일
         changes: 변경 내용 설명
         langsmith_hash: LangSmith 커밋 해시 (선택)
+        langfuse_version: Langfuse 프롬프트 버전 번호 (선택)
         targets_dir: targets 디렉토리 경로
 
     Returns:
@@ -147,6 +150,7 @@ def add_version(
         "author": author,
         "changes": changes,
         "langsmith_hash": langsmith_hash,
+        "langfuse_version": langfuse_version,
     }
     metadata["current_version"] = version
 
@@ -199,6 +203,7 @@ def get_version_history(
             "author": info.get("author"),
             "changes": info.get("changes"),
             "langsmith_hash": info.get("langsmith_hash"),
+            "langfuse_version": info.get("langfuse_version"),
         })
 
     # 날짜 역순 정렬 (최신 먼저)
@@ -236,6 +241,40 @@ def update_langsmith_hash(
         raise ValueError(f"존재하지 않는 버전: {version}")
 
     metadata["versions"][version]["langsmith_hash"] = langsmith_hash
+    save_metadata(prompt_name, metadata, targets_dir)
+    return metadata
+
+
+def update_langfuse_version(
+    prompt_name: str,
+    version: str,
+    langfuse_version: int,
+    targets_dir: Path = Path("targets"),
+) -> dict:
+    """특정 버전의 Langfuse 버전 번호 업데이트
+
+    Args:
+        prompt_name: 프롬프트 이름
+        version: 버전 태그
+        langfuse_version: Langfuse 프롬프트 버전 번호
+        targets_dir: targets 디렉토리 경로
+
+    Returns:
+        업데이트된 메타데이터
+
+    Raises:
+        FileNotFoundError: 메타데이터 파일이 없는 경우
+        ValueError: 존재하지 않는 버전인 경우
+    """
+    metadata = load_metadata(prompt_name, targets_dir)
+
+    if metadata is None:
+        raise FileNotFoundError(f"메타데이터 없음: {prompt_name}")
+
+    if version not in metadata.get("versions", {}):
+        raise ValueError(f"존재하지 않는 버전: {version}")
+
+    metadata["versions"][version]["langfuse_version"] = langfuse_version
     save_metadata(prompt_name, metadata, targets_dir)
     return metadata
 

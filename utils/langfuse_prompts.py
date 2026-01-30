@@ -8,6 +8,114 @@ from pathlib import Path
 from typing import Optional
 
 from utils.langfuse_client import get_langfuse_client
+from src.loaders import find_prompt_file, load_prompt_file
+
+
+def push_prompt(
+    prompt_name: str,
+    targets_dir: str | Path = "targets",
+    version_tag: str | None = None,
+    metadata_info: dict | None = None,
+) -> int:
+    """로컬 프롬프트를 Langfuse에 업로드 (LangSmith push_prompt 대응)
+
+    Args:
+        prompt_name: 프롬프트 이름 (예: "prep_output_analyze")
+        targets_dir: targets 디렉토리 경로
+        version_tag: 버전 태그 (예: "v1.0") - label로 사용
+        metadata_info: 메타데이터 정보 (version, author, changes, date)
+
+    Returns:
+        Langfuse 프롬프트 버전 번호
+    """
+    targets_dir = Path(targets_dir)
+
+    prompt_file = find_prompt_file(prompt_name, targets_dir)
+    prompts = load_prompt_file(prompt_file)
+
+    content = _build_langfuse_content(prompts)
+
+    labels = ["latest"]
+    if version_tag:
+        labels.append(version_tag)
+
+    config = {}
+    if metadata_info:
+        config["metadata"] = metadata_info
+
+    langfuse_name = f"prompt-eval-{prompt_name}"
+
+    client = get_langfuse_client()
+    if isinstance(content, list):
+        prompt_obj = client.create_prompt(
+            name=langfuse_name,
+            type="chat",
+            prompt=content,
+            labels=labels,
+            config=config,
+        )
+    else:
+        prompt_obj = client.create_prompt(
+            name=langfuse_name,
+            type="text",
+            prompt=content,
+            labels=labels,
+            config=config,
+        )
+
+    langfuse_version = prompt_obj.version
+    print(f"✓ Langfuse 프롬프트 업로드 완료: {langfuse_name} (version: {langfuse_version})")
+    if version_tag:
+        print(f"  태그: {version_tag}")
+
+    return langfuse_version
+
+
+def _build_langfuse_content(prompts: dict) -> str | list[dict]:
+    """프롬프트 딕셔너리를 Langfuse 업로드 형식으로 변환
+
+    Args:
+        prompts: 프롬프트 딕셔너리 (예: {"SYSTEM_PROMPT": "...", "USER_PROMPT": "..."})
+
+    Returns:
+        str: 단일 프롬프트인 경우 (text 타입)
+        list[dict]: SYSTEM_PROMPT + USER_PROMPT가 있는 경우 (chat 타입)
+    """
+    # SYSTEM_PROMPT + USER_PROMPT 조합 → chat 형식
+    system_keys = ["SYSTEM_PROMPT", "system_prompt", "system"]
+    user_keys = ["USER_PROMPT", "user_prompt", "user", "human"]
+
+    system_content = None
+    user_content = None
+
+    for key in system_keys:
+        if key in prompts:
+            system_content = prompts[key]
+            break
+
+    for key in user_keys:
+        if key in prompts:
+            user_content = prompts[key]
+            break
+
+    if system_content and user_content:
+        return [
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": user_content},
+        ]
+
+    # 단일 프롬프트
+    if "template" in prompts:
+        return prompts["template"]
+
+    if len(prompts) == 1:
+        return list(prompts.values())[0]
+
+    # 여러 키가 있지만 system/user 쌍이 아닌 경우 → 전부 합침
+    parts = []
+    for key in sorted(prompts.keys()):
+        parts.append(prompts[key])
+    return "\n\n".join(parts)
 
 
 def upload_prompt(
