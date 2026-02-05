@@ -21,7 +21,7 @@ from src.regression.baseline import (
     normalize_experiment_to_baseline,
 )
 from src.regression.comparator import compare_results, format_regression_report
-from utils import push_prompt
+from utils.prompt_sync import push_prompt
 from utils.git import get_git_user_email
 
 
@@ -68,29 +68,16 @@ def _auto_version_and_push(
             "date": datetime.now().strftime("%Y-%m-%d"),
         }
 
-        # LangSmith push
-        if backend in ("langsmith", "both"):
-            typer.echo("  LangSmith에 업로드 중...")
-            try:
-                push_prompt(name, version_tag=version_tag, metadata_info=metadata_info)
-                typer.echo("  ✓ LangSmith 업로드 완료")
-            except Exception as e:
-                typer.echo(f"  ✗ LangSmith 업로드 실패: {e}")
-                raise typer.Exit(1)
-
-        # Langfuse push
-        if backend in ("langfuse", "both"):
-            typer.echo("  Langfuse에 업로드 중...")
-            try:
-                from utils.langfuse_prompts import push_prompt as langfuse_push_prompt
-                langfuse_ver = langfuse_push_prompt(
-                    name, version_tag=version_tag, metadata_info=metadata_info,
-                )
-                update_langfuse_version(name, version_tag, langfuse_ver)
-                typer.echo("  ✓ Langfuse 업로드 완료")
-            except Exception as e:
-                typer.echo(f"  ✗ Langfuse 업로드 실패: {e}")
-                raise typer.Exit(1)
+        typer.echo("  업로드 중...")
+        result = push_prompt(name, backend=backend, version_tag=version_tag, metadata_info=metadata_info)
+        if result.get("langsmith_error") or result.get("langfuse_error"):
+            for key in ("langsmith_error", "langfuse_error"):
+                if result.get(key):
+                    typer.echo(f"  ✗ {key}: {result[key]}")
+            raise typer.Exit(1)
+        if result.get("langfuse_version") is not None:
+            update_langfuse_version(name, version_tag, result["langfuse_version"])
+        typer.echo("  ✓ 업로드 완료")
 
         update_last_pushed_hash(name, prompt_hash)
         return {"version": version_tag, "is_new": True}
@@ -116,29 +103,16 @@ def _auto_version_and_push(
             "date": datetime.now().strftime("%Y-%m-%d"),
         }
 
-        # LangSmith push
-        if backend in ("langsmith", "both"):
-            typer.echo("  LangSmith에 업로드 중...")
-            try:
-                push_prompt(name, version_tag=new_version, metadata_info=metadata_info)
-                typer.echo("  ✓ LangSmith 업로드 완료")
-            except Exception as e:
-                typer.echo(f"  ✗ LangSmith 업로드 실패: {e}")
-                raise typer.Exit(1)
-
-        # Langfuse push
-        if backend in ("langfuse", "both"):
-            typer.echo("  Langfuse에 업로드 중...")
-            try:
-                from utils.langfuse_prompts import push_prompt as langfuse_push_prompt
-                langfuse_ver = langfuse_push_prompt(
-                    name, version_tag=new_version, metadata_info=metadata_info,
-                )
-                update_langfuse_version(name, new_version, langfuse_ver)
-                typer.echo("  ✓ Langfuse 업로드 완료")
-            except Exception as e:
-                typer.echo(f"  ✗ Langfuse 업로드 실패: {e}")
-                raise typer.Exit(1)
+        typer.echo("  업로드 중...")
+        result = push_prompt(name, backend=backend, version_tag=new_version, metadata_info=metadata_info)
+        if result.get("langsmith_error") or result.get("langfuse_error"):
+            for key in ("langsmith_error", "langfuse_error"):
+                if result.get(key):
+                    typer.echo(f"  ✗ {key}: {result[key]}")
+            raise typer.Exit(1)
+        if result.get("langfuse_version") is not None:
+            update_langfuse_version(name, new_version, result["langfuse_version"])
+        typer.echo("  ✓ 업로드 완료")
 
         update_last_pushed_hash(name, prompt_hash)
         return {"version": new_version, "is_new": True}

@@ -14,17 +14,136 @@ poetry install
 
 # 환경변수 설정
 cp .env.example .env
-# .env 파일에 LANGSMITH_API_KEY, OPENAI_API_KEY 등 설정
 ```
 
-### 1.2. 프로젝트 구조
+`.env` 파일에 필요한 환경변수를 설정합니다:
+
+```bash
+# OpenAI (필수)
+OPENAI_API_KEY=sk-...
+
+# LangSmith (클라우드)
+LANGSMITH_TRACING=true
+LANGSMITH_API_KEY=lsv2_pt_...
+LANGSMITH_PROJECT=prompt_eval
+
+# Langfuse (셀프호스팅)
+LANGFUSE_SECRET_KEY=sk-lf-...     # Langfuse UI에서 생성
+LANGFUSE_PUBLIC_KEY=pk-lf-...     # Langfuse UI에서 생성
+LANGFUSE_HOST=http://localhost:3000  # 로컬 또는 클라우드 서버 URL
+```
+
+> 양쪽 플랫폼 환경변수를 모두 설정하면 `--backend both` (기본값)로 동시 실행됩니다.
+
+### 1.2. Langfuse 로컬 서버 구축
+
+Langfuse를 로컬에서 실행하려면 Docker가 필요합니다:
+
+```bash
+# 1. Langfuse 저장소 클론
+git clone https://github.com/langfuse/langfuse.git ~/langfuse
+cd ~/langfuse
+
+# 2. Docker Compose 실행
+docker compose up -d
+
+# 3. 접속 확인
+# http://localhost:3000
+```
+
+**서버 구축 후:**
+
+1. http://localhost:3000 에서 Langfuse 계정 생성
+2. 프로젝트 생성
+3. API 키 발급 (Secret Key, Public Key)
+4. `.env` 파일에 `LANGFUSE_SECRET_KEY`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_HOST` 추가
+
+**Docker 리소스 요구사항:**
+
+- PostgreSQL, ClickHouse, Redis 동시 실행
+- 최소 8GB RAM 권장
+- 디스크 공간: 10GB 이상
+
+> 팀 공유용 GCP 클라우드 배포에 대한 상세 내용은 [기능 명세서 Section 3.3](./SPECIFICATION.md) 참조
+
+### 1.3. Langfuse 프로젝트별 트레이싱 분리
+
+프로덕션 환경에서는 서비스(타겟)별로 Langfuse 프로젝트를 분리하여 트레이스와 평가 결과를 관리하는 것을 권장합니다.
+
+**프로젝트별 API 키 설정:**
+
+```bash
+# .env — 프로젝트별 API 키 (Langfuse UI에서 각 프로젝트마다 발급)
+LANGFUSE_PREP_OUTPUT_PUBLIC_KEY=pk-lf-...
+LANGFUSE_PREP_OUTPUT_SECRET_KEY=sk-lf-...
+
+LANGFUSE_MEETING_GENERATOR_PUBLIC_KEY=pk-lf-...
+LANGFUSE_MEETING_GENERATOR_SECRET_KEY=sk-lf-...
+
+# 공통 호스트
+LANGFUSE_HOST=http://34.64.193.193
+```
+
+**프로덕션 애플리케이션에서 프로젝트별 트레이싱:**
+
+각 서비스에서 Langfuse 클라이언트 생성 시 해당 프로젝트의 API 키를 사용하면, 트레이스가 해당 프로젝트에만 기록됩니다:
+
+```python
+from langfuse import Langfuse
+
+# prep_output 서비스 → PREP_OUTPUT 프로젝트에 트레이스 기록
+client = Langfuse(
+    public_key=os.environ["LANGFUSE_PREP_OUTPUT_PUBLIC_KEY"],
+    secret_key=os.environ["LANGFUSE_PREP_OUTPUT_SECRET_KEY"],
+    host=os.environ["LANGFUSE_HOST"],
+)
+```
+
+**LLM-as-a-Judge 평가 (Running Evaluator):**
+
+프로젝트별로 분리된 트레이스에 대해 Langfuse UI에서 Running Evaluator를 설정할 수 있습니다:
+
+1. Langfuse UI > 해당 프로젝트 선택
+2. LLM-as-a-Judge > "+ Create Custom Evaluator"
+3. eval 프롬프트 내용을 복사하여 등록
+4. 변수 매핑: `{output}` → `{{output}}`, `{input}` → `{{input}}`
+
+> **Note**: Running Evaluator 생성은 현재 UI에서만 가능합니다 (API 미지원, [langfuse#8241](https://github.com/langfuse/langfuse/issues/8241)).
+> 이 프로젝트의 `experiment` 커맨드는 별도로 코드에서 LLM Judge를 실행하므로, Running Evaluator 설정 없이도 평가가 동작합니다.
+
+### 1.4. 프로젝트 구조
 
 ```
 prompt-evaluator/
+├── main.py                     # CLI 엔트리포인트
+├── cli/                        # CLI 명령어 모듈
+│   ├── prompt.py               # prompt 서브커맨드
+│   ├── baseline.py             # baseline 서브커맨드
+│   ├── experiment.py           # experiment, regression 명령어
+│   ├── config.py               # validate, criteria 명령어
+│   └── dataset.py              # list, upload 명령어
+│
+├── src/                        # 핵심 소스 코드
+│   ├── pipelines/
+│   │   ├── pipeline.py         # 평가 파이프라인 (backend 파라미터)
+│   │   └── e2e_chain.py        # E2E 체인 파이프라인
+│   ├── evaluators/             # 평가자
+│   ├── loaders/                # 로더
+│   ├── versioning/             # 버전 관리
+│   └── regression/             # 회귀 테스트
+│
+├── utils/                      # 유틸리티 모듈
+│   ├── prompt_sync.py          # 프롬프트 업로드/조회 (LangSmith + Langfuse 통합)
+│   ├── dataset_sync.py         # 데이터셋 업로드/조회 (LangSmith + Langfuse 통합)
+│   ├── langfuse_client.py      # Langfuse 싱글톤 클라이언트
+│   ├── models.py               # LLM 인스턴스
+│   └── git.py                  # git 관련 유틸
+│
 ├── targets/                    # 평가 대상 프롬프트
 │   └── {name}/
 │       ├── prompt.*            # 프롬프트 템플릿 (.txt, .py, .xml, .md)
-│       └── config.yaml         # 평가 설정
+│       ├── config.yaml         # 평가 설정
+│       └── .metadata.yaml      # 프롬프트 버전 메타데이터
 │
 ├── datasets/                   # 테스트 데이터
 │   └── {name}/
@@ -34,6 +153,9 @@ prompt-evaluator/
 ├── eval_prompts/               # LLM Judge 평가 프롬프트
 │   ├── general/                # 범용 평가 기준
 │   └── {domain}/               # 도메인별 평가 기준
+│
+├── results/                    # 평가 결과
+│   └── baselines/{name}/       # 기준선 저장
 │
 └── configs/                    # 전역 설정
     ├── config.py               # 모델, 임계값 기본값
@@ -194,14 +316,20 @@ poetry run python main.py validate --name {name}
 poetry run python main.py validate --all
 ```
 
-### 3.3. 프롬프트 버전 관리
+### 3.3. 타겟 프롬프트 버전 관리
 
 ```bash
-# LangSmith에 업로드
+# 프롬프트 업로드 (LangSmith + Langfuse 동시 - 기본값)
 poetry run python main.py prompt push --name {name} --tag v1.0
 
-# LangSmith에서 가져오기
+# 특정 백엔드만 업로드
+poetry run python main.py prompt push --name {name} --tag v1.0 --backend langfuse
+
+# 프롬프트 가져오기 (LangSmith 기본)
 poetry run python main.py prompt pull --name {name} --tag v1.0
+
+# Langfuse에서 가져오기
+poetry run python main.py prompt pull --name {name} --backend langfuse
 
 # 버전 목록 조회
 poetry run python main.py prompt versions --name {name}
@@ -219,8 +347,42 @@ poetry run python main.py list
 # 사용 가능한 LLM Judge 평가 기준 확인
 poetry run python main.py criteria
 
-# 데이터셋 LangSmith 업로드
+# 데이터셋 업로드 (LangSmith + Langfuse 동시 - 기본값)
 poetry run python main.py upload --name {name}
+
+# 특정 백엔드만 업로드
+poetry run python main.py upload --name {name} --backend langfuse
+```
+
+### 3.5. 코드에서 통합 API 사용
+
+프롬프트와 데이터셋 관리는 `backend` 파라미터로 LangSmith/Langfuse를 선택합니다:
+
+```python
+from utils.prompt_sync import push_prompt, get_prompt, list_prompt_versions
+
+# 프롬프트 업로드
+result = push_prompt("my_prompt", backend="both", version_tag="v1.0")    # 양쪽 동시
+result = push_prompt("my_prompt", backend="langfuse")                     # Langfuse만
+result = push_prompt("my_prompt", backend="langsmith", version_tag="v1.0") # LangSmith만
+
+# 프롬프트 조회
+template = get_prompt("my_prompt", backend="langfuse")
+template = get_prompt("my_prompt", backend="langsmith", version_tag="v1.0")
+
+# 버전 목록 (LangSmith)
+versions = list_prompt_versions("my_prompt")
+```
+
+```python
+from utils.dataset_sync import upload_dataset, get_dataset
+
+# 데이터셋 업로드
+result = upload_dataset("my_prompt", backend="both")        # 양쪽 동시
+result = upload_dataset("my_prompt", backend="langfuse")    # Langfuse만
+
+# 데이터셋 조회 (Langfuse)
+dataset = get_dataset("my_prompt")
 ```
 
 ---
@@ -284,6 +446,12 @@ poetry run python main.py experiment --name {name} --mode full
 - 평가 기준별 상세 결과
 - 실패 케이스 분석
 - 버전 간 비교
+
+| 플랫폼 | 접속 URL | 비고 |
+|--------|----------|------|
+| LangSmith | https://smith.langchain.com | 클라우드 (유료) |
+| Langfuse (로컬) | http://localhost:3000 | Docker 실행 필요 |
+| Langfuse (GCP) | http://34.64.193.193 | 팀 공유 서버 (Basic Auth) |
 
 > **Note**: 기본값 `--backend both`로 실행 시 두 플랫폼에서 동시에 결과 확인 가능
 

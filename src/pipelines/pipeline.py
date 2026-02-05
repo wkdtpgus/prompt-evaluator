@@ -34,7 +34,8 @@ from src.evaluators.rule_based import run_rule_evaluators
 from src.evaluators.llm_judge import run_checklist_evaluation, create_checklist_evaluator
 from src.evaluators.similarity import _levenshtein_similarity
 from src.loaders import load_evaluation_set
-from utils import upload_to_langsmith
+from utils.dataset_sync import upload_dataset, get_dataset
+from utils.prompt_sync import get_prompt
 from utils.models import execution_llm
 
 load_dotenv()
@@ -382,10 +383,9 @@ def run_langsmith_experiment(
     Returns:
         실험 URL
     """
-    from utils import pull_prompt
-
     # 1. 데이터셋 업로드 (없으면 생성)
-    dataset_name = upload_to_langsmith(prompt_name)
+    ds_result = upload_dataset(prompt_name, backend="langsmith")
+    dataset_name = ds_result.get("langsmith_name", f"prompt-eval-{prompt_name}")
 
     # 2. 프롬프트 템플릿 로드
     data = load_evaluation_set(prompt_name)
@@ -395,7 +395,7 @@ def run_langsmith_experiment(
     # 프롬프트 소스 결정: LangSmith 버전 or 로컬 파일
     if prompt_version:
         print(f"  LangSmith 프롬프트 버전: {prompt_version}")
-        template = pull_prompt(prompt_name, version_tag=prompt_version)
+        template = get_prompt(prompt_name, backend="langsmith", version_tag=prompt_version)
     else:
         template = data["template"]
 
@@ -523,9 +523,6 @@ def _run_langfuse_experiment(
     if not LANGFUSE_AVAILABLE:
         raise ImportError("Langfuse SDK가 설치되지 않았습니다. 'poetry add langfuse'로 설치하세요.")
 
-    from utils.langfuse_datasets import get_dataset
-    from utils.langfuse_prompts import get_prompt as get_langfuse_prompt
-
     langfuse = get_langfuse_client()
 
     # 1. 프롬프트 템플릿 로드
@@ -536,7 +533,7 @@ def _run_langfuse_experiment(
     # 프롬프트 소스 결정: Langfuse 버전 or 로컬 파일
     if prompt_version:
         print(f"  Langfuse 프롬프트 버전: {prompt_version}")
-        prompt_obj = get_langfuse_prompt(prompt_name, version=int(prompt_version.lstrip("v").split(".")[0]))
+        prompt_obj = get_prompt(prompt_name, backend="langfuse", version=int(prompt_version.lstrip("v").split(".")[0]))
         template = prompt_obj.compile()
     else:
         template = data["template"]

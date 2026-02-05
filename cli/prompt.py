@@ -11,11 +11,11 @@ from src.versioning.prompt_metadata import (
     add_version,
     get_version_history,
 )
-from utils import list_prompt_versions, pull_prompt, push_prompt
+from utils.prompt_sync import push_prompt, get_prompt, list_prompt_versions
 from utils.git import get_git_user_email
 
 
-app = typer.Typer(help="프롬프트 버전 관리 (LangSmith)")
+app = typer.Typer(help="프롬프트 버전 관리 (LangSmith + Langfuse)")
 
 
 @app.command(name="info")
@@ -124,20 +124,25 @@ def prompt_push(
     tag: Annotated[Optional[str], typer.Option("--tag", "-t", help="버전 태그 (예: v1.0, production)")] = None,
     description: Annotated[Optional[str], typer.Option("--desc", "-d", help="프롬프트 설명")] = None,
     key: Annotated[Optional[str], typer.Option("--key", "-k", help=".py/.xml 파일의 특정 프롬프트 키 (예: SYSTEM_PROMPT)")] = None,
+    backend: Annotated[str, typer.Option("--backend", "-b", help="업로드 대상 (langsmith/langfuse/both)")] = "both",
 ):
-    """로컬 프롬프트를 LangSmith에 업로드.
+    """로컬 프롬프트를 LangSmith/Langfuse에 업로드.
 
     지원 형식: .txt, .py, .xml
     """
-    typer.echo(f"\n프롬프트 업로드: {name}")
+    if backend not in ("langsmith", "langfuse", "both"):
+        typer.echo(f"Invalid backend: {backend}. Use langsmith/langfuse/both")
+        raise typer.Exit(1)
+
+    typer.echo(f"\n프롬프트 업로드: {name} (backend: {backend})")
     if tag:
         typer.echo(f"  태그: {tag}")
     if key:
         typer.echo(f"  키: {key}")
 
     try:
-        push_prompt(name, version_tag=tag, description=description, prompt_key=key)
-        typer.echo(f"\n완료! LangSmith에서 확인하세요.")
+        push_prompt(name, backend=backend, version_tag=tag, description=description, prompt_key=key)
+        typer.echo(f"\n완료!")
     except FileNotFoundError as e:
         typer.echo(f"오류: {e}")
         raise typer.Exit(1)
@@ -151,14 +156,19 @@ def prompt_pull(
     name: Annotated[str, typer.Option("--name", "-n", help="프롬프트 이름")],
     tag: Annotated[Optional[str], typer.Option("--tag", "-t", help="특정 버전 태그")] = None,
     save: Annotated[bool, typer.Option("--save", "-s", help="로컬 파일로 저장")] = False,
+    backend: Annotated[str, typer.Option("--backend", "-b", help="조회 대상 (langsmith/langfuse)")] = "langsmith",
 ):
-    """LangSmith에서 프롬프트 가져오기."""
-    typer.echo(f"\n프롬프트 가져오기: {name}")
+    """LangSmith/Langfuse에서 프롬프트 가져오기."""
+    if backend not in ("langsmith", "langfuse"):
+        typer.echo(f"Invalid backend: {backend}. Use langsmith/langfuse")
+        raise typer.Exit(1)
+
+    typer.echo(f"\n프롬프트 가져오기: {name} (backend: {backend})")
     if tag:
         typer.echo(f"  태그: {tag}")
 
     try:
-        template = pull_prompt(name, version_tag=tag)
+        template = get_prompt(name, backend=backend, version_tag=tag)
 
         if save:
             from pathlib import Path

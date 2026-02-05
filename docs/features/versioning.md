@@ -215,7 +215,7 @@ date: 2026-01-26
 ### 5.3. 구현 파일
 
 ```
-utils/langsmith_prompts.py
+utils/prompt_sync.py    # push_prompt(backend=...), get_prompt(backend=...)
 ```
 
 ---

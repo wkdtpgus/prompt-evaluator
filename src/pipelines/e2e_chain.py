@@ -26,7 +26,7 @@ from langsmith.evaluation import EvaluationResult, evaluate
 # Langfuse imports (lazy)
 try:
     from utils.langfuse_client import get_langfuse_client, get_langfuse_handler, flush as langfuse_flush
-    from utils.langfuse_datasets import upload_from_files, get_dataset
+    from utils.dataset_sync import upload_from_files, get_dataset
     from langfuse.experiment import Evaluation as LangfuseEvaluation
     LANGFUSE_AVAILABLE = True
 except ImportError:
@@ -588,7 +588,7 @@ def run_e2e_langsmith_experiment(
     Returns:
         실험 URL
     """
-    from utils.langsmith_datasets import upload_to_langsmith
+    from utils.dataset_sync import upload_dataset
     from src.evaluators.llm_judge import create_checklist_evaluator
 
     targets_dir = Path("targets")
@@ -603,7 +603,8 @@ def run_e2e_langsmith_experiment(
         raise ValueError(f"chain 설정이 없습니다: {config_file}")
 
     # 2. 데이터셋 업로드
-    dataset_name = upload_to_langsmith(prompt_name)
+    ds_result = upload_dataset(prompt_name, backend="langsmith")
+    dataset_name = ds_result.get("langsmith_name", f"prompt-eval-{prompt_name}")
 
     # 3. Phase 1/2 템플릿 로드
     phase1_template, phase2_template = load_phase_templates(chain_config, targets_dir)

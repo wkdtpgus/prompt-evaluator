@@ -5,7 +5,7 @@ from typing import Annotated
 import typer
 
 from src.loaders import list_evaluation_sets
-from utils import upload_to_langsmith
+from utils.dataset_sync import upload_dataset
 
 
 def list_sets():
@@ -25,8 +25,25 @@ def list_sets():
 
 def upload(
     name: Annotated[str, typer.Option("--name", "-n", help="평가 세트 이름")],
+    backend: Annotated[str, typer.Option("--backend", "-b", help="업로드 대상 (langsmith/langfuse/both)")] = "both",
 ):
-    """데이터셋을 LangSmith에 업로드."""
-    typer.echo(f"\nLangSmith 데이터셋 업로드: {name}")
-    dataset_name = upload_to_langsmith(name)
-    typer.echo(f"완료: {dataset_name}\n")
+    """데이터셋을 LangSmith/Langfuse에 업로드."""
+    if backend not in ("langsmith", "langfuse", "both"):
+        typer.echo(f"Invalid backend: {backend}. Use langsmith/langfuse/both")
+        raise typer.Exit(1)
+
+    typer.echo(f"\n데이터셋 업로드: {name} (backend: {backend})")
+    result = upload_dataset(name, backend=backend)
+
+    if result.get("langsmith_name"):
+        typer.echo(f"✓ [LangSmith] 완료: {result['langsmith_name']}")
+    if result.get("langsmith_error"):
+        typer.echo(f"✗ [LangSmith] 실패: {result['langsmith_error']}")
+    if result.get("langfuse_results") is not None:
+        success = sum(result["langfuse_results"].values())
+        total = len(result["langfuse_results"])
+        typer.echo(f"✓ [Langfuse] 완료: {success}/{total} 케이스")
+    if result.get("langfuse_error"):
+        typer.echo(f"✗ [Langfuse] 실패: {result['langfuse_error']}")
+
+    typer.echo()

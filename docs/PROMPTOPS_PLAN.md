@@ -178,8 +178,9 @@ prompt-evaluator/
 │   ├── models.py
 │   ├── git.py                   # git 관련 유틸
 │   ├── config_validator.py
-│   ├── langsmith_prompts.py
-│   └── langsmith_datasets.py
+│   ├── prompt_sync.py           # 프롬프트 관리 (LangSmith + Langfuse 통합)
+│   ├── dataset_sync.py          # 데이터셋 관리 (LangSmith + Langfuse 통합)
+│   └── langfuse_client.py       # Langfuse 싱글톤 클라이언트
 ├── targets/{name}/
 │   ├── prompt.*
 │   ├── config.yaml
@@ -326,8 +327,10 @@ LangSmith와 함께 Langfuse를 평가 백엔드로 지원합니다.
 | `langsmith` | LangSmith만 실행 (자동 버전 관리) |
 
 **핵심 모듈**:
-- `src/pipeline.py` - `_run_langfuse_experiment()` 추가
+- `src/pipelines/pipeline.py` - `run_experiment(backend=...)` 통합 함수
 - `cli/experiment.py` - `--backend` 옵션 추가
+- `utils/prompt_sync.py` - `push_prompt(backend=...)` 통합 함수
+- `utils/dataset_sync.py` - `upload_dataset(backend=...)` 통합 함수
 
 **향후 계획**: Langfuse 단독 사용 + 커스텀 리포트 생성
 
@@ -492,13 +495,13 @@ main.py의 CLI 명령어들을 `cli/` 디렉토리로 분리하여 모듈화했�
 |------|----------|:-----:|:----:|
 | `main.py` | CLI 모듈화 | 1-2 | ✅ |
 | `cli/` | CLI 명령어 분리 | 1-2 | ✅ |
-| `utils/langsmith_prompts.py` | 메타데이터 자동 기록 | 1 | ✅ |
+| `utils/prompt_sync.py` | 프롬프트 관리 통합 (LangSmith + Langfuse) | 1-2.5 | ✅ |
 | `utils/git.py` | git 유틸 분리 | 2 | ✅ |
 | `src/pipeline.py` | 결과 저장, 가중치, 리포트 연동 | 3 | - |
 | `configs/config.py` | 회귀 임계값, 가중치 기본값 | 3 | - |
 | `utils/config_validator.py` | 새 필드 검증 | 3 | - |
 
-### 7.2. 스키마 변경
+### 7.3. 스키마 변경
 
 **config.yaml 확장**:
 
@@ -565,7 +568,7 @@ reporting:                     # NEW
 - [x] 해시 기반 변경 감지 (`compute_prompt_hash`, `is_prompt_changed`) ✅
 - [x] 자동 버전 증가 (`increment_version`, `auto_version_and_push_info`) ✅
 - [x] `main.py`에 `prompt init`, `prompt add-version`, `prompt info` 명령어 ✅
-- [x] `langsmith_prompts.py` 리팩토링 - push 시 메타데이터 자동 연동 ✅
+- [x] `prompt_sync.py` 통합 - push 시 메타데이터 자동 연동 (LangSmith + Langfuse) ✅
 - [x] `ChatPromptTemplate` 지원 (SYSTEM_PROMPT/USER_PROMPT 구분) ✅
 - [x] `experiment` 명령어 자동화 (init → 변경 감지 → push → 평가) ✅
 - [x] 첫 init 시 변경 내용 입력 없이 바로 v1.0 push ✅
@@ -626,6 +629,6 @@ reporting:                     # NEW
 
 ---
 
-**Version**: 1.5.0
+**Version**: 1.6.0
 **Created**: 2026-01-26
-**Updated**: 2026-01-27 (Langfuse 통합: Phase 2.5)
+**Updated**: 2026-02-05 (utils 통합: prompt_sync.py + dataset_sync.py)

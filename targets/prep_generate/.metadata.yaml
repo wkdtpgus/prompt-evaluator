@@ -1,0 +1,11 @@
+owner: shjang@reversemountain.co.kr
+created_at: '2026-02-05'
+current_version: v1.0
+versions:
+  v1.0:
+    date: '2026-02-05'
+    author: shjang@reversemountain.co.kr
+    changes: Initial version
+    langsmith_hash: null
+    langfuse_version: 1
+last_pushed_hash: 9f583dd66a2e5e1d

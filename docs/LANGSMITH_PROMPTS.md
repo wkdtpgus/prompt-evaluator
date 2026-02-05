@@ -70,13 +70,16 @@ poetry run python main.py prompt keys --name prep_chatbot
 ## 코드에서 사용하기
 
 ```python
-from src.utils.langsmith_prompts import push_prompt, pull_prompt, list_prompt_versions
+from utils.prompt_sync import push_prompt, get_prompt, list_prompt_versions
 
-# 업로드
-url = push_prompt("prep_chatbot", version_tag="v1.0")
+# 업로드 (LangSmith)
+result = push_prompt("prep_chatbot", backend="langsmith", version_tag="v1.0")
+
+# 업로드 (LangSmith + Langfuse 동시)
+result = push_prompt("prep_chatbot", backend="both", version_tag="v1.0")
 
 # 가져오기
-template = pull_prompt("prep_chatbot", version_tag="v1.0")
+template = get_prompt("prep_chatbot", backend="langsmith", version_tag="v1.0")
 
 # 버전 목록
 versions = list_prompt_versions("prep_chatbot")
@@ -85,10 +88,10 @@ versions = list_prompt_versions("prep_chatbot")
 ## 파일 구조
 
 ```
-src/
-└── utils/
-    ├── __init__.py
-    └── langsmith_prompts.py   # push/pull/list_versions 함수
+utils/
+├── prompt_sync.py      # 프롬프트 업로드/조회 (LangSmith + Langfuse 통합)
+├── dataset_sync.py     # 데이터셋 업로드/조회 (LangSmith + Langfuse 통합)
+└── langfuse_client.py  # Langfuse 싱글톤 클라이언트
 ```
 
 ## 지원 형식
