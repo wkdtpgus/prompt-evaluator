@@ -1,0 +1,46 @@
+You are evaluating whether the AI's scoring rationales adopt a coaching-oriented tone rather than being judgmental or merely descriptive.
+
+Good rationales should: identify specific behaviors, explain WHY the score was given, and implicitly point toward improvement. They should read like constructive coaching notes, not like blame assignments or dry checklists.
+
+## Input (Meeting transcript and leader info):
+{input}
+
+## AI's Scoring Output:
+{output}
+
+## Coaching-Oriented Rationale Characteristics:
+
+**Good (coaching-oriented):**
+- "The leader asked about blockers but did not follow up with concrete support offers. Specifying available resources (budget, personnel, timeline adjustment) would strengthen this area."
+- "While the leader acknowledged the member's frustration, the response remained at a surface level. Naming the specific emotion or situation would demonstrate deeper empathy."
+
+**Bad (judgmental/blame-oriented):**
+- "The leader completely failed to show empathy."
+- "No effort was made to address the member's concerns."
+- "The leader was dismissive and unhelpful."
+
+**Bad (purely descriptive, no improvement direction):**
+- "The leader did not ask follow-up questions."
+- "No action items were discussed."
+- "The meeting ended without clear next steps."
+
+## Checklist - Score each item (0 or 1):
+
+1. **Behavior-Specific**: Do Score 0 rationales identify the specific behavior gap (what was missing or insufficient) rather than making blanket negative statements?
+2. **Non-Judgmental Language**: Do rationales avoid accusatory or emotionally charged language ("failed", "completely ignored", "no effort") and instead use objective, observational language?
+3. **Improvement Direction**: Do Score 0 rationales implicitly or explicitly suggest what the leader could have done differently, providing a constructive direction?
+4. **Balanced Acknowledgment**: When scoring 0, do rationales acknowledge what the leader DID do before noting what was insufficient? (e.g., "The leader asked about wellbeing, but did not probe further when receiving a surface-level response")
+5. **Evidence + Analysis**: Do rationales go beyond mere description ("X did not happen") to include analysis of impact or significance ("Without follow-up, the member's underlying concern remained unaddressed")?
+
+## Response Format (JSON):
+{{
+    "checklist": {{
+        "behavior_specific": 0 or 1,
+        "non_judgmental_language": 0 or 1,
+        "improvement_direction": 0 or 1,
+        "balanced_acknowledgment": 0 or 1,
+        "evidence_plus_analysis": 0 or 1
+    }},
+    "score": <float 0-1, average of checklist>,
+    "reasoning": "brief explanation with examples of coaching-oriented vs judgmental rationales found"
+}}

@@ -1,0 +1,39 @@
+You are evaluating whether the AI scoring system correctly identifies passive-aggressive behaviors in a leader's communication during a 1-on-1 meeting.
+
+Passive aggression in leadership manifests as superficially positive or neutral statements that carry implicit criticism, pressure, or dismissal. The scoring system must catch these patterns and reflect them in SAFETY_01 (Constructive Attitude) and related criteria.
+
+## Input (Meeting transcript and leader info):
+{input}
+
+## AI's Scoring Output:
+{output}
+
+## Passive-Aggressive Patterns to Detect:
+
+1. **Backhanded compliments**: "You're so thorough... maybe too thorough" / "If only everyone were as 'careful' as you"
+2. **Unfavorable comparisons**: "Other teams manage to hit deadlines with the same constraints" / "Your peers seem to handle this fine"
+3. **Sarcastic encouragement**: "I'm sure you'll figure it out, you always do... eventually" / laughing while delivering criticism
+4. **Dismissive agreement**: "Sure, great idea... anyway, let's move on" / acknowledging input then immediately overriding it
+5. **Guilt-framing**: "I guess I'll just handle it myself then" / "Don't worry about it, I know you're busy"
+6. **Weaponized positivity**: Using "haha" or excessive friendliness to soften hostile content
+
+## Checklist - Score each item (0 or 1):
+
+1. **Sarcasm Detected**: When the leader uses sarcastic tone, backhanded compliments, or ironic praise, does the scoring reflect this in SAFETY_01 (Score 0 for personal attacks/sarcasm)?
+2. **Comparison Pressure Caught**: When the leader compares the member unfavorably to peers or other teams, is this correctly identified as a negative generalization (SAFETY_01 Score 0)?
+3. **Dismissive Patterns Scored**: When the leader verbally acknowledges ideas but consistently dismisses or ignores them in practice, is SAFETY_05 (encouraging dissent) scored 0?
+4. **Hostile Humor Identified**: When criticism is wrapped in laughter, jokes, or casual tone, does the rationale identify this as problematic rather than treating it as lighthearted?
+5. **Overall Tone Assessment**: Does the scoring correctly assess the cumulative effect of multiple passive-aggressive micro-behaviors, even if each individual instance seems minor?
+
+## Response Format (JSON):
+{{
+    "checklist": {{
+        "sarcasm_detected": 0 or 1,
+        "comparison_pressure_caught": 0 or 1,
+        "dismissive_patterns_scored": 0 or 1,
+        "hostile_humor_identified": 0 or 1,
+        "overall_tone_assessment": 0 or 1
+    }},
+    "score": <float 0-1, average of checklist>,
+    "reasoning": "brief explanation citing specific passive-aggressive patterns found or missed in the scoring"
+}}

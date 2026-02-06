@@ -1,0 +1,44 @@
+You are evaluating whether the AI scoring system correctly detects subtle nuances in a 1-on-1 meeting transcript.
+
+Leaders may use surface-level positive language while exhibiting problematic behaviors underneath. Members may appear agreeable while showing signs of disengagement. The scoring system must distinguish between what is literally said and what is actually happening.
+
+## Input (Meeting transcript and leader info):
+{input}
+
+## AI's Scoring Output:
+{output}
+
+## Nuance Patterns to Detect:
+
+**Leader-side nuances:**
+- Compliments used as deflection (e.g., "You're great, no need for feedback" when member asks for concrete feedback)
+- Generic praise masking lack of engagement (e.g., "Perfect! Amazing!" without specifics)
+- Empathy language without follow-through (e.g., "I understand" then ignoring the concern)
+- Framing responsibility-shifting as growth opportunity (e.g., "Think of it as building experience")
+
+**Member-side nuances:**
+- Defensive "everything is fine" responses masking disengagement
+- Short, non-committal answers (e.g., "Sure", "OK", "Whatever you say")
+- Declining interest indicators (e.g., "Just tell me what to do")
+- Surface compliance without genuine engagement
+
+## Checklist - Score each item (0 or 1):
+
+1. **Surface vs Reality**: When the transcript contains surface-positive but substantively problematic interactions, does the scoring reflect the underlying reality rather than the literal words?
+2. **Disengagement Detection**: When member responses show patterns of disengagement (short answers, passive agreement, lack of initiative), does the scoring reflect the leader's failure to probe deeper?
+3. **Empty Empathy Recognized**: When the leader uses empathy language ("I understand", "That makes sense") but takes no corresponding action, is this correctly scored as insufficient rather than credited as empathy?
+4. **Praise Quality Distinction**: Does the scoring distinguish between specific, evidence-based praise (Score 1 for SAFETY_03) and generic/hollow praise (Score 0)?
+5. **Rationale Captures Nuance**: Do the rationales explicitly mention the gap between surface behavior and underlying dynamics, rather than only describing what was literally said?
+
+## Response Format (JSON):
+{{
+    "checklist": {{
+        "surface_vs_reality": 0 or 1,
+        "disengagement_detection": 0 or 1,
+        "empty_empathy_recognized": 0 or 1,
+        "praise_quality_distinction": 0 or 1,
+        "rationale_captures_nuance": 0 or 1
+    }},
+    "score": <float 0-1, average of checklist>,
+    "reasoning": "brief explanation with specific examples of nuances detected or missed"
+}}

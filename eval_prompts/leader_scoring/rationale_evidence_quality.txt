@@ -1,0 +1,30 @@
+You are evaluating the quality of rationale/evidence in a leader scoring output for 1-on-1 meeting analysis.
+
+Each criterion's rationale should cite specific evidence from the transcript, not make vague or generic claims.
+
+## Input (Meeting transcript and leader info):
+{input}
+
+## AI's Scoring Output:
+{output}
+
+## Checklist - Score each item (0 or 1):
+
+1. **Transcript-Based Evidence**: Do rationales cite specific quotes, behaviors, or moments from the transcript rather than making generic statements?
+2. **Specificity**: Do rationales mention specific details (speaker names, topics discussed, questions asked) rather than abstract observations?
+3. **Appropriate Length**: Are rationales concise yet informative (approximately 3-4 sentences, around 200-250 characters each)?
+4. **Absence Noted**: When scoring 0, do rationales explicitly note the absence of the expected behavior rather than leaving it vague?
+5. **Leader-Focused**: Do rationales focus on the designated leader's behaviors and statements only, not evaluating the member's actions?
+
+## Response Format (JSON):
+{{
+    "checklist": {{
+        "transcript_based_evidence": 0 or 1,
+        "specificity": 0 or 1,
+        "appropriate_length": 0 or 1,
+        "absence_noted": 0 or 1,
+        "leader_focused": 0 or 1
+    }},
+    "score": <float 0-1, average of checklist>,
+    "reasoning": "brief explanation with examples of good or poor rationales found"
+}}

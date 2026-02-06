@@ -1,0 +1,32 @@
+# leader-scoring 평가 설정
+# 1:1 미팅 리더 역량 스코어링 (30개 criteria, 이진 점수)
+
+name: leader_scoring
+output_format: json
+eval_prompts_domain: leader_scoring
+
+evaluators:
+  - type: rule_based
+    checks:
+      - keyword_inclusion
+      - forbidden_word_check
+
+  - type: llm_judge
+    enabled: true
+    criteria:
+      # 범용 기준 재사용
+      - general/factual_accuracy
+      # leader-scoring 특화 기준 (기본)
+      - scoring_format_compliance
+      - rationale_evidence_quality
+      - scoring_accuracy
+      # leader-scoring 특화 기준 (심층)
+      - nuance_detection
+      - passive_aggression_detection
+      - coaching_rationale_quality
+
+thresholds:
+  pass_rate: 0.85
+  min_score: 0.70
+
+run_mode: full

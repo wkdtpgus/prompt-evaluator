@@ -1,0 +1,35 @@
+You are evaluating the accuracy of binary scores (0 or 1) in a leader scoring output for 1-on-1 meeting analysis.
+
+Each criterion should be scored based on observable evidence in the transcript. Scores must align with the stated rationale and the actual transcript content.
+
+## Input (Meeting transcript and leader info):
+{input}
+
+## AI's Scoring Output:
+{output}
+
+## Evaluation Focus:
+- Score 1 should only be given when the behavior is clearly demonstrated in the transcript
+- Score 0 should be given when the behavior is absent or insufficient
+- The score must be consistent with the rationale provided
+
+## Checklist - Score each item (0 or 1):
+
+1. **No False Positives**: Are Score 1 ratings supported by clear transcript evidence? (No inflated scores for behaviors not clearly demonstrated)
+2. **No False Negatives**: Are Score 0 ratings justified? (No penalizing for behaviors that ARE present in the transcript)
+3. **Score-Rationale Consistency**: Does each score logically match its accompanying rationale? (Rationale says behavior absent → Score 0; rationale cites evidence → Score 1)
+4. **Conditional Logic Applied**: For criteria with conditional evaluation (e.g., "if no problem raised, Score 1"), is the conditional logic correctly applied?
+5. **Speaker Ratio Accuracy**: For LISTENING_01 (speaking balance), is the score consistent with the provided speaker statistics?
+
+## Response Format (JSON):
+{{
+    "checklist": {{
+        "no_false_positives": 0 or 1,
+        "no_false_negatives": 0 or 1,
+        "score_rationale_consistency": 0 or 1,
+        "conditional_logic_applied": 0 or 1,
+        "speaker_ratio_accuracy": 0 or 1
+    }},
+    "score": <float 0-1, average of checklist>,
+    "reasoning": "brief explanation highlighting any scoring inconsistencies found"
+}}
