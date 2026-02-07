@@ -1,17 +1,88 @@
 {
   "scoring_001": {
-    "keywords": ["LISTENING_01", "LISTENING_02", "LISTENING_03", "LISTENING_04", "LISTENING_05", "CLARITY_01", "CLARITY_02", "CLARITY_03", "CLARITY_04", "CLARITY_05", "ALIGNMENT_01", "ALIGNMENT_02", "ALIGNMENT_03", "ALIGNMENT_04", "ALIGNMENT_05", "SAFETY_01", "SAFETY_02", "SAFETY_03", "SAFETY_04", "SAFETY_05", "SOLUTION_01", "SOLUTION_02", "SOLUTION_03", "SOLUTION_04", "SOLUTION_05", "GROWTH_01", "GROWTH_02", "GROWTH_03", "GROWTH_04", "GROWTH_05"],
+    "keywords": [
+      "LISTENING_01",
+      "LISTENING_02",
+      "LISTENING_03",
+      "LISTENING_04",
+      "LISTENING_05",
+      "CLARITY_01",
+      "CLARITY_02",
+      "CLARITY_03",
+      "CLARITY_04",
+      "CLARITY_05",
+      "ALIGNMENT_01",
+      "ALIGNMENT_02",
+      "ALIGNMENT_03",
+      "ALIGNMENT_04",
+      "ALIGNMENT_05",
+      "SAFETY_01",
+      "SAFETY_02",
+      "SAFETY_03",
+      "SAFETY_04",
+      "SAFETY_05",
+      "SOLUTION_01",
+      "SOLUTION_02",
+      "SOLUTION_03",
+      "SOLUTION_04",
+      "SOLUTION_05",
+      "GROWTH_01",
+      "GROWTH_02",
+      "GROWTH_03",
+      "GROWTH_04",
+      "GROWTH_05"
+    ],
     "forbidden": [],
     "reference": {
-      "expected_high_score_criteria": ["LISTENING_01", "LISTENING_02", "LISTENING_04", "CLARITY_03", "CLARITY_04", "CLARITY_05", "ALIGNMENT_01", "ALIGNMENT_02", "ALIGNMENT_04", "SAFETY_01", "SAFETY_03", "SAFETY_04", "SOLUTION_04", "GROWTH_04", "GROWTH_05"],
+      "expected_high_score_criteria": [
+        "LISTENING_01",
+        "LISTENING_02",
+        "LISTENING_04",
+        "CLARITY_03",
+        "CLARITY_04",
+        "CLARITY_05",
+        "ALIGNMENT_01",
+        "ALIGNMENT_02",
+        "ALIGNMENT_04",
+        "SAFETY_01",
+        "SAFETY_03",
+        "SAFETY_04",
+        "SOLUTION_04",
+        "GROWTH_04",
+        "GROWTH_05"
+      ],
       "scenario": "전반적 우수 리더십, 대부분 항목 1점 기대"
     }
   },
   "scoring_002": {
-    "keywords": ["LISTENING_01", "CLARITY_01", "SAFETY_01"],
+    "keywords": [
+      "LISTENING_01",
+      "CLARITY_01",
+      "SAFETY_01"
+    ],
     "forbidden": [],
     "reference": {
-      "expected_low_score_criteria": ["LISTENING_01", "LISTENING_02", "LISTENING_03", "LISTENING_04", "LISTENING_05", "CLARITY_04", "SAFETY_01", "SAFETY_02", "SAFETY_03", "SAFETY_04", "SAFETY_05", "SOLUTION_01", "SOLUTION_02", "SOLUTION_03", "GROWTH_01", "GROWTH_02", "GROWTH_03", "GROWTH_04", "GROWTH_05"],
+      "expected_low_score_criteria": [
+        "LISTENING_01",
+        "LISTENING_02",
+        "LISTENING_03",
+        "LISTENING_04",
+        "LISTENING_05",
+        "CLARITY_04",
+        "SAFETY_01",
+        "SAFETY_02",
+        "SAFETY_03",
+        "SAFETY_04",
+        "SAFETY_05",
+        "SOLUTION_01",
+        "SOLUTION_02",
+        "SOLUTION_03",
+        "GROWTH_01",
+        "GROWTH_02",
+        "GROWTH_03",
+        "GROWTH_04",
+        "GROWTH_05"
+      ],
       "scenario": "일방적 지시형 리더, 경청/안전/성장 항목 대부분 0점 기대"
     }
   },
@@ -19,7 +90,16 @@
     "keywords": [],
     "forbidden": [],
     "reference": {
-      "expected_high_score_criteria": ["LISTENING_01", "LISTENING_02", "LISTENING_03", "LISTENING_05", "SAFETY_01", "SAFETY_04", "SOLUTION_03", "SOLUTION_04"],
+      "expected_high_score_criteria": [
+        "LISTENING_01",
+        "LISTENING_02",
+        "LISTENING_03",
+        "LISTENING_05",
+        "SAFETY_01",
+        "SAFETY_04",
+        "SOLUTION_03",
+        "SOLUTION_04"
+      ],
       "scenario": "번아웃 감지 및 대응, 경청/공감/지원 항목 높은 점수 기대"
     }
   },
@@ -27,7 +107,20 @@
     "keywords": [],
     "forbidden": [],
     "reference": {
-      "expected_high_score_criteria": ["LISTENING_01", "LISTENING_02", "LISTENING_03", "LISTENING_05", "CLARITY_04", "CLARITY_05", "SAFETY_01", "SAFETY_05", "SOLUTION_01", "SOLUTION_02", "SOLUTION_03", "SOLUTION_04"],
+      "expected_high_score_criteria": [
+        "LISTENING_01",
+        "LISTENING_02",
+        "LISTENING_03",
+        "LISTENING_05",
+        "CLARITY_04",
+        "CLARITY_05",
+        "SAFETY_01",
+        "SAFETY_05",
+        "SOLUTION_01",
+        "SOLUTION_02",
+        "SOLUTION_03",
+        "SOLUTION_04"
+      ],
       "scenario": "갈등 상황 처리, 경청/문제해결/심리적 안전 항목 높은 점수 기대"
     }
   },
@@ -35,7 +128,29 @@
     "keywords": [],
     "forbidden": [],
     "reference": {
-      "expected_low_score_criteria": ["LISTENING_01", "LISTENING_02", "LISTENING_03", "LISTENING_04", "LISTENING_05", "CLARITY_03", "CLARITY_04", "CLARITY_05", "ALIGNMENT_01", "ALIGNMENT_02", "ALIGNMENT_04", "SAFETY_02", "SAFETY_03", "SAFETY_04", "SAFETY_05", "SOLUTION_01", "GROWTH_01", "GROWTH_02", "GROWTH_03", "GROWTH_04", "GROWTH_05"],
+      "expected_low_score_criteria": [
+        "LISTENING_01",
+        "LISTENING_02",
+        "LISTENING_03",
+        "LISTENING_04",
+        "LISTENING_05",
+        "CLARITY_03",
+        "CLARITY_04",
+        "CLARITY_05",
+        "ALIGNMENT_01",
+        "ALIGNMENT_02",
+        "ALIGNMENT_04",
+        "SAFETY_02",
+        "SAFETY_03",
+        "SAFETY_04",
+        "SAFETY_05",
+        "SOLUTION_01",
+        "GROWTH_01",
+        "GROWTH_02",
+        "GROWTH_03",
+        "GROWTH_04",
+        "GROWTH_05"
+      ],
       "scenario": "짧은 미팅, 대부분 항목 평가 불가/0점 기대"
     }
   },
@@ -43,7 +158,19 @@
     "keywords": [],
     "forbidden": [],
     "reference": {
-      "expected_high_score_criteria": ["LISTENING_05", "CLARITY_01", "CLARITY_04", "CLARITY_05", "SAFETY_01", "SAFETY_03", "GROWTH_01", "GROWTH_02", "GROWTH_03", "GROWTH_04", "GROWTH_05"],
+      "expected_high_score_criteria": [
+        "LISTENING_05",
+        "CLARITY_01",
+        "CLARITY_04",
+        "CLARITY_05",
+        "SAFETY_01",
+        "SAFETY_03",
+        "GROWTH_01",
+        "GROWTH_02",
+        "GROWTH_03",
+        "GROWTH_04",
+        "GROWTH_05"
+      ],
       "scenario": "성과 피드백 우수, 피드백/성장 항목 전반 높은 점수 기대"
     }
   },
@@ -51,7 +178,15 @@
     "keywords": [],
     "forbidden": [],
     "reference": {
-      "expected_high_score_criteria": ["LISTENING_02", "ALIGNMENT_02", "ALIGNMENT_04", "SOLUTION_01", "SOLUTION_02", "SOLUTION_03", "SOLUTION_04"],
+      "expected_high_score_criteria": [
+        "LISTENING_02",
+        "ALIGNMENT_02",
+        "ALIGNMENT_04",
+        "SOLUTION_01",
+        "SOLUTION_02",
+        "SOLUTION_03",
+        "SOLUTION_04"
+      ],
       "scenario": "문제 해결 중심, 진단-원인-코칭 접근으로 SOLUTION 항목 높은 점수 기대"
     }
   },
@@ -59,7 +194,21 @@
     "keywords": [],
     "forbidden": [],
     "reference": {
-      "expected_high_score_criteria": ["LISTENING_01", "LISTENING_02", "LISTENING_05", "CLARITY_03", "CLARITY_04", "CLARITY_05", "ALIGNMENT_02", "SAFETY_01", "SAFETY_03", "SOLUTION_03", "GROWTH_03", "GROWTH_04", "GROWTH_05"],
+      "expected_high_score_criteria": [
+        "LISTENING_01",
+        "LISTENING_02",
+        "LISTENING_05",
+        "CLARITY_03",
+        "CLARITY_04",
+        "CLARITY_05",
+        "ALIGNMENT_02",
+        "SAFETY_01",
+        "SAFETY_03",
+        "SOLUTION_03",
+        "GROWTH_03",
+        "GROWTH_04",
+        "GROWTH_05"
+      ],
       "scenario": "영문 글로벌 미팅, 전반적 우수 리더십 기대"
     }
   },
@@ -67,7 +216,18 @@
     "keywords": [],
     "forbidden": [],
     "reference": {
-      "expected_high_score_criteria": ["LISTENING_01", "LISTENING_03", "LISTENING_05", "CLARITY_05", "SAFETY_01", "SAFETY_02", "SAFETY_04", "SAFETY_05", "SOLUTION_03", "SOLUTION_04"],
+      "expected_high_score_criteria": [
+        "LISTENING_01",
+        "LISTENING_03",
+        "LISTENING_05",
+        "CLARITY_05",
+        "SAFETY_01",
+        "SAFETY_02",
+        "SAFETY_04",
+        "SAFETY_05",
+        "SOLUTION_03",
+        "SOLUTION_04"
+      ],
       "scenario": "신입 온보딩, 심리적 안전감 조성 항목 높은 점수 기대"
     }
   },
@@ -75,7 +235,20 @@
     "keywords": [],
     "forbidden": [],
     "reference": {
-      "expected_low_score_criteria": ["CLARITY_01", "CLARITY_02", "CLARITY_03", "CLARITY_04", "CLARITY_05", "ALIGNMENT_01", "ALIGNMENT_02", "GROWTH_01", "GROWTH_02", "GROWTH_03", "GROWTH_04", "GROWTH_05"],
+      "expected_low_score_criteria": [
+        "CLARITY_01",
+        "CLARITY_02",
+        "CLARITY_03",
+        "CLARITY_04",
+        "CLARITY_05",
+        "ALIGNMENT_01",
+        "ALIGNMENT_02",
+        "GROWTH_01",
+        "GROWTH_02",
+        "GROWTH_03",
+        "GROWTH_04",
+        "GROWTH_05"
+      ],
       "scenario": "모호한 피드백, 명확성/성장 항목 대부분 0점 기대"
     }
   },
@@ -83,8 +256,20 @@
     "keywords": [],
     "forbidden": [],
     "reference": {
-      "expected_high_score_criteria": ["LISTENING_01", "LISTENING_02", "LISTENING_03", "LISTENING_04", "SAFETY_01", "SAFETY_04"],
-      "expected_low_score_criteria": ["CLARITY_04", "CLARITY_05", "ALIGNMENT_02", "SOLUTION_04"],
+      "expected_high_score_criteria": [
+        "LISTENING_01",
+        "LISTENING_02",
+        "LISTENING_03",
+        "LISTENING_04",
+        "SAFETY_01",
+        "SAFETY_04"
+      ],
+      "expected_low_score_criteria": [
+        "CLARITY_04",
+        "CLARITY_05",
+        "ALIGNMENT_02",
+        "SOLUTION_04"
+      ],
       "scenario": "경청 우수/실행 부족, 경청 높은 점수 + 명확성/실행 낮은 점수 기대"
     }
   },
@@ -92,7 +277,19 @@
     "keywords": [],
     "forbidden": [],
     "reference": {
-      "expected_high_score_criteria": ["LISTENING_01", "LISTENING_02", "LISTENING_03", "LISTENING_05", "CLARITY_05", "SAFETY_01", "SAFETY_04", "SAFETY_05", "SOLUTION_04", "GROWTH_04", "GROWTH_05"],
+      "expected_high_score_criteria": [
+        "LISTENING_01",
+        "LISTENING_02",
+        "LISTENING_03",
+        "LISTENING_05",
+        "CLARITY_05",
+        "SAFETY_01",
+        "SAFETY_04",
+        "SAFETY_05",
+        "SOLUTION_04",
+        "GROWTH_04",
+        "GROWTH_05"
+      ],
       "scenario": "이직 고민 대응, 심리적 안전/성장 항목 높은 점수 기대"
     }
   },
@@ -100,7 +297,19 @@
     "keywords": [],
     "forbidden": [],
     "reference": {
-      "expected_low_score_criteria": ["LISTENING_01", "LISTENING_03", "LISTENING_05", "CLARITY_01", "SAFETY_01", "SAFETY_03", "SAFETY_05", "SOLUTION_03", "GROWTH_02", "GROWTH_04", "GROWTH_05"],
+      "expected_low_score_criteria": [
+        "LISTENING_01",
+        "LISTENING_03",
+        "LISTENING_05",
+        "CLARITY_01",
+        "SAFETY_01",
+        "SAFETY_03",
+        "SAFETY_05",
+        "SOLUTION_03",
+        "GROWTH_02",
+        "GROWTH_04",
+        "GROWTH_05"
+      ],
       "scenario": "미묘한 비꼼 - 표면적으론 긍정 문장이지만 비꼬는 뉘앙스. SAFETY_01(constructive attitude)에서 비꼼/빈정이 personal attack에 준하는지 판단 필요. 다른 팀 비교('다른 팀은 잘하더라'), 멤버 제안 묵살이 핵심 포인트"
     }
   },
@@ -108,7 +317,18 @@
     "keywords": [],
     "forbidden": [],
     "reference": {
-      "expected_low_score_criteria": ["LISTENING_02", "LISTENING_03", "LISTENING_04", "LISTENING_05", "ALIGNMENT_02", "ALIGNMENT_04", "SAFETY_04", "GROWTH_03", "GROWTH_04", "GROWTH_05"],
+      "expected_low_score_criteria": [
+        "LISTENING_02",
+        "LISTENING_03",
+        "LISTENING_04",
+        "LISTENING_05",
+        "ALIGNMENT_02",
+        "ALIGNMENT_04",
+        "SAFETY_04",
+        "GROWTH_03",
+        "GROWTH_04",
+        "GROWTH_05"
+      ],
       "scenario": "방어적 멤버 - '다 좋아요' 반복하며 실제 의욕 저하 신호. 리더가 표면적 답변을 그대로 수용하고 파고들지 않음. LISTENING_02(contextual follow-up), LISTENING_03(specific empathy), SAFETY_04(wellbeing check) 등에서 리더의 심층 탐색 부재 평가"
     }
   },
@@ -116,8 +336,16 @@
     "keywords": [],
     "forbidden": [],
     "reference": {
-      "expected_low_score_criteria": ["CLARITY_04", "SAFETY_05", "SOLUTION_03", "SOLUTION_04", "GROWTH_05"],
-      "expected_high_score_criteria": ["LISTENING_01"],
+      "expected_low_score_criteria": [
+        "CLARITY_04",
+        "SAFETY_05",
+        "SOLUTION_03",
+        "SOLUTION_04",
+        "GROWTH_05"
+      ],
+      "expected_high_score_criteria": [
+        "LISTENING_01"
+      ],
       "scenario": "표면적 공감 - '이해해요', '좋은 생각이죠' 등 공감 표현을 하지만 멤버 의견을 실제 반영하지 않음. CLARITY_04(mutual agreement) 기각, SAFETY_05(encouraging dissent) 형식적, SOLUTION_03(coaching) 멤버 아이디어 무시. 공감 언어 vs 실제 행동 불일치가 핵심"
     }
   },
@@ -125,7 +353,14 @@
     "keywords": [],
     "forbidden": [],
     "reference": {
-      "expected_low_score_criteria": ["SAFETY_03", "GROWTH_01", "GROWTH_02", "GROWTH_03", "GROWTH_04", "GROWTH_05"],
+      "expected_low_score_criteria": [
+        "SAFETY_03",
+        "GROWTH_01",
+        "GROWTH_02",
+        "GROWTH_03",
+        "GROWTH_04",
+        "GROWTH_05"
+      ],
       "scenario": "과잉 칭찬 - '완벽해요', '최고' 반복하지만 구체적 근거 없음. SAFETY_03(specific recognition)에서 generic praise 판정, GROWTH 전 항목에서 피드백/성장 지원 부재. 멤버가 피드백을 요청했으나 리더가 회피하는 것이 핵심"
     }
   },
@@ -133,9 +368,157 @@
     "keywords": [],
     "forbidden": [],
     "reference": {
-      "expected_low_score_criteria": ["SOLUTION_04", "SOLUTION_05", "CLARITY_05"],
-      "expected_high_score_criteria": ["LISTENING_01", "LISTENING_03"],
+      "expected_low_score_criteria": [
+        "SOLUTION_04",
+        "SOLUTION_05",
+        "CLARITY_05"
+      ],
+      "expected_high_score_criteria": [
+        "LISTENING_01",
+        "LISTENING_03"
+      ],
       "scenario": "미묘한 책임 회피 - 공감은 하지만 직접 개입을 피하고 멤버에게 책임 전가. SOLUTION_04(tangible support) 약속만 반복, SOLUTION_05(shared responsibility) 멤버의 성장으로 프레이밍. '경험 쌓기'로 포장된 책임 전가가 핵심 포인트"
+    }
+  }, 
+  "scoring_018": {
+    "keywords": [],
+    "forbidden": [],
+    "reference": {
+      "expected_high_score_criteria": [
+        "LISTENING_03",
+        "LISTENING_05",
+        "SAFETY_01",
+        "SAFETY_02",
+        "SAFETY_03",
+        "SAFETY_04",
+        "GROWTH_02",
+        "GROWTH_04",
+        "GROWTH_05"
+      ],
+      "expected_low_score_criteria": [
+        "LISTENING_01",
+        "LISTENING_04",
+        "CLARITY_01",
+        "CLARITY_03",
+        "CLARITY_04",
+        "CLARITY_05",
+        "ALIGNMENT_01",
+        "ALIGNMENT_03"
+      ],
+      "scenario": "실제 스타트업 1on1 - 리더 발화비율 74%로 과다(LISTENING_01 0점). 커리어 코칭/멘토링은 적극적(GROWTH_04, GROWTH_05)이나 구조화된 미팅 운영 부족(CLARITY_01, CLARITY_03). 공감/라포 형성 우수(SAFETY_01, SAFETY_02), 심리적 안전 체크(SAFETY_04) 수행하나 명확한 액션 아이템/합의 부재(CLARITY_04, CLARITY_05)",
+      "reasoning": {
+        "LISTENING_01": "0점 - 발화비율 74%로 60% 초과. 교육/멘토링 목적의 발화가 많으나 일방적 조언 성격이 강해 educational excess 면제 적용 어려움",
+        "LISTENING_03": "1점 - '피곤해 보였어 왜 왜 왜 피곤해?', 수면 관련 질문, 약 복용 상태 확인 등 멤버의 컨디션/감정 상태를 구체적으로 짚어줌",
+        "LISTENING_04": "0점 - 멤버 발언을 자신의 말로 재진술하거나 이해를 확인하는 paraphrasing이 거의 없음. 주로 자기 경험/조언으로 바로 넘어감",
+        "LISTENING_05": "1점 - '뭐가 되고 싶다?', '새로운 거 시도할 수 있다면?', '어떤 부분을 하고 싶은지' 등 열린 질문으로 멤버 사고 확장 유도",
+        "CLARITY_01": "0점 - '좀 더 미쳐도 될 것 같아', '빠르게 ASAP로' 등 모호한 표현 다수 사용, 구체적 기준/숫자로 보완하지 않음",
+        "CLARITY_03": "0점 - 미팅 시작 시 목적/안건을 명시하지 않음. 자연스러운 대화 흐름으로 진행되어 구조화된 agenda 공유 부재",
+        "CLARITY_04": "0점 - 방향성이나 결정사항에 대해 멤버의 동의를 명시적으로 확인하지 않음. 조언 형태로 일방 전달",
+        "CLARITY_05": "0점 - '블로그 써', '사이드 프로젝트 해야 돼' 등 권고는 있으나 Who/When/What 2개 이상 명시된 구체적 액션 아이템 부재",
+        "ALIGNMENT_01": "0점 - 이전 1on1 논의 내용에 대한 참조가 거의 없음. 수습 전환 시기라는 맥락만 있을 뿐 과거 합의사항 연결 부족",
+        "ALIGNMENT_03": "0점 - 여러 업무(요약, 피드백, 배포 등)가 언급되나 우선순위 근거 설명 없이 '이번 주에 다 해서' 식으로 전달",
+        "SAFETY_01": "1점 - 비난/비꼼/인신공격 없음. '잘하고 있어 진짜', '되게 뿌듯했어' 등 객관적이고 건설적인 태도 유지",
+        "SAFETY_02": "1점 - 10분 이상 미팅에서 '오늘 안 피곤해?', MBTI 대화, 수면/건강 상태 확인 등 비업무 대화 다수 포함",
+        "SAFETY_03": "1점 - '목업 데이터로 테스트까지 마쳤다니 빠르게 잘 진행했네', '다른 사람들도 되게 많이 도움이 됐었고' 등 구체적 행동/결과 기반 칭찬",
+        "SAFETY_04": "1점 - '요즘은 좀 괜찮아? 잠 잘 자고 있어?', 약 복용 상태 확인, 피곤함 체크 등 멤버 웰빙 직접 확인",
+        "GROWTH_02": "1점 - '리버스 엔지니어링 해라', 'GitBlog 써', '사이드 프로젝트 무조건 해야 돼' 등 구체적 개선 행동과 방법 제시",
+        "GROWTH_04": "1점 - '풀스택 개발자가 되려면 백엔드도 해야 되고', '큰 회사에 가려면 이력을 잘 써야 되잖아' 등 현재 업무를 커리어 경로에 연결",
+        "GROWTH_05": "1점 - '데이터 파이프라인 쪽도 한번 경험해보면', '백엔드 쪽이 더 유망하다', 사이드 프로젝트/대회/세미나 참여 권유 등 역량 확장 기회 제안"
+      }
+    }
+  },
+  "scoring_019": {
+    "keywords": [],
+    "forbidden": [],
+    "reference": {
+      "expected_high_score_criteria": [
+        "ALIGNMENT_01"
+      ],
+      "expected_low_score_criteria": [
+        "LISTENING_01",
+        "LISTENING_02",
+        "LISTENING_03",
+        "LISTENING_04",
+        "LISTENING_05",
+        "CLARITY_04",
+        "SAFETY_03",
+        "SAFETY_04",
+        "SOLUTION_03",
+        "GROWTH_01",
+        "GROWTH_02",
+        "GROWTH_03",
+        "GROWTH_04",
+        "GROWTH_05"
+      ],
+      "scenario": "실제 스타트업 대표 1on1 - 리더 발화비율 86%로 극단적 과다(LISTENING_01 0점). 사업 브리핑/정보 전달 위주로 멤버 의견 청취 거의 없음. 멤버가 질문하면 응답은 하나(멤버 주도적 질문 일부 존재) 리더 주도의 경청/공감/성장지원은 전반적으로 부재. 사업 맥락 공유(ALIGNMENT_01)는 존재",
+      "reasoning": {
+        "ALIGNMENT_01": "1점 - 클릭 컨설팅 미팅, 한솔 홈데코 미팅, 핀다 POC 등 이전 사업 논의와 현재 상황을 연결하며 맥락 공유. '24일부터 우리가 쉬었어요 그래서 브리핑 해줄게요'로 과거 경과 참조",
+        "LISTENING_01": "0점 - 발화비율 86%로 60% 극단적 초과. 사업 브리핑/정보 전달이 대부분이며 교육적 목적이라기보다 일방적 정보 전달 성격",
+        "LISTENING_02": "0점 - 멤버 발언에 대한 맥락적 후속 질문이 거의 없음. 멤버가 질문하면 답변은 하나 리더가 멤버 발언 내용을 기반으로 파고드는 follow-up 부재",
+        "LISTENING_03": "0점 - 멤버의 어려움이나 감정 상태에 대한 구체적 공감 표현 없음. '왜 나태해졌지? 근데 뭐 실수도 있어야죠' 정도로 가볍게 넘김",
+        "LISTENING_04": "0점 - 멤버 발언을 재진술하거나 이해를 확인하는 paraphrasing 없음. 멤버 발언 후 바로 자기 agenda로 전환",
+        "LISTENING_05": "0점 - 멤버의 사고를 확장하는 열린 질문 거의 없음. '새해 목표가 있어요?' 정도가 유일하나 깊이 파고들지 않음",
+        "CLARITY_04": "0점 - 로드맵, 팀 목표 등을 공유하나 멤버의 동의를 명시적으로 확인하는 과정 없음. 일방적 전달 후 넘어감",
+        "SAFETY_03": "0점 - 멤버에 대한 구체적 칭찬이 없음. 업무 성과나 행동에 대한 specific recognition 부재",
+        "SAFETY_04": "0점 - 멤버의 컨디션/웰빙/번아웃 위험에 대한 진정한 확인 없음. '새해 목표'는 캐주얼 대화이지 웰빙 체크가 아님",
+        "SOLUTION_03": "0점 - 멤버가 UX 관련 의견(IC 부담 문제)을 제시했을 때 '오케이 근데 약간 그거는 유저가 어떻게 사용하는가에 따라 또 다를 것 같긴 해요'로 리더 의견을 먼저 제시. 멤버 아이디어를 먼저 묻는 코칭 접근 부재",
+        "GROWTH_01": "0점 - 멤버에 대한 근거 기반 피드백 없음. 구체적 사례/시점/데이터를 인용한 피드백 부재",
+        "GROWTH_02": "0점 - 멤버에게 어떤 행동을 어떻게 개선하라는 구체적 가이드 없음. 업무 할당만 있고 성장 관련 개선 피드백 부재",
+        "GROWTH_03": "0점 - 최근 업무에서 배운 점에 대한 질문 없음. 결과 중심으로만 논의하고 학습/교훈 회고 없음",
+        "GROWTH_04": "0점 - 현재 업무를 멤버의 커리어 목표나 성장 경로에 연결하는 논의 없음",
+        "GROWTH_05": "0점 - 새로운 도전/교육/역량 확장 기회에 대한 제안 없음. '고객 미팅을 같이 가면 좋겠다'는 있으나 멤버 성장보다 업무 필요 관점"
+      }
+    }
+  },
+  "scoring_020": {
+    "keywords": [],
+    "forbidden": [],
+    "reference": {
+      "expected_high_score_criteria": [
+        "LISTENING_01",
+        "LISTENING_02",
+        "LISTENING_05",
+        "SAFETY_01",
+        "SAFETY_02"
+      ],
+      "expected_low_score_criteria": [
+        "CLARITY_01",
+        "CLARITY_03",
+        "CLARITY_04",
+        "CLARITY_05",
+        "ALIGNMENT_01",
+        "ALIGNMENT_02",
+        "ALIGNMENT_03",
+        "SOLUTION_01",
+        "SOLUTION_02",
+        "SOLUTION_04",
+        "GROWTH_01",
+        "GROWTH_02",
+        "GROWTH_04",
+        "GROWTH_05"
+      ],
+      "scenario": "실제 스타트업 경영진-팀리더 1on1 - 리더 발화비율 35%로 경청 우수(LISTENING_01 1점). 캐주얼한 라포/관계 형성(SAFETY_01, SAFETY_02) 좋으나 업무 목표/방향성 논의 거의 없음(CLARITY, ALIGNMENT 전반 부재). 학습 공유 위주 대화로 구체적 피드백/성장 지원(GROWTH) 및 문제해결(SOLUTION) 부재",
+      "reasoning": {
+        "LISTENING_01": "1점 - 발화비율 35%로 60% 이하. 멤버(김준희)가 65%로 대부분 발화하며 리더는 경청 위주",
+        "LISTENING_02": "1점 - '가짜 연구소' 언급 후 '언제까지 하는 건데요?', '주인님의 역할은 뭔데요?' 등 멤버 발언 내용을 구체적으로 참조한 후속 질문 다수",
+        "LISTENING_05": "1점 - '세연 님의 강점은 뭔가요?', '소통 관점에서 힘든 건 없어요?' 등 멤버의 생각을 정리하도록 돕는 열린 질문 다수",
+        "SAFETY_01": "1점 - 비난/비꼼/인신공격 없음. '고생 많았어요', '좋은 내용이네' 등 건설적이고 객관적인 태도 유지",
+        "SAFETY_02": "1점 - 10분 이상 미팅에서 주말 활동 대화('방탈출', '라라스윗 아이스크림'), 결혼식 이야기 등 비업무 대화 포함",
+        "CLARITY_01": "0점 - 구체적 기준/숫자 없이 대화가 진행됨. 업무 방향에 대한 명확한 기준 제시 부재",
+        "CLARITY_03": "0점 - 미팅 시작 시 목적/안건을 명시하지 않음. '주말에 뭐했어요?'로 자연스럽게 시작하여 구조화된 agenda 없음",
+        "CLARITY_04": "0점 - 결정사항이나 방향성에 대해 멤버의 동의를 명시적으로 확인하는 과정 없음",
+        "CLARITY_05": "0점 - Who/When/What이 명시된 구체적 액션 아이템 부재. 대화가 캐주얼하게 마무리됨",
+        "ALIGNMENT_01": "0점 - 이전 1on1 논의 내용에 대한 참조 없음. 업무 회고/학습 공유 위주로 과거 합의사항 연결 부재",
+        "ALIGNMENT_02": "0점 - 현재 업무를 팀/조직 목표, OKR, KPI 등 상위 목표에 연결하는 논의 없음. 단순 진행 상황 확인 수준",
+        "ALIGNMENT_03": "0점 - 여러 업무가 언급되나 우선순위 근거 설명이나 멤버 수용 확인 없음",
+        "SOLUTION_01": "0점 - 문제/이슈 존재 여부를 확인하거나 진단 질문을 하는 과정 없음",
+        "SOLUTION_02": "0점 - 문제가 제기되더라도 근본 원인을 탐색하는 과정 없음",
+        "SOLUTION_04": "0점 - 멤버의 어려움에 대한 구체적 지원(인력/일정 조정/예산 등) 제안 없음",
+        "GROWTH_01": "0점 - 구체적 사례/시점/데이터를 인용한 근거 기반 피드백 없음",
+        "GROWTH_02": "0점 - 어떤 행동을 어떻게 개선하라는 구체적 가이드 없음",
+        "GROWTH_04": "0점 - 현재 업무를 멤버의 커리어 목표나 성장 경로에 연결하는 논의 없음",
+        "GROWTH_05": "0점 - 새로운 도전/교육/역량 확장 기회에 대한 제안 없음"
+      }
     }
   }
 }
