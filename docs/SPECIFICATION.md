@@ -78,15 +78,17 @@ targets/{name}/prompt.*             datasets/{name}/
 
 #### LLM Judge 평가 기준
 
-**일반:**
-- `instruction_following`: 지시사항 준수도
-- `output_quality`: 전반적 출력 품질
+criteria는 항상 `도메인/기준명` 전체 경로로 지정합니다 (예: `general/instruction_following`).
 
-**1on1 Meeting 특화:**
-- `tone_appropriateness`: 톤/어조 적절성
-- `sensitive_topic_handling`: 민감 주제 처리
-- `header_format`: 헤더 형식 준수
-- `section_count`: 섹션 개수 범위
+**일반 (`general/`):**
+- `general/instruction_following`: 지시사항 준수도
+- `general/output_quality`: 전반적 출력 품질
+
+**1on1 Meeting 특화 (`oneonone/`):**
+- `oneonone/professional_tone`: 톤/어조 적절성
+- `oneonone/sensitive_topic_handling`: 민감 주제 처리
+- `oneonone/header_format`: 헤더 형식 준수
+- `oneonone/section_count`: 섹션 개수 범위
 - 외 다수
 
 ### 3.2. 실행 모드
@@ -156,6 +158,7 @@ Langfuse는 LLM 애플리케이션을 위한 오픈소스 observability 플랫�
 utils/
 ├── prompt_sync.py          # 프롬프트 업로드/조회 (LangSmith + Langfuse 통합)
 ├── dataset_sync.py         # 데이터셋 업로드/조회 (LangSmith + Langfuse 통합)
+├── eval_adapters.py        # LLM Judge 어댑터 (LangSmith/Langfuse 형식 변환)
 └── langfuse_client.py      # Langfuse 싱글톤 클라이언트
 
 src/
@@ -368,7 +371,6 @@ def execute_prompt(prompt_text: str, inputs: dict, trace_name: str = None):
 name: prep_generate
 description: 1on1 Prep Report 생성 프롬프트
 output_format: text  # text | json
-eval_prompts_domain: oneonone
 
 evaluators:
   - type: rule_based
@@ -379,9 +381,9 @@ evaluators:
   - type: llm_judge
     enabled: true
     criteria:
-      - instruction_following
-      - output_quality
-      - tone_appropriateness
+      - general/instruction_following      # 항상 '도메인/기준명' 전체 경로
+      - general/output_quality
+      - oneonone/professional_tone
 
 thresholds:
   pass_rate: 0.85
@@ -401,7 +403,6 @@ run_mode: quick  # quick | full
 | `regression --name {name} --experiment {exp}` | 회귀 테스트 실행 |
 | `validate --name {name}` | config 검증 |
 | `list` | 평가 세트 목록 |
-| `criteria` | 사용 가능한 평가 기준 |
 | `upload --name {name}` | 데이터셋 LangSmith 업로드 |
 | `prompt info/init/push/pull/versions` | 프롬프트 버전 관리 |
 | `baseline list/set/delete` | 기준선 관리 |

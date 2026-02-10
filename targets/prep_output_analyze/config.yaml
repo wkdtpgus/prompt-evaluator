@@ -3,17 +3,12 @@
 
 name: prep_output_analyze
 output_format: json
-eval_prompts_domain: meeting_prep
-
 evaluators:
   - type: llm_judge
     enabled: true
     criteria:
-      # 기존 특화 기준 - theme, response_quality 분류 정확성
-      - analyze_quality_classification
-      # 신규 특화 기준 - coaching_hint 구체성 (행동단위, 추측금지, 역할구분)
-      - coaching_hint_specificity
-      # 도메인 범용 기준 (oneonone)
+      - meeting_prep/analyze_quality_classification
+      - meeting_prep/coaching_hint_specificity
       - oneonone/sensitive_topic_handling
 
 thresholds:

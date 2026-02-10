@@ -3,8 +3,6 @@
 
 name: leader_scoring
 output_format: json
-eval_prompts_domain: leader_scoring
-
 evaluators:
   - type: rule_based
     checks:
@@ -14,16 +12,13 @@ evaluators:
   - type: llm_judge
     enabled: true
     criteria:
-      # 범용 기준 재사용
       - general/factual_accuracy
-      # leader-scoring 특화 기준 (기본)
-      - scoring_format_compliance
-      - rationale_evidence_quality
-      - scoring_accuracy
-      # leader-scoring 특화 기준 (심층)
-      - nuance_detection
-      - passive_aggression_detection
-      - coaching_rationale_quality
+      - leader_scoring/scoring_format_compliance
+      - leader_scoring/rationale_evidence_quality
+      - leader_scoring/scoring_accuracy
+      - leader_scoring/nuance_detection
+      - leader_scoring/passive_aggression_detection
+      - leader_scoring/coaching_rationale_quality
 
 thresholds:
   pass_rate: 0.85

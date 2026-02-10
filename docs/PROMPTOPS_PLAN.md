@@ -156,7 +156,7 @@ prompt-evaluator/
 │   ├── prompt.py                # prompt 서브커맨드
 │   ├── baseline.py              # baseline 서브커맨드
 │   ├── experiment.py            # experiment, regression 명령어
-│   ├── config.py                # validate, criteria 명령어
+│   ├── config.py                # validate 명령어
 │   └── dataset.py               # list, upload 명령어
 ├── configs/
 │   └── config.py                # 기본 설정값
@@ -178,6 +178,7 @@ prompt-evaluator/
 │   ├── models.py
 │   ├── git.py                   # git 관련 유틸
 │   ├── config_validator.py
+│   ├── eval_adapters.py         # LLM Judge 어댑터 (LangSmith/Langfuse)
 │   ├── prompt_sync.py           # 프롬프트 관리 (LangSmith + Langfuse 통합)
 │   ├── dataset_sync.py          # 데이터셋 관리 (LangSmith + Langfuse 통합)
 │   └── langfuse_client.py       # Langfuse 싱글톤 클라이언트
@@ -457,8 +458,8 @@ evaluators:
   - type: llm_judge
     weight: 0.6
     criteria:
-      - tone_appropriateness
-      - sensitive_topic_handling
+      - oneonone/professional_tone
+      - oneonone/sensitive_topic_handling
 
   - type: human_feedback
     weight: 0.2
@@ -484,7 +485,7 @@ main.py의 CLI 명령어들을 `cli/` 디렉토리로 분리하여 모듈화했�
 | `cli/prompt.py` | `prompt` 서브커맨드 (info, init, push, pull, versions 등) | 195줄 |
 | `cli/baseline.py` | `baseline` 서브커맨드 (list, set, delete) | 82줄 |
 | `cli/experiment.py` | `experiment`, `regression` 명령어 | 215줄 |
-| `cli/config.py` | `validate`, `criteria` 명령어 | 93줄 |
+| `cli/config.py` | `validate` 명령어 | 93줄 |
 | `cli/dataset.py` | `list`, `upload` 명령어 | 31줄 |
 
 기존 명령어는 모두 동일하게 유지됩니다.
@@ -509,7 +510,6 @@ main.py의 CLI 명령어들을 `cli/` 디렉토리로 분리하여 모듈화했�
 # 기존 필드
 name: prep_generate
 output_format: text
-eval_prompts_domain: oneonone
 evaluators: [...]
 thresholds:
   pass_rate: 0.85

@@ -120,7 +120,7 @@ prompt-evaluator/
 │   ├── prompt.py               # prompt 서브커맨드
 │   ├── baseline.py             # baseline 서브커맨드
 │   ├── experiment.py           # experiment, regression 명령어
-│   ├── config.py               # validate, criteria 명령어
+│   ├── config.py               # validate 명령어
 │   └── dataset.py              # list, upload 명령어
 │
 ├── src/                        # 핵심 소스 코드
@@ -135,6 +135,7 @@ prompt-evaluator/
 ├── utils/                      # 유틸리티 모듈
 │   ├── prompt_sync.py          # 프롬프트 업로드/조회 (LangSmith + Langfuse 통합)
 │   ├── dataset_sync.py         # 데이터셋 업로드/조회 (LangSmith + Langfuse 통합)
+│   ├── eval_adapters.py        # LLM Judge 어댑터 (LangSmith/Langfuse 형식 변환)
 │   ├── langfuse_client.py      # Langfuse 싱글톤 클라이언트
 │   ├── models.py               # LLM 인스턴스
 │   └── git.py                  # git 관련 유틸
@@ -200,7 +201,6 @@ mkdir -p datasets/my_prompt
 name: my_prompt
 description: 프롬프트 설명
 output_format: text  # text | json
-eval_prompts_domain: general  # eval_prompts/{domain}/ 폴더명
 
 evaluators:
   # Rule-based 평가 (무료)
@@ -213,8 +213,8 @@ evaluators:
   - type: llm_judge
     enabled: true
     criteria:
-      - instruction_following
-      - output_quality
+      - general/instruction_following    # 항상 '도메인/기준명' 전체 경로
+      - general/output_quality
 
 thresholds:
   pass_rate: 0.85    # 전체 케이스 중 85% 통과
@@ -344,9 +344,6 @@ poetry run python main.py prompt keys --name {name}
 # 평가 가능한 세트 목록
 poetry run python main.py list
 
-# 사용 가능한 LLM Judge 평가 기준 확인
-poetry run python main.py criteria
-
 # 데이터셋 업로드 (LangSmith + Langfuse 동시 - 기본값)
 poetry run python main.py upload --name {name}
 
@@ -414,7 +411,7 @@ dataset = get_dataset("my_prompt")
 
 1. `eval_prompts/{domain}/{criterion}.txt` 파일 생성
 2. 평가 프롬프트 작성 (점수 1-5 또는 0-1 기준)
-3. `config.yaml`의 `llm_judge.criteria`에 추가
+3. `config.yaml`의 `llm_judge.criteria`에 `{domain}/{criterion}` 전체 경로로 추가
 
 ---
 
@@ -457,7 +454,62 @@ poetry run python main.py experiment --name {name} --mode full
 
 ### 6.2. 회귀 테스트
 
-프롬프트 수정 시 이전 버전과 비교:
+프롬프트 수정 시 이전 버전과 비교하여 성능 저하를 감지합니다.
+
+#### 데이터 소스 (`--source`)
+
+| 소스 | baseline | current | 로컬 파일 필요 |
+|------|----------|---------|:-----------:|
+| `local` (기본) | 로컬 baseline JSON | 로컬 latest.json | O |
+| `langfuse` | Langfuse API | Langfuse API | X |
+| `langsmith` | 로컬 baseline JSON | LangSmith API | O |
+
+#### Langfuse 소스 사용법 (권장)
+
+Langfuse에 저장된 실험 결과를 직접 가져오므로 **로컬 파일 관리가 필요 없습니다**.
+
+```bash
+# 최신 2개 run 자동 비교 (가장 간단한 사용법)
+# baseline = 두번째 최신 run, current = 최신 run
+poetry run python main.py regression --name {name} --source langfuse
+
+# 특정 run 2개를 직접 비교
+poetry run python main.py regression --name {name} --source langfuse \
+  --baseline "leader_scoring-full-20260206-113005" \
+  --experiment "leader_scoring-full-20260209-110841"
+
+# baseline만 지정 (current = 최신 run)
+poetry run python main.py regression --name {name} --source langfuse \
+  --baseline "leader_scoring-full-20260206-113005"
+
+# CI/CD에서 사용 (회귀 시 exit code 1)
+poetry run python main.py regression --name {name} --source langfuse --fail
+```
+
+> **Tip**: run 이름은 Langfuse UI의 Experiments 탭에서 확인할 수 있습니다.
+
+#### Local 소스 사용법
+
+```bash
+# 1. 먼저 baseline 설정 (최초 1회)
+poetry run python main.py baseline set-local {name}
+
+# 2. 실험 실행 후 회귀 비교
+poetry run python main.py regression --name {name}
+```
+
+Langfuse에서 직접 baseline을 생성할 수도 있습니다:
+
+```bash
+# Langfuse 최신 run으로 baseline 저장
+poetry run python main.py baseline set-langfuse {name}
+
+# 특정 run 지정
+poetry run python main.py baseline set-langfuse {name} \
+  --experiment "leader_scoring-full-20260206-113005"
+```
+
+#### 회귀 판단 기준
 
 | 지표 | 허용 변동폭 | 조치 |
 |------|:----------:|------|
@@ -507,7 +559,7 @@ targets/coaching_analyzer/
 ```
 ⚠ eval_prompt 파일 없음
 ```
-→ `eval_prompts/{domain}/{criterion}.txt` 파일 생성 필요
+→ `eval_prompts/{criterion}.txt` 파일 생성 필요 (criteria는 `domain/name` 전체 경로)
 
 ### 평가 실행 오류
 

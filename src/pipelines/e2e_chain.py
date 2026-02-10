@@ -21,21 +21,24 @@ from typing import Any
 
 import yaml
 from langsmith import traceable
-from langsmith.evaluation import EvaluationResult, evaluate
+from langsmith.evaluation import evaluate
 
 # Langfuse imports (lazy)
 try:
-    from utils.langfuse_client import get_langfuse_client, get_langfuse_handler, flush as langfuse_flush
+    from utils.langfuse_client import (
+        get_langfuse_client,
+        get_langfuse_handler,
+        flush as langfuse_flush,
+    )
     from utils.dataset_sync import upload_from_files, get_dataset
-    from langfuse.experiment import Evaluation as LangfuseEvaluation
+
     LANGFUSE_AVAILABLE = True
 except ImportError:
     LANGFUSE_AVAILABLE = False
-    LangfuseEvaluation = None
 
-from src.evaluators.llm_judge import run_checklist_evaluation
 from src.loaders.prompt_loader import find_prompt_file, load_prompt_file
 from src.pipelines.pipeline import execute_prompt, run_evaluation, RunMode
+from utils.eval_adapters import create_langfuse_evaluator, create_langsmith_evaluator
 from utils.models import execution_llm
 
 
@@ -54,10 +57,12 @@ def chat_history_to_qa_pairs(chat_history: list[dict]) -> list[dict]:
         if msg["role"] == "assistant" and i + 1 < len(chat_history):
             next_msg = chat_history[i + 1]
             if next_msg["role"] == "user":
-                qa_pairs.append({
-                    "bot_question": msg["content"],
-                    "member_response": next_msg["content"],
-                })
+                qa_pairs.append(
+                    {
+                        "bot_question": msg["content"],
+                        "member_response": next_msg["content"],
+                    }
+                )
                 i += 2
                 continue
         i += 1
@@ -93,9 +98,7 @@ def load_phase_templates(
     phase2_file = find_prompt_file(phase2_name, targets_dir)
     phase2_prompts = load_prompt_file(phase2_file)
     phase2_template = (
-        phase2_prompts["SYSTEM_PROMPT"]
-        + "\n\n"
-        + phase2_prompts["USER_PROMPT"]
+        phase2_prompts["SYSTEM_PROMPT"] + "\n\n" + phase2_prompts["USER_PROMPT"]
     )
 
     return phase1_template, phase2_template
@@ -240,9 +243,7 @@ def run_e2e_pipeline(
         raise ValueError(f"chain 설정이 없습니다: {config_file}")
 
     # 2. Phase 1/2 템플릿 로드
-    phase1_template, phase2_template = load_phase_templates(
-        chain_config, targets_dir
-    )
+    phase1_template, phase2_template = load_phase_templates(chain_config, targets_dir)
 
     # 3. 테스트 데이터 로드
     data_dir = datasets_dir / prompt_name
@@ -256,13 +257,13 @@ def run_e2e_pipeline(
         test_cases = [tc for tc in test_cases if tc.get("id") in case_ids]
 
     # 5. 각 케이스 실행
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"E2E Pipeline: {prompt_name}")
     print(f"  Phase 1: {chain_config['phase1']}")
     print(f"  Phase 2: {chain_config['phase2']}")
     print(f"  Mode: {mode}")
     print(f"  Cases: {len(test_cases)}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     results = []
     for test_case in test_cases:
@@ -305,11 +306,11 @@ def run_e2e_pipeline(
         "avg_score": sum(scores) / len(scores) if scores else None,
     }
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Result: {passed}/{total} passed ({summary['pass_rate']:.1%})")
     if summary["avg_score"] is not None:
         print(f"Avg Score: {summary['avg_score']:.3f}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     return {
         "prompt_name": prompt_name,
@@ -325,6 +326,7 @@ def run_e2e_pipeline(
 # ============================================================
 # Langfuse Experiment 모드
 # ============================================================
+
 
 def _run_e2e_chain(
     phase1_template: str,
@@ -357,7 +359,11 @@ def _run_e2e_chain(
         phase1_json = _extract_json(phase1_output)
         question_context = phase1_json.get("question_context", [])
     except (json.JSONDecodeError, ValueError):
-        return {"output": "", "phase1_output": phase1_output, "error": "phase1_json_parse_error"}
+        return {
+            "output": "",
+            "phase1_output": phase1_output,
+            "error": "phase1_json_parse_error",
+        }
 
     # 4. Phase 2
     phase2_inputs = {
@@ -437,7 +443,6 @@ def run_e2e_langfuse_experiment(
 
     # 5. LLM Judge 설정
     criteria = []
-    domain = eval_config.get("eval_prompts_domain")
     for evaluator in eval_config.get("evaluators", []):
         if evaluator.get("type") == "llm_judge":
             criteria = evaluator.get("criteria", [])
@@ -450,39 +455,16 @@ def run_e2e_langfuse_experiment(
     # 6. Task 함수 (E2E 체인 실행 + Langfuse 트레이싱)
     def task(item):
         handler = get_langfuse_handler()
-        return _run_e2e_chain(phase1_template, phase2_template, item.input, callbacks=[handler])
+        return _run_e2e_chain(
+            phase1_template, phase2_template, item.input, callbacks=[handler]
+        )
 
     # 7. Evaluator 함수
     evaluators = []
 
     if use_llm_judge:
         for criterion in criteria:
-            def make_evaluator(crit, dom):
-                def evaluator(*, output, expected_output, input, metadata, **kwargs):
-                    text = output.get("output", "") if isinstance(output, dict) else str(output)
-                    if not text:
-                        return LangfuseEvaluation(name=f"llm_judge_{crit}", value=0.0, comment="Empty output (phase1 parse error?)")
-                    judge_handler = get_langfuse_handler()
-                    try:
-                        results = run_checklist_evaluation(
-                            output=text,
-                            inputs=input,
-                            criteria=[crit],
-                            domain=dom,
-                            callbacks=[judge_handler],
-                        )
-                        if crit in results:
-                            return LangfuseEvaluation(
-                                name=f"llm_judge_{crit}",
-                                value=results[crit]["score"],
-                                comment=results[crit].get("details", ""),
-                            )
-                    except Exception as e:
-                        return LangfuseEvaluation(name=f"llm_judge_{crit}", value=0.0, comment=f"Error: {e}")
-                    return LangfuseEvaluation(name=f"llm_judge_{crit}", value=0.0, comment="Evaluation failed")
-                evaluator.__name__ = f"llm_judge_{crit}"
-                return evaluator
-            evaluators.append(make_evaluator(criterion, domain))
+            evaluators.append(create_langfuse_evaluator(criterion))
 
     # 8. 실험 실행
     print("  실행 중...")
@@ -504,7 +486,11 @@ def run_e2e_langfuse_experiment(
     results = []
     for item_result in experiment_result.item_results:
         item = item_result.item
-        case_id = item.metadata.get("case_id", "") if hasattr(item, "metadata") and item.metadata else ""
+        case_id = (
+            item.metadata.get("case_id", "")
+            if hasattr(item, "metadata") and item.metadata
+            else ""
+        )
 
         scores = {}
         for evaluation in item_result.evaluations:
@@ -514,7 +500,9 @@ def run_e2e_langfuse_experiment(
                 scores[evaluation.name] = evaluation.value
 
         llm_scores = {k: v for k, v in scores.items() if k.startswith("llm_judge_")}
-        overall_score = sum(llm_scores.values()) / len(llm_scores) if llm_scores else None
+        overall_score = (
+            sum(llm_scores.values()) / len(llm_scores) if llm_scores else None
+        )
         passed = overall_score is not None and overall_score >= 0.65
 
         status = "PASS" if passed else "FAIL"
@@ -528,19 +516,23 @@ def run_e2e_langfuse_experiment(
             else:
                 output_text = str(item_result.output)
 
-        results.append({
-            "case_id": case_id,
-            "output": output_text,
-            "scores": scores,
-            "overall_score": overall_score,
-            "passed": passed,
-            "trace_id": item_result.trace_id,
-        })
+        results.append(
+            {
+                "case_id": case_id,
+                "output": output_text,
+                "scores": scores,
+                "overall_score": overall_score,
+                "passed": passed,
+                "trace_id": item_result.trace_id,
+            }
+        )
 
     # 10. 요약
     total = len(results)
     passed_count = sum(1 for r in results if r.get("passed", False))
-    all_scores = [r["overall_score"] for r in results if r.get("overall_score") is not None]
+    all_scores = [
+        r["overall_score"] for r in results if r.get("overall_score") is not None
+    ]
 
     summary = {
         "total": total,
@@ -550,7 +542,7 @@ def run_e2e_langfuse_experiment(
         "avg_score": sum(all_scores) / len(all_scores) if all_scores else None,
     }
 
-    print(f"\nLangfuse E2E Experiment 완료!")
+    print("\nLangfuse E2E Experiment 완료!")
     print(f"  결과: {passed_count}/{total} 통과 ({summary['pass_rate']:.1%})")
     if summary["avg_score"]:
         print(f"  평균 점수: {summary['avg_score']:.3f}")
@@ -573,6 +565,7 @@ def run_e2e_langfuse_experiment(
 # LangSmith Experiment 모드
 # ============================================================
 
+
 def run_e2e_langsmith_experiment(
     prompt_name: str = "prep_output",
     mode: RunMode = "full",
@@ -589,7 +582,6 @@ def run_e2e_langsmith_experiment(
         실험 URL
     """
     from utils.dataset_sync import upload_dataset
-    from src.evaluators.llm_judge import create_checklist_evaluator
 
     targets_dir = Path("targets")
 
@@ -616,7 +608,6 @@ def run_e2e_langsmith_experiment(
     # 5. LLM Judge 평가자
     evaluators = []
     criteria = []
-    domain = eval_config.get("eval_prompts_domain")
 
     for ev in eval_config.get("evaluators", []):
         if ev.get("type") == "llm_judge":
@@ -626,9 +617,7 @@ def run_e2e_langsmith_experiment(
     if mode == "full" and criteria:
         print(f"  LLM Judge 평가자 추가: {criteria}")
         for criterion in criteria:
-            evaluators.append(
-                create_checklist_evaluator(criterion, "", domain)
-            )
+            evaluators.append(create_langsmith_evaluator(criterion))
 
     # 6. 실험 이름
     if experiment_prefix is None:
@@ -649,7 +638,7 @@ def run_e2e_langsmith_experiment(
     )
 
     experiment_url = "https://smith.langchain.com/datasets"
-    print(f"\nLangSmith E2E Experiment 완료!")
+    print("\nLangSmith E2E Experiment 완료!")
     print(f"  결과 확인: {experiment_url}")
 
     return experiment_url

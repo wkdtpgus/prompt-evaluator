@@ -6,7 +6,6 @@
 from langchain_openai import ChatOpenAI
 
 from configs.config import (
-    DEFAULT_MODEL,
     DEFAULT_LLM_JUDGE_MODEL,
     DEFAULT_TEMPERATURE,
     GEMINI_MODEL,
@@ -39,8 +38,16 @@ else:
         temperature=DEFAULT_TEMPERATURE,
     )
 
-# LLM Judge 평가용 LLM (항상 OpenAI)
-judge_llm = ChatOpenAI(
-    model=DEFAULT_LLM_JUDGE_MODEL,
-    temperature=DEFAULT_TEMPERATURE,
-)
+# LLM Judge 평가용 LLM (Gemini Pro via Vertex AI)
+if GOOGLE_CLOUD_PROJECT:
+    judge_llm = ChatVertexAI(
+        project=GOOGLE_CLOUD_PROJECT,
+        location=GOOGLE_CLOUD_LOCATION,
+        model_name=DEFAULT_LLM_JUDGE_MODEL,
+        temperature=DEFAULT_TEMPERATURE,
+    )
+else:
+    judge_llm = ChatOpenAI(
+        model="gpt-4o-mini",
+        temperature=DEFAULT_TEMPERATURE,
+    )

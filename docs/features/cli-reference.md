@@ -19,7 +19,6 @@ main.py
 ├── experiment          # 평가 실행
 ├── regression          # 회귀 테스트
 ├── validate            # 설정 검증
-├── criteria            # 평가 기준 목록
 ├── list                # 평가 세트 목록
 ├── upload              # 데이터셋 업로드
 ├── prompt              # 프롬프트 서브커맨드
@@ -44,7 +43,7 @@ main.py
 | `cli/prompt.py` | `prompt` 서브커맨드 |
 | `cli/baseline.py` | `baseline` 서브커맨드 |
 | `cli/experiment.py` | `experiment`, `regression` 명령어 |
-| `cli/config.py` | `validate`, `criteria` 명령어 |
+| `cli/config.py` | `validate` 명령어 |
 | `cli/dataset.py` | `list`, `upload` 명령어 |
 
 ---
@@ -163,32 +162,6 @@ poetry run python main.py validate --name prep_generate
 
 # 전체 검증
 poetry run python main.py validate --all
-```
-
----
-
-### 3.2. criteria
-
-사용 가능한 평가 기준 목록 출력
-
-```bash
-poetry run python main.py criteria
-```
-
-**출력 예시**:
-
-```
-사용 가능한 평가 기준:
-
-[도메인: oneonone]
-  - tone_appropriateness
-  - sensitive_topic_handling
-  - empathy_expression
-
-[도메인: general]
-  - relevance
-  - clarity
-  - factual_accuracy
 ```
 
 ---

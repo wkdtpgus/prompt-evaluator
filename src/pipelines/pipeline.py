@@ -10,31 +10,34 @@
 import json
 import time
 from datetime import datetime
-from pathlib import Path
 from typing import Any, Literal
 
 from dotenv import load_dotenv
-from langsmith import Client, traceable
+from langsmith import traceable
 from langsmith.evaluation import EvaluationResult, evaluate
 
 # Langfuse imports (lazy import for optional dependency)
 try:
-    from utils.langfuse_client import get_langfuse_client, get_langfuse_handler, flush as langfuse_flush
-    from langfuse.experiment import Evaluation as LangfuseEvaluation
+    from utils.langfuse_client import (
+        get_langfuse_client,
+        get_langfuse_handler,
+        flush as langfuse_flush,
+    )
+
     LANGFUSE_AVAILABLE = True
 except ImportError:
     LANGFUSE_AVAILABLE = False
-    LangfuseEvaluation = None
 
 from configs.config import (
     DEFAULT_MIN_SCORE,
     DEFAULT_STRING_SIMILARITY_THRESHOLD,
 )
 from src.evaluators.rule_based import run_rule_evaluators
-from src.evaluators.llm_judge import run_checklist_evaluation, create_checklist_evaluator
+from src.evaluators.llm_judge import run_checklist_evaluation
 from src.evaluators.similarity import _levenshtein_similarity
 from src.loaders import load_evaluation_set
 from utils.dataset_sync import upload_dataset, get_dataset
+from utils.eval_adapters import create_langfuse_evaluator
 from utils.prompt_sync import get_prompt
 from utils.models import execution_llm
 
@@ -69,7 +72,13 @@ def execute_prompt(
         else:
             format_args[key] = value
 
-    prompt = template.format(**format_args)
+    # Langfuse 스타일 {{var}} → Python .format() 스타일 {var} 변환
+    # 입력 키에 해당하는 플레이스홀더만 변환 (JSON 예시의 {{{{...}}}} 보호)
+    converted = template
+    for key in format_args:
+        converted = converted.replace("{{" + key + "}}", "{" + key + "}")
+
+    prompt = converted.format(**format_args)
 
     invoke_kwargs = {}
     if callbacks:
@@ -150,8 +159,6 @@ def run_evaluation(
 
         # 2-2. LLM Judge
         try:
-            domain = eval_config.get("eval_prompts_domain") if eval_config else None
-
             # config에서 criteria 가져오기
             criteria = ["helpfulness", "relevance"]  # 기본값
             if eval_config:
@@ -164,7 +171,6 @@ def run_evaluation(
                 output=output,
                 inputs=inputs,
                 criteria=criteria,
-                domain=domain,
                 callbacks=callbacks,
             )
             scoring_results["llm_judge"] = {
@@ -175,7 +181,9 @@ def run_evaluation(
             # LLM Judge 점수 추가
             for criterion, result in llm_results.items():
                 if criterion != "overall":
-                    score_breakdown.append((f"llm_judge.{criterion}", result["score"], 1.0))
+                    score_breakdown.append(
+                        (f"llm_judge.{criterion}", result["score"], 1.0)
+                    )
         except Exception as e:
             scoring_results["llm_judge"] = {
                 "error": str(e),
@@ -193,7 +201,11 @@ def run_evaluation(
     else:
         overall_score = None  # quick 모드: 점수 없음
 
-    min_score = eval_config.get("thresholds", {}).get("min_score", DEFAULT_MIN_SCORE) if eval_config else DEFAULT_MIN_SCORE
+    min_score = (
+        eval_config.get("thresholds", {}).get("min_score", DEFAULT_MIN_SCORE)
+        if eval_config
+        else DEFAULT_MIN_SCORE
+    )
 
     # passed 판정
     # - quick: sanity check만 통과하면 pass
@@ -272,7 +284,7 @@ def evaluate_single_case(
         "description": test_case.get("description", ""),
         "output": output,
         "evaluation": evaluation,
-        "duration_ms": duration_ms
+        "duration_ms": duration_ms,
     }
 
 
@@ -339,14 +351,18 @@ def run_pipeline(
     # 요약 계산
     total = len(results)
     passed = sum(1 for r in results if r["evaluation"]["passed"])
-    scores = [r["evaluation"]["overall_score"] for r in results if r["evaluation"]["overall_score"] is not None]
+    scores = [
+        r["evaluation"]["overall_score"]
+        for r in results
+        if r["evaluation"]["overall_score"] is not None
+    ]
 
     summary = {
         "total": total,
         "passed": passed,
         "failed": total - passed,
         "pass_rate": passed / total if total > 0 else 0.0,
-        "avg_score": sum(scores) / len(scores) if scores else None
+        "avg_score": sum(scores) / len(scores) if scores else None,
     }
 
     return {
@@ -355,13 +371,14 @@ def run_pipeline(
         "model": execution_llm.model_name,
         "timestamp": datetime.now().isoformat(),
         "cases": results,
-        "summary": summary
+        "summary": summary,
     }
 
 
 # ============================================================
 # LangSmith Experiment 모드
 # ============================================================
+
 
 def run_langsmith_experiment(
     prompt_name: str,
@@ -395,7 +412,9 @@ def run_langsmith_experiment(
     # 프롬프트 소스 결정: LangSmith 버전 or 로컬 파일
     if prompt_version:
         print(f"  LangSmith 프롬프트 버전: {prompt_version}")
-        template = get_prompt(prompt_name, backend="langsmith", version_tag=prompt_version)
+        template = get_prompt(
+            prompt_name, backend="langsmith", version_tag=prompt_version
+        )
     else:
         template = data["template"]
 
@@ -423,7 +442,7 @@ def run_langsmith_experiment(
         return EvaluationResult(
             key="keyword_inclusion",
             score=score,
-            comment=f"Found {found}/{len(keywords)} keywords"
+            comment=f"Found {found}/{len(keywords)} keywords",
         )
 
     def forbidden_evaluator(run, example) -> EvaluationResult:
@@ -443,7 +462,7 @@ def run_langsmith_experiment(
         return EvaluationResult(
             key="forbidden_word_check",
             score=score,
-            comment=f"Violations: {violations}" if violations else "No violations"
+            comment=f"Violations: {violations}" if violations else "No violations",
         )
 
     # 5. 모드에 따른 평가자 선택
@@ -460,15 +479,10 @@ def run_langsmith_experiment(
 
     if llm_judge_config and llm_judge_config.get("enabled", True):
         criteria = llm_judge_config.get("criteria", [])
-        domain = eval_config.get("eval_prompts_domain")
         if mode == "full" or criteria:
             print(f"  LLM Judge 평가자 추가: {criteria}")
-            if domain:
-                print(f"  eval_prompts 도메인: {domain}")
             for criterion in criteria:
-                evaluators.append(
-                    create_checklist_evaluator(criterion, template, domain)
-                )
+                evaluators.append(create_langsmith_evaluator(criterion, template))
 
     # 7. 실험 이름 설정
     if experiment_prefix is None:
@@ -489,8 +503,8 @@ def run_langsmith_experiment(
     )
 
     # 9. 결과 URL 반환
-    experiment_url = f"https://smith.langchain.com/datasets"
-    print(f"\n✅ Experiment 완료!")
+    experiment_url = "https://smith.langchain.com/datasets"
+    print("\n✅ Experiment 완료!")
     print(f"  결과 확인: {experiment_url}")
 
     return experiment_url
@@ -499,6 +513,7 @@ def run_langsmith_experiment(
 # ============================================================
 # Langfuse Experiment 모드
 # ============================================================
+
 
 def _run_langfuse_experiment(
     prompt_name: str,
@@ -521,7 +536,9 @@ def _run_langfuse_experiment(
         실험 결과 딕셔너리
     """
     if not LANGFUSE_AVAILABLE:
-        raise ImportError("Langfuse SDK가 설치되지 않았습니다. 'poetry add langfuse'로 설치하세요.")
+        raise ImportError(
+            "Langfuse SDK가 설치되지 않았습니다. 'poetry add langfuse'로 설치하세요."
+        )
 
     langfuse = get_langfuse_client()
 
@@ -533,7 +550,11 @@ def _run_langfuse_experiment(
     # 프롬프트 소스 결정: Langfuse 버전 or 로컬 파일
     if prompt_version:
         print(f"  Langfuse 프롬프트 버전: {prompt_version}")
-        prompt_obj = get_prompt(prompt_name, backend="langfuse", version=int(prompt_version.lstrip("v").split(".")[0]))
+        prompt_obj = get_prompt(
+            prompt_name,
+            backend="langfuse",
+            version=int(prompt_version.lstrip("v").split(".")[0]),
+        )
         template = prompt_obj.compile()
     else:
         template = data["template"]
@@ -566,17 +587,12 @@ def _run_langfuse_experiment(
             break
 
     use_llm_judge = (
-        mode == "full"
-        and llm_judge_config
-        and llm_judge_config.get("enabled", True)
+        mode == "full" and llm_judge_config and llm_judge_config.get("enabled", True)
     )
     criteria = llm_judge_config.get("criteria", []) if llm_judge_config else []
-    domain = eval_config.get("eval_prompts_domain")
 
     if use_llm_judge:
         print(f"  LLM Judge 평가자: {criteria}")
-        if domain:
-            print(f"  eval_prompts 도메인: {domain}")
 
     # 5. Task 함수 정의 (LLM 호출 + Langfuse 트레이싱)
     def task(item):
@@ -586,7 +602,6 @@ def _run_langfuse_experiment(
         return {"output": output}
 
     # 6. Evaluator 함수들 정의
-    # Langfuse 평가자는 LangfuseEvaluation 객체를 반환해야 함
     def keyword_evaluator(*, output, expected_output, input, metadata, **kwargs):
         """키워드 포함 평가."""
         text = output.get("output", "") if isinstance(output, dict) else str(output)
@@ -595,15 +610,19 @@ def _run_langfuse_experiment(
         keywords = expected.get("keywords", [])
 
         if not keywords:
-            return LangfuseEvaluation(name="keyword_inclusion", value=1.0, comment="No keywords to check")
+            return {
+                "name": "keyword_inclusion",
+                "value": 1.0,
+                "comment": "No keywords to check",
+            }
 
         found = sum(1 for k in keywords if k.lower() in text.lower())
         score = found / len(keywords)
-        return LangfuseEvaluation(
-            name="keyword_inclusion",
-            value=score,
-            comment=f"Found {found}/{len(keywords)} keywords",
-        )
+        return {
+            "name": "keyword_inclusion",
+            "value": score,
+            "comment": f"Found {found}/{len(keywords)} keywords",
+        }
 
     def forbidden_evaluator(*, output, expected_output, input, metadata, **kwargs):
         """금지어 검사."""
@@ -613,15 +632,19 @@ def _run_langfuse_experiment(
         forbidden = expected.get("forbidden", [])
 
         if not forbidden:
-            return LangfuseEvaluation(name="forbidden_word_check", value=1.0, comment="No forbidden words to check")
+            return {
+                "name": "forbidden_word_check",
+                "value": 1.0,
+                "comment": "No forbidden words to check",
+            }
 
         violations = [w for w in forbidden if w.lower() in text.lower()]
         score = 1.0 if not violations else 0.0
-        return LangfuseEvaluation(
-            name="forbidden_word_check",
-            value=score,
-            comment=f"Violations: {violations}" if violations else "No violations",
-        )
+        return {
+            "name": "forbidden_word_check",
+            "value": score,
+            "comment": f"Violations: {violations}" if violations else "No violations",
+        }
 
     # 7. 평가자 목록 구성
     evaluators = [keyword_evaluator, forbidden_evaluator]
@@ -629,30 +652,7 @@ def _run_langfuse_experiment(
     # LLM Judge 평가자 추가 (full 모드)
     if use_llm_judge:
         for criterion in criteria:
-            def make_llm_judge_evaluator(crit, dom):
-                def llm_judge_evaluator(*, output, expected_output, input, metadata, **kwargs):
-                    text = output.get("output", "") if isinstance(output, dict) else str(output)
-                    judge_handler = get_langfuse_handler()
-                    try:
-                        results = run_checklist_evaluation(
-                            output=text,
-                            inputs=input,
-                            criteria=[crit],
-                            domain=dom,
-                            callbacks=[judge_handler],
-                        )
-                        if crit in results:
-                            return LangfuseEvaluation(
-                                name=f"llm_judge_{crit}",
-                                value=results[crit]["score"],
-                                comment=results[crit].get("details", ""),
-                            )
-                    except Exception as e:
-                        return LangfuseEvaluation(name=f"llm_judge_{crit}", value=0.0, comment=f"Error: {e}")
-                    return LangfuseEvaluation(name=f"llm_judge_{crit}", value=0.0, comment="Evaluation failed")
-                llm_judge_evaluator.__name__ = f"llm_judge_{crit}"
-                return llm_judge_evaluator
-            evaluators.append(make_llm_judge_evaluator(criterion, domain))
+            evaluators.append(create_langfuse_evaluator(criterion))
 
     # 8. Langfuse 내장 run_experiment 실행
     print("  실험 실행 중...")
@@ -670,7 +670,7 @@ def _run_langfuse_experiment(
         # dataset item에서 case_id 추출
         item = item_result.item
         case_id = ""
-        if hasattr(item, 'metadata') and item.metadata:
+        if hasattr(item, "metadata") and item.metadata:
             case_id = item.metadata.get("case_id", "")
 
         # 점수 추출 (evaluations 리스트에서)
@@ -686,8 +686,14 @@ def _run_langfuse_experiment(
             scores[name] = value
 
         # LLM Judge 점수만 추출하여 overall 계산
-        llm_judge_scores = {k: v for k, v in scores.items() if k.startswith("llm_judge_")}
-        overall_score = sum(llm_judge_scores.values()) / len(llm_judge_scores) if llm_judge_scores else None
+        llm_judge_scores = {
+            k: v for k, v in scores.items() if k.startswith("llm_judge_")
+        }
+        overall_score = (
+            sum(llm_judge_scores.values()) / len(llm_judge_scores)
+            if llm_judge_scores
+            else None
+        )
 
         # sanity check
         keyword_score = scores.get("keyword_inclusion", 1.0)
@@ -707,19 +713,23 @@ def _run_langfuse_experiment(
             else:
                 output_text = str(item_result.output)
 
-        results.append({
-            "case_id": case_id,
-            "output": output_text,
-            "scores": scores,
-            "overall_score": overall_score,
-            "passed": passed,
-            "trace_id": item_result.trace_id,
-        })
+        results.append(
+            {
+                "case_id": case_id,
+                "output": output_text,
+                "scores": scores,
+                "overall_score": overall_score,
+                "passed": passed,
+                "trace_id": item_result.trace_id,
+            }
+        )
 
     # 10. 요약
     total = len(results)
     passed_count = sum(1 for r in results if r.get("passed", False))
-    all_scores = [r["overall_score"] for r in results if r.get("overall_score") is not None]
+    all_scores = [
+        r["overall_score"] for r in results if r.get("overall_score") is not None
+    ]
 
     summary = {
         "total": total,
@@ -729,11 +739,11 @@ def _run_langfuse_experiment(
         "avg_score": sum(all_scores) / len(all_scores) if all_scores else None,
     }
 
-    print(f"\n✅ Langfuse Experiment 완료!")
+    print("\n✅ Langfuse Experiment 완료!")
     print(f"  결과: {passed_count}/{total} 통과 ({summary['pass_rate']:.1%})")
     if summary["avg_score"]:
         print(f"  평균 점수: {summary['avg_score']:.3f}")
-    print(f"  확인: http://localhost:3000")
+    print("  확인: http://localhost:3000")
 
     return {
         "experiment_name": experiment_name,
@@ -749,6 +759,7 @@ def _run_langfuse_experiment(
 # ============================================================
 # 통합 Experiment 함수
 # ============================================================
+
 
 def run_experiment(
     prompt_name: str,

@@ -17,12 +17,6 @@ output_format:
   enum: [text, json]
   description: 프롬프트 출력 형식
 
-eval_prompts_domain:
-  type: string
-  required: true
-  description: LLM Judge 평가 프롬프트 도메인 (eval_prompts/{domain}/)
-  example: oneonone
-
 evaluators:
   type: array
   required: true
@@ -34,7 +28,7 @@ evaluators:
         - forbidden_word_check
     - type: llm_judge
       enabled: boolean
-      criteria: [string]
+      criteria: [string]  # 'domain/name' 전체 경로 (예: oneonone/professional_tone)
 
 # =============================================================================
 # 선택 필드
@@ -75,7 +69,6 @@ run_mode:
 # name: prep_generate
 # description: 1on1 Prep Report 생성 프롬프트
 # output_format: text
-# eval_prompts_domain: oneonone
 #
 # evaluators:
 #   - type: rule_based
@@ -86,8 +79,8 @@ run_mode:
 #   - type: llm_judge
 #     enabled: true
 #     criteria:
-#       - instruction_following
-#       - output_quality
+#       - general/instruction_following
+#       - oneonone/output_quality
 #
 # thresholds:
 #   pass_rate: 0.85

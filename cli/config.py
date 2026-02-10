@@ -6,13 +6,16 @@ from typing import Annotated, Optional
 import typer
 import yaml
 
-from src.evaluators.llm_judge import list_available_criteria
 from utils.config_validator import validate_config, validate_all_configs
 
 
 def validate(
-    name: Annotated[Optional[str], typer.Option("--name", "-n", help="검증할 프롬프트 이름")] = None,
-    all_configs: Annotated[bool, typer.Option("--all", "-a", help="모든 config 검증")] = False,
+    name: Annotated[
+        Optional[str], typer.Option("--name", "-n", help="검증할 프롬프트 이름")
+    ] = None,
+    all_configs: Annotated[
+        bool, typer.Option("--all", "-a", help="모든 config 검증")
+    ] = False,
 ):
     """config 파일 유효성 검증."""
     if not name and not all_configs:
@@ -52,9 +55,9 @@ def validate(
         result = validate_config(config, name)
 
         if result.valid:
-            typer.echo(f"✓ config 유효")
+            typer.echo("✓ config 유효")
         else:
-            typer.echo(f"✗ config 오류 발견")
+            typer.echo("✗ config 오류 발견")
 
         for error in result.errors:
             typer.echo(f"  ✗ {error}")
@@ -68,28 +71,3 @@ def validate(
 
         if not result.valid:
             raise typer.Exit(1)
-
-
-def criteria():
-    """사용 가능한 LLM Judge 평가 기준 목록 출력."""
-    typer.echo("\n📋 사용 가능한 평가 기준:")
-    typer.echo("-" * 60)
-
-    criteria_list = list_available_criteria()
-
-    typer.echo("\n  [일반 평가 기준]")
-    general = ["instruction_following", "factual_accuracy", "output_quality"]
-    for c in general:
-        if c in criteria_list:
-            typer.echo(f"    • {c}: {criteria_list[c]}")
-
-    typer.echo("\n  [1on1 Meeting 특화 평가 기준]")
-    oneonone = ["purpose_alignment", "coaching_quality", "tone_appropriateness", "sensitive_topic_handling"]
-    for c in oneonone:
-        if c in criteria_list:
-            typer.echo(f"    • {c}: {criteria_list[c]}")
-
-    typer.echo("\n" + "-" * 60)
-    typer.echo("사용법: targets/{name}/config.yaml의 llm_judge.criteria에 추가")
-    typer.echo("  예: criteria: [purpose_alignment, coaching_quality]")
-    typer.echo()

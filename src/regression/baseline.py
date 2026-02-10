@@ -191,12 +191,16 @@ def list_baselines(prompt_name: str) -> list[dict]:
         try:
             with open(file, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                baselines.append({
-                    "version": data.get("version"),
-                    "created_at": data.get("created_at"),
-                    "pass_rate": data.get("results", {}).get("summary", {}).get("pass_rate"),
-                    "file": str(file),
-                })
+                baselines.append(
+                    {
+                        "version": data.get("version"),
+                        "created_at": data.get("created_at"),
+                        "pass_rate": data.get("results", {})
+                        .get("summary", {})
+                        .get("pass_rate"),
+                        "file": str(file),
+                    }
+                )
         except (json.JSONDecodeError, IOError):
             continue
 
@@ -295,6 +299,125 @@ def load_experiment_result(prompt_name: str, experiment_name: str) -> dict | Non
         return json.load(f)
 
 
+def fetch_langfuse_experiment(
+    prompt_name: str,
+    run_name: Optional[str] = None,
+) -> dict:
+    """Langfuse API에서 실험 결과를 가져옴
+
+    Args:
+        prompt_name: 프롬프트 이름 (= Langfuse 데이터셋 이름)
+        run_name: 실험(run) 이름 (None이면 최신 run 사용)
+
+    Returns:
+        실험 결과 딕셔너리 (normalize_experiment_to_baseline 호환)
+
+    Raises:
+        ValueError: 데이터셋 또는 run을 찾을 수 없는 경우
+    """
+    from utils.langfuse_client import get_langfuse_client
+
+    langfuse = get_langfuse_client()
+
+    # 1. run 선택
+    if run_name:
+        try:
+            dataset_run = langfuse.get_dataset_run(
+                dataset_name=prompt_name, run_name=run_name
+            )
+        except Exception:
+            available_runs = langfuse.get_dataset_runs(dataset_name=prompt_name)
+            available_names = [r.name for r in available_runs.data[:5]]
+            raise ValueError(
+                f"Run '{run_name}'을 찾을 수 없습니다. "
+                f"사용 가능한 runs: {available_names}"
+            )
+    else:
+        all_runs = langfuse.get_dataset_runs(dataset_name=prompt_name)
+        if not all_runs.data:
+            raise ValueError(f"데이터셋 '{prompt_name}'에 실행 기록이 없습니다.")
+
+        latest_run = sorted(all_runs.data, key=lambda r: r.created_at, reverse=True)[0]
+        dataset_run = langfuse.get_dataset_run(
+            dataset_name=prompt_name, run_name=latest_run.name
+        )
+
+    # 2. 각 run item에서 결과 추출
+    results = []
+    for run_item in dataset_run.dataset_run_items:
+        try:
+            # case_id 추출
+            dataset_item = langfuse.api.dataset_items.get(run_item.dataset_item_id)
+            case_id = ""
+            if dataset_item.metadata:
+                case_id = dataset_item.metadata.get("case_id", "")
+
+            # trace에서 scores, output 추출
+            trace = langfuse.api.trace.get(run_item.trace_id)
+
+            output_text = ""
+            if trace.output:
+                if isinstance(trace.output, dict):
+                    output_text = trace.output.get("output", "")
+                else:
+                    output_text = str(trace.output)
+
+            scores = {}
+            if trace.scores:
+                for score in trace.scores:
+                    scores[score.name] = score.value
+
+            # overall_score: llm_judge scores 평균
+            llm_judge_scores = {
+                k: v for k, v in scores.items() if k.startswith("llm_judge_")
+            }
+            overall_score = (
+                sum(llm_judge_scores.values()) / len(llm_judge_scores)
+                if llm_judge_scores
+                else None
+            )
+
+            # pass/fail 판정 (pipeline.py 로직 동일)
+            keyword_score = scores.get("keyword_inclusion", 1.0)
+            forbidden_score = scores.get("forbidden_word_check", 1.0)
+            sanity_passed = keyword_score >= 0.5 and forbidden_score == 1.0
+            passed = sanity_passed and (overall_score is None or overall_score >= 0.5)
+
+            results.append(
+                {
+                    "case_id": case_id,
+                    "output": output_text,
+                    "scores": scores,
+                    "overall_score": overall_score,
+                    "passed": passed,
+                    "trace_id": run_item.trace_id,
+                }
+            )
+        except Exception as e:
+            print(f"  ⚠ trace 조회 실패 (item {run_item.dataset_item_id}): {e}")
+            continue
+
+    # 3. summary 계산
+    total = len(results)
+    passed_count = sum(1 for r in results if r.get("passed", False))
+    all_scores = [
+        r["overall_score"] for r in results if r.get("overall_score") is not None
+    ]
+
+    return {
+        "experiment_name": dataset_run.name,
+        "prompt_name": prompt_name,
+        "results": results,
+        "summary": {
+            "total": total,
+            "passed": passed_count,
+            "failed": total - passed_count,
+            "pass_rate": passed_count / total if total > 0 else 0.0,
+            "avg_score": sum(all_scores) / len(all_scores) if all_scores else None,
+        },
+    }
+
+
 def normalize_experiment_to_baseline(experiment_result: dict) -> dict:
     """로컬 실험 결과를 baseline 비교 형식으로 정규화
 
@@ -317,13 +440,15 @@ def normalize_experiment_to_baseline(experiment_result: dict) -> dict:
         for name, value in scores.items():
             feedback_stats[name] = {"avg": value}
 
-        cases.append({
-            "case_id": r.get("case_id", ""),
-            "inputs": {},
-            "outputs": {"output": r.get("output", "")},
-            "feedback_stats": feedback_stats,
-            "passed": r.get("passed", False),
-        })
+        cases.append(
+            {
+                "case_id": r.get("case_id", ""),
+                "inputs": {},
+                "outputs": {"output": r.get("output", "")},
+                "feedback_stats": feedback_stats,
+                "passed": r.get("passed", False),
+            }
+        )
 
     return {
         "version": "current",
@@ -366,6 +491,34 @@ def set_baseline_from_local(
         )
 
     # baseline 형식으로 변환
+    normalized = normalize_experiment_to_baseline(experiment)
+
+    return save_baseline(
+        prompt_name,
+        experiment_results=normalized["results"],
+        version=version,
+        metadata=metadata,
+    )
+
+
+def set_baseline_from_langfuse(
+    prompt_name: str,
+    run_name: Optional[str] = None,
+    version: Optional[str] = None,
+    metadata: Optional[dict] = None,
+) -> Path:
+    """Langfuse 실험 결과에서 baseline 생성
+
+    Args:
+        prompt_name: 프롬프트 이름
+        run_name: Langfuse run 이름 (None이면 최신 run)
+        version: 버전 태그
+        metadata: 추가 메타데이터
+
+    Returns:
+        저장된 baseline 파일 경로
+    """
+    experiment = fetch_langfuse_experiment(prompt_name, run_name=run_name)
     normalized = normalize_experiment_to_baseline(experiment)
 
     return save_baseline(

@@ -87,7 +87,7 @@ datasets/*/                       # 같은 프로젝트의 다른 테스트 데�
 
 **targets/{name}/config.yaml에서 파악할 것:**
 - `evaluators`: 어떤 평가자가 사용되는지 (keywords, forbidden 필요 여부)
-- `eval_prompts_domain`: LLM Judge 도메인
+- `evaluators`: LLM Judge criteria 경로 (`도메인/기준명` 형식)
 
 ### Step 2: 시나리오 기반 케이스 설계 (우선)
 

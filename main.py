@@ -19,8 +19,6 @@ Usage:
     # 평가 세트 목록
     poetry run python main.py list
 
-    # 사용 가능한 평가 기준 확인
-    poetry run python main.py criteria
 """
 
 import typer
@@ -30,15 +28,12 @@ from dotenv import load_dotenv
 from cli import prompt as prompt_cli
 from cli import baseline as baseline_cli
 from cli.experiment import experiment, regression
-from cli.config import validate, criteria
+from cli.config import validate
 from cli.dataset import list_sets, upload
 
 load_dotenv()
 
-app = typer.Typer(
-    name="prompt-evaluator",
-    help="프롬프트 평가 시스템 CLI"
-)
+app = typer.Typer(name="prompt-evaluator", help="프롬프트 평가 시스템 CLI")
 
 # 서브커맨드 등록
 app.add_typer(prompt_cli.app, name="prompt")
@@ -48,7 +43,6 @@ app.add_typer(baseline_cli.app, name="baseline")
 app.command()(experiment)
 app.command()(regression)
 app.command()(validate)
-app.command()(criteria)
 app.command(name="list")(list_sets)
 app.command()(upload)
 

@@ -1,4 +1,5 @@
 """중앙 설정 관리 모듈."""
+
 import os
 from dotenv import load_dotenv
 
@@ -8,8 +9,9 @@ load_dotenv()
 # 모델 기본값
 # =============================================================================
 
-DEFAULT_MODEL = "gpt-5"
-DEFAULT_LLM_JUDGE_MODEL = "gpt-5"
+# DEFAULT_MODEL = "gpt-5"
+# DEFAULT_LLM_JUDGE_MODEL = "gpt-4o-mini"
+DEFAULT_LLM_JUDGE_MODEL = "gemini-2.5-pro"
 DEFAULT_EMBEDDING_PROVIDER = "openai"
 OPENAI_EMBEDDING_MODEL = "text-embedding-3-small"
 VERTEX_EMBEDDING_MODEL = "text-embedding-004"

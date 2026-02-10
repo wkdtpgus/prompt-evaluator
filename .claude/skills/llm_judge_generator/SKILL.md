@@ -208,7 +208,6 @@ Write 도구로 `targets/{프롬프트명}/config.yaml` 파일을 생성하거�
 
 name: {프롬프트명}
 output_format: text  # text | json
-eval_prompts_domain: {주_도메인명}  # 신규 생성 시 저장될 위치
 
 evaluators:
   - type: rule_based
@@ -219,12 +218,11 @@ evaluators:
   - type: llm_judge
     enabled: true
     criteria:
-      # 기존 도메인에서 재사용 (도메인/기준명 형식)
+      # 항상 '도메인/기준명' 전체 경로로 작성
       - oneonone/tone_appropriateness
       - oneonone/sensitive_topic_handling
-      # 주 도메인의 특화 기준 (기준명만)
-      - {evaluator_name_1}
-      - {evaluator_name_2}
+      - {도메인명}/{evaluator_name_1}
+      - {도메인명}/{evaluator_name_2}
 
 thresholds:
   pass_rate: 0.85
@@ -234,8 +232,7 @@ run_mode: full
 ```
 
 **criteria 경로 규칙:**
-- `기준명` → `eval_prompts/{eval_prompts_domain}/기준명.txt`
-- `도메인/기준명` → `eval_prompts/도메인/기준명.txt` (다른 도메인 재사용 시)
+- 항상 `도메인/기준명` 전체 경로 사용 → `eval_prompts/도메인/기준명.txt`
 
 **체크리스트:**
 - [ ] `eval_prompts/{도메인명}/` 폴더에 평가 프롬프트 파일 생성됨
@@ -348,7 +345,6 @@ You are evaluating customer service response clarity.
 ```yaml
 name: customer_service
 output_format: text
-eval_prompts_domain: customer_service
 
 evaluators:
   - type: rule_based
@@ -359,8 +355,8 @@ evaluators:
   - type: llm_judge
     enabled: true
     criteria:
-      - customer_empathy
-      - customer_clarity
+      - customer_service/customer_empathy
+      - customer_service/customer_clarity
 
 thresholds:
   pass_rate: 0.85
@@ -392,9 +388,6 @@ targets/                   # 평가 대상 프롬프트
 ## Related Commands
 
 ```bash
-# 사용 가능한 평가 기준 확인
-poetry run python main.py criteria
-
 # 설정 검증
 poetry run python main.py validate --name {프롬프트명}
 

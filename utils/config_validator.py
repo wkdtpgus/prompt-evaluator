@@ -13,13 +13,14 @@ from src.loaders import SUPPORTED_EXTENSIONS
 
 class ValidationResult(NamedTuple):
     """검증 결과"""
+
     valid: bool
     errors: list[str]
     warnings: list[str]
 
 
 # 필수 필드
-REQUIRED_FIELDS = ["name", "output_format", "eval_prompts_domain", "evaluators"]
+REQUIRED_FIELDS = ["name", "evaluators"]
 
 # 허용 값
 VALID_OUTPUT_FORMATS = ["text", "json"]
@@ -61,7 +62,9 @@ def validate_config(
     # 3. output_format 유효성
     output_format = config.get("output_format")
     if output_format and output_format not in VALID_OUTPUT_FORMATS:
-        errors.append(f"잘못된 output_format: {output_format} (허용: {VALID_OUTPUT_FORMATS})")
+        errors.append(
+            f"잘못된 output_format: {output_format} (허용: {VALID_OUTPUT_FORMATS})"
+        )
 
     # 4. run_mode 유효성
     run_mode = config.get("run_mode")
@@ -72,8 +75,7 @@ def validate_config(
     prompt_folder = targets_dir / prompt_name
     if prompt_folder.is_dir():
         has_prompt = any(
-            (prompt_folder / f"prompt{ext}").exists()
-            for ext in SUPPORTED_EXTENSIONS
+            (prompt_folder / f"prompt{ext}").exists() for ext in SUPPORTED_EXTENSIONS
         )
         if not has_prompt:
             errors.append(f"프롬프트 파일 없음: {prompt_folder}/prompt.[txt|py|xml|md]")
@@ -89,20 +91,13 @@ def validate_config(
     else:
         errors.append(f"데이터셋 폴더 없음: {data_dir}")
 
-    # 7. eval_prompts 파일 존재 확인
-    domain = config.get("eval_prompts_domain")
-    if domain:
-        domain_dir = eval_prompts_dir / domain
-        if not domain_dir.is_dir():
-            warnings.append(f"eval_prompts 도메인 폴더 없음: {domain_dir}")
-        else:
-            # LLM Judge criteria 확인
-            for evaluator in config.get("evaluators", []):
-                if evaluator.get("type") == "llm_judge":
-                    for criterion in evaluator.get("criteria", []):
-                        criterion_file = domain_dir / f"{criterion}.txt"
-                        if not criterion_file.exists():
-                            warnings.append(f"eval_prompt 파일 없음: {criterion_file}")
+    # 7. eval_prompts 파일 존재 확인 (criteria는 'domain/name' 전체 경로)
+    for evaluator in config.get("evaluators", []):
+        if evaluator.get("type") == "llm_judge":
+            for criterion in evaluator.get("criteria", []):
+                criterion_file = eval_prompts_dir / f"{criterion}.txt"
+                if not criterion_file.exists():
+                    warnings.append(f"eval_prompt 파일 없음: {criterion_file}")
 
     # 8. evaluators 구조 확인
     for i, evaluator in enumerate(config.get("evaluators", [])):

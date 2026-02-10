@@ -1,9 +1,9 @@
 {
-  "experiment_name": "leader_scoring-full-20260210-173840",
+  "experiment_name": "leader_scoring-full-20260210-160024",
   "prompt_name": "leader_scoring",
   "mode": "full",
   "model": "gemini-2.5-flash",
-  "timestamp": "2026-02-10T17:50:37.951563",
+  "timestamp": "2026-02-10T16:13:22.355839",
   "results": [
     {
       "case_id": "scoring_020",
@@ -12,16 +12,16 @@
         "keyword_inclusion": 1.0,
         "forbidden_word_check": 1.0,
         "llm_judge_general/factual_accuracy": 0.6,
-        "llm_judge_leader_scoring/scoring_format_compliance": 1.0,
-        "llm_judge_leader_scoring/rationale_evidence_quality": 1.0,
-        "llm_judge_leader_scoring/scoring_accuracy": 0.8,
-        "llm_judge_leader_scoring/nuance_detection": 0.2,
-        "llm_judge_leader_scoring/passive_aggression_detection": 0.2,
-        "llm_judge_leader_scoring/coaching_rationale_quality": 0.8
+        "llm_judge_scoring_format_compliance": 1.0,
+        "llm_judge_rationale_evidence_quality": 1.0,
+        "llm_judge_scoring_accuracy": 1.0,
+        "llm_judge_nuance_detection": 0.6,
+        "llm_judge_passive_aggression_detection": 0.0,
+        "llm_judge_coaching_rationale_quality": 0.8
       },
-      "overall_score": 0.6571428571428571,
+      "overall_score": 0.7142857142857143,
       "passed": true,
-      "trace_id": "05b5025d4c0bdd9062dc4d7e1e792720"
+      "trace_id": "82f9969cc34b4ab8a250589208786132"
     },
     {
       "case_id": "scoring_019",
@@ -29,17 +29,17 @@
       "scores": {
         "keyword_inclusion": 1.0,
         "forbidden_word_check": 1.0,
-        "llm_judge_general/factual_accuracy": 0.6,
-        "llm_judge_leader_scoring/scoring_format_compliance": 1.0,
-        "llm_judge_leader_scoring/rationale_evidence_quality": 0.6,
-        "llm_judge_leader_scoring/scoring_accuracy": 0.4,
-        "llm_judge_leader_scoring/nuance_detection": 0.6,
-        "llm_judge_leader_scoring/passive_aggression_detection": 0.4,
-        "llm_judge_leader_scoring/coaching_rationale_quality": 0.6
+        "llm_judge_general/factual_accuracy": 0.0,
+        "llm_judge_scoring_format_compliance": 1.0,
+        "llm_judge_rationale_evidence_quality": 0.6,
+        "llm_judge_scoring_accuracy": 0.4,
+        "llm_judge_nuance_detection": 0.6,
+        "llm_judge_passive_aggression_detection": 0.4,
+        "llm_judge_coaching_rationale_quality": 0.8
       },
-      "overall_score": 0.6,
+      "overall_score": 0.5428571428571428,
       "passed": true,
-      "trace_id": "83995cee1343ed4e3abb5a0b3ffbb4cc"
+      "trace_id": "34311c44f0b3c521c341e7042e0daa16"
     },
     {
       "case_id": "scoring_018",
@@ -48,16 +48,16 @@
         "keyword_inclusion": 1.0,
         "forbidden_word_check": 1.0,
         "llm_judge_general/factual_accuracy": 0.6,
-        "llm_judge_leader_scoring/scoring_format_compliance": 1.0,
-        "llm_judge_leader_scoring/rationale_evidence_quality": 1.0,
-        "llm_judge_leader_scoring/scoring_accuracy": 0.6,
-        "llm_judge_leader_scoring/nuance_detection": 0.6,
-        "llm_judge_leader_scoring/passive_aggression_detection": 0.0,
-        "llm_judge_leader_scoring/coaching_rationale_quality": 0.6
+        "llm_judge_scoring_format_compliance": 1.0,
+        "llm_judge_rationale_evidence_quality": 0.8,
+        "llm_judge_scoring_accuracy": 0.6,
+        "llm_judge_nuance_detection": 0.0,
+        "llm_judge_passive_aggression_detection": 0.0,
+        "llm_judge_coaching_rationale_quality": 0.8
       },
-      "overall_score": 0.6285714285714287,
+      "overall_score": 0.5428571428571428,
       "passed": true,
-      "trace_id": "a9a18393aa468e38afbd90f50ba71a6e"
+      "trace_id": "2ca2ec94b5e6391e1e3b40bb798adf4d"
     }
   ],
   "summary": {
@@ -65,6 +65,6 @@
     "passed": 3,
     "failed": 0,
     "pass_rate": 1.0,
-    "avg_score": 0.6285714285714286
+    "avg_score": 0.6
   }
 }
