@@ -1,17 +1,28 @@
-"""중앙 설정 관리 모듈.
+"""중앙 설정 관리 모듈."""
+import os
+from dotenv import load_dotenv
 
-환경변수 로드는 각 모듈에서 수행. 여기서는 기본값만 정의.
-"""
+load_dotenv()
 
 # =============================================================================
 # 모델 기본값
 # =============================================================================
 
-DEFAULT_MODEL = "gpt-4o-mini"
-DEFAULT_LLM_JUDGE_MODEL = "gpt-4o-mini"
+DEFAULT_MODEL = "gpt-5"
+DEFAULT_LLM_JUDGE_MODEL = "gpt-5"
 DEFAULT_EMBEDDING_PROVIDER = "openai"
 OPENAI_EMBEDDING_MODEL = "text-embedding-3-small"
 VERTEX_EMBEDDING_MODEL = "text-embedding-004"
+
+# Gemini
+GEMINI_MODEL = "gemini-2.5-flash"
+GEMINI_MAX_TOKENS = 20000
+GEMINI_TEMPERATURE = 0
+GEMINI_THINKING_BUDGET = 0
+
+# GCP
+GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT")
+GOOGLE_CLOUD_LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
 
 # =============================================================================
 # 평가 임계값

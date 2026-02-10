@@ -15,6 +15,7 @@ Backend = Literal["langsmith", "langfuse", "both"]
 # Upload (로컬 → 원격)
 # ---------------------------------------------------------------------------
 
+
 def upload_dataset(
     prompt_name: str,
     backend: Backend = "both",
@@ -33,7 +34,11 @@ def upload_dataset(
     if backend in ("langsmith", "both"):
         try:
             name = _upload_langsmith(
-                prompt_name, targets_dir, datasets_dir, dataset_name, description,
+                prompt_name,
+                targets_dir,
+                datasets_dir,
+                dataset_name,
+                description,
             )
             result["langsmith_name"] = name
         except Exception as e:
@@ -44,7 +49,10 @@ def upload_dataset(
         try:
             ds_name = dataset_name or prompt_name
             ds_results = _upload_langfuse_from_local(
-                prompt_name, datasets_dir, ds_name, description,
+                prompt_name,
+                datasets_dir,
+                ds_name,
+                description,
             )
             result["langfuse_results"] = ds_results
         except Exception as e:
@@ -90,18 +98,20 @@ def _upload_langsmith(
         inputs = case["inputs"]
         expected_output = data["expected"].get(case_id, {})
 
-        examples.append({
-            "inputs": inputs,
-            "outputs": {
-                "reference": expected_output.get("reference", {}),
-                "keywords": expected_output.get("keywords", []),
-                "forbidden": expected_output.get("forbidden", []),
-            },
-            "metadata": {
-                "case_id": case_id,
-                "description": case.get("description", ""),
-            },
-        })
+        examples.append(
+            {
+                "inputs": inputs,
+                "outputs": {
+                    "reference": expected_output.get("reference", {}),
+                    "keywords": expected_output.get("keywords", []),
+                    "forbidden": expected_output.get("forbidden", []),
+                },
+                "metadata": {
+                    "case_id": case_id,
+                    "description": case.get("description", ""),
+                },
+            }
+        )
 
     client.create_examples(
         inputs=[ex["inputs"] for ex in examples],
@@ -139,6 +149,7 @@ def _upload_langfuse_from_local(
 # Langfuse 전용 (하위 수준 API)
 # ---------------------------------------------------------------------------
 
+
 def create_dataset(name: str, description: Optional[str] = None) -> None:
     """Langfuse에 새 데이터셋 생성"""
     from utils.langfuse_client import get_langfuse_client
@@ -152,17 +163,24 @@ def upload_dataset_item(
     input_data: dict,
     expected_output: Optional[dict] = None,
     metadata: Optional[dict] = None,
+    item_id: Optional[str] = None,
 ) -> None:
-    """데이터셋에 아이템 추가 (Langfuse)"""
+    """데이터셋에 아이템 추가 (Langfuse)
+
+    item_id를 지정하면 upsert 동작 (중복 방지)
+    """
     from utils.langfuse_client import get_langfuse_client
 
     client = get_langfuse_client()
-    client.create_dataset_item(
+    kwargs = dict(
         dataset_name=dataset_name,
         input=input_data,
         expected_output=expected_output,
         metadata=metadata,
     )
+    if item_id:
+        kwargs["id"] = item_id
+    client.create_dataset_item(**kwargs)
 
 
 def get_dataset(name: str):
@@ -209,6 +227,7 @@ def upload_from_files(
                     "case_id": case_id,
                     "description": case.get("description", ""),
                 },
+                item_id=case_id,
             )
             results[case_id] = True
         except Exception as e:
