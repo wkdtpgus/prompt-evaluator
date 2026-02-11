@@ -187,41 +187,6 @@ def experiment(
         _auto_version_and_push(name, backend=backend, changes=changes)
         typer.echo("-" * 60)
 
-    # Chain 파이프라인 감지 → E2E 파이프라인으로 위임
-    import yaml
-
-    config_file = prompt_dir / "config.yaml"
-    if config_file.exists():
-        with open(config_file, "r", encoding="utf-8") as f:
-            eval_config = yaml.safe_load(f)
-        if eval_config.get("pipeline_type") == "chain":
-            from src.pipelines.e2e_chain import (
-                run_e2e_langfuse_experiment,
-                run_e2e_langsmith_experiment,
-            )
-
-            typer.echo(f"\nChain Pipeline: {name}")
-            if backend == "both":
-                typer.echo("-" * 60)
-                result = run_e2e_langfuse_experiment(
-                    prompt_name=name, mode=mode, experiment_prefix=prefix
-                )
-                _save_langfuse_result(name, result)
-                typer.echo("-" * 60)
-                run_e2e_langsmith_experiment(
-                    prompt_name=name, mode=mode, experiment_prefix=prefix
-                )
-            elif backend == "langfuse":
-                result = run_e2e_langfuse_experiment(
-                    prompt_name=name, mode=mode, experiment_prefix=prefix
-                )
-                _save_langfuse_result(name, result)
-            elif backend == "langsmith":
-                run_e2e_langsmith_experiment(
-                    prompt_name=name, mode=mode, experiment_prefix=prefix
-                )
-            return
-
     # both: Langfuse + LangSmith 동시 실행
     if backend == "both":
         typer.echo(f"\n🔬 [1/2] Langfuse Experiment 실행: {name}")

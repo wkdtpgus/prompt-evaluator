@@ -1,20 +1,73 @@
-"""LLM Judge 평가 결과를 LangSmith/Langfuse 플랫폼 형식으로 변환하는 어댑터."""
+"""평가 결과를 LangSmith/Langfuse 플랫폼 형식으로 변환하는 어댑터.
+
+rule_based.py, llm_judge.py의 평가 로직을 호출하고
+결과를 각 플랫폼이 요구하는 형식으로 변환한다.
+
+Note: keyword/forbidden 어댑터는 LangSmith/Langfuse 간 핵심 로직이 동일하지만,
+플랫폼별 함수 시그니처가 다르기 때문에 별도로 정의한다.
+- LangSmith: (run, example) → EvaluationResult
+- Langfuse: (*, output, metadata, ...) → Evaluation
+"""
 
 from typing import Callable
 
 from langsmith.evaluation import EvaluationResult
 
 from src.evaluators.llm_judge import run_checklist_evaluation
+from src.evaluators.rule_based import keyword_inclusion, forbidden_word_check
 from utils.langfuse_client import get_langfuse_handler
 from utils.models import judge_llm
 from langfuse import Evaluation
+
+
+# =============================================================================
+# LangSmith 어댑터
+# =============================================================================
+
+
+def create_langsmith_keyword_evaluator(expected_all: dict) -> Callable:
+    """LangSmith용 키워드 포함 평가자."""
+
+    def evaluator(run, example) -> EvaluationResult:
+        output = run.outputs.get("output", "")
+        case_id = example.metadata.get("case_id", "") if example.metadata else ""
+        expected = expected_all.get(case_id, {})
+
+        result = keyword_inclusion(output, expected.get("keywords", []))
+
+        return EvaluationResult(
+            key="keyword_inclusion",
+            score=result["score"],
+            comment=result["details"],
+        )
+
+    return evaluator
+
+
+def create_langsmith_forbidden_evaluator(expected_all: dict) -> Callable:
+    """LangSmith용 금지어 검사 평가자."""
+
+    def evaluator(run, example) -> EvaluationResult:
+        output = run.outputs.get("output", "")
+        case_id = example.metadata.get("case_id", "") if example.metadata else ""
+        expected = expected_all.get(case_id, {})
+
+        result = forbidden_word_check(output, expected.get("forbidden", []))
+
+        return EvaluationResult(
+            key="forbidden_word_check",
+            score=result["score"],
+            comment=result["details"],
+        )
+
+    return evaluator
 
 
 def create_langsmith_evaluator(
     criterion: str,
     prompt_template: str = "",
 ) -> Callable:
-    """LangSmith evaluate()용 평가자 함수 생성."""
+    """LangSmith용 LLM Judge 평가자."""
 
     def evaluator(run, example) -> EvaluationResult:
         output = run.outputs.get("output", "")
@@ -37,10 +90,53 @@ def create_langsmith_evaluator(
     return evaluator
 
 
+# =============================================================================
+# Langfuse 어댑터
+# =============================================================================
+
+
+def create_langfuse_keyword_evaluator(expected_all: dict) -> Callable:
+    """Langfuse용 키워드 포함 평가자."""
+
+    def evaluator(*, output, expected_output, input, metadata, **kwargs):
+        text = output.get("output", "") if isinstance(output, dict) else str(output)
+        case_id = metadata.get("case_id", "") if metadata else ""
+        expected = expected_all.get(case_id, {})
+
+        result = keyword_inclusion(text, expected.get("keywords", []))
+
+        return Evaluation(
+            name="keyword_inclusion",
+            value=result["score"],
+            comment=result["details"],
+        )
+
+    return evaluator
+
+
+def create_langfuse_forbidden_evaluator(expected_all: dict) -> Callable:
+    """Langfuse용 금지어 검사 평가자."""
+
+    def evaluator(*, output, expected_output, input, metadata, **kwargs):
+        text = output.get("output", "") if isinstance(output, dict) else str(output)
+        case_id = metadata.get("case_id", "") if metadata else ""
+        expected = expected_all.get(case_id, {})
+
+        result = forbidden_word_check(text, expected.get("forbidden", []))
+
+        return Evaluation(
+            name="forbidden_word_check",
+            value=result["score"],
+            comment=result["details"],
+        )
+
+    return evaluator
+
+
 def create_langfuse_evaluator(
     criterion: str,
 ) -> Callable:
-    """Langfuse experiment용 평가자 함수 생성."""
+    """Langfuse용 LLM Judge 평가자."""
 
     def evaluator(*, output, expected_output, input, metadata, **kwargs):
         name = f"llm_judge_{criterion}"

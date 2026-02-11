@@ -1,40 +1,37 @@
 """평가 파이프라인
 
-데이터 로드 → LLM 호출 → 평가 실행 → 결과 집계
-
-두 가지 모드:
-1. 로컬 모드: run_pipeline() - 빠른 개발/테스트
-2. LangSmith 모드: run_langsmith_experiment() - 정식 평가, 버전 비교
+프롬프트 실행 → 평가 → 실험 (LangSmith / Langfuse)
 """
 
 import json
-import time
+import re
 from datetime import datetime
 from typing import Any, Literal
 
 from dotenv import load_dotenv
 from langsmith import traceable
-from langsmith.evaluation import EvaluationResult, evaluate
+from langsmith.evaluation import evaluate
 
 # Langfuse imports (lazy import for optional dependency)
 try:
-    from langfuse import Evaluation
     from utils.langfuse_client import (
         get_langfuse_client,
         get_langfuse_handler,
-        flush as langfuse_flush,
     )
 
     LANGFUSE_AVAILABLE = True
 except ImportError:
     LANGFUSE_AVAILABLE = False
 
-from src.evaluators.rule_based import run_rule_evaluators
 from src.loaders import load_evaluation_set
 from utils.dataset_sync import upload_dataset, get_dataset
 from src.evaluators.adapters import (
     create_langfuse_evaluator,
+    create_langfuse_forbidden_evaluator,
+    create_langfuse_keyword_evaluator,
     create_langsmith_evaluator,
+    create_langsmith_forbidden_evaluator,
+    create_langsmith_keyword_evaluator,
 )
 from utils.prompt_sync import get_prompt
 from utils.models import execution_llm
@@ -61,8 +58,10 @@ def execute_prompt(
     Returns:
         LLM 응답 텍스트
     """
+    # {{var}} → {var} 변환 (프롬프트 파일이 이중 중괄호 사용 시 .format() 호환)
+    template = re.sub(r"\{\{(\w+)\}\}", r"{\1}", template)
+
     # 템플릿에 입력 값 채우기
-    # inputs의 모든 키를 플레이스홀더로 사용 (도메인 독립적)
     format_args = {}
     for key, value in inputs.items():
         if isinstance(value, (dict, list)):
@@ -70,13 +69,7 @@ def execute_prompt(
         else:
             format_args[key] = value
 
-    # Langfuse 스타일 {{var}} → Python .format() 스타일 {var} 변환
-    # 입력 키에 해당하는 플레이스홀더만 변환 (JSON 예시의 {{{{...}}}} 보호)
-    converted = template
-    for key in format_args:
-        converted = converted.replace("{{" + key + "}}", "{" + key + "}")
-
-    prompt = converted.format(**format_args)
+    prompt = template.format(**format_args)
 
     invoke_kwargs = {}
     if callbacks:
@@ -85,191 +78,6 @@ def execute_prompt(
     response = execution_llm.invoke(prompt, **invoke_kwargs)
 
     return response.content
-
-
-@traceable(name="run_evaluation")
-def run_evaluation(
-    output: str,
-    expected: dict,
-    inputs: dict,
-    mode: RunMode = "quick",
-    eval_config: dict | None = None,
-) -> dict[str, Any]:
-    """출력에 대한 평가 실행.
-
-    Args:
-        output: LLM 출력
-        expected: 기대 결과 (keywords, forbidden, reference)
-        inputs: 원본 입력
-        mode: 실행 모드 (quick/full)
-        eval_config: 평가 설정
-
-    Returns:
-        {
-            "rule_based": {...},
-            "overall_score": float,
-            "passed": bool
-        }
-    """
-    # ============================================================
-    # 1. Sanity Checks (pass/fail만, 점수에 미반영)
-    # ============================================================
-    rule_checks = ["keyword_inclusion", "forbidden_word_check"]
-    rule_results = run_rule_evaluators(output, expected, rule_checks, eval_config)
-
-    sanity_all_passed = all(r["passed"] for r in rule_results.values())
-    sanity_checks = {
-        "checks": rule_results,
-        "all_passed": sanity_all_passed,
-    }
-
-    # ============================================================
-    # 2. 점수 (로컬 파이프라인에서는 scoring 없음, 어댑터 경로에서 LLM Judge 실행)
-    # ============================================================
-    overall_score = None
-    passed = sanity_all_passed
-    fail_reason = None if sanity_all_passed else "sanity_check_failed"
-
-    return {
-        "sanity_checks": sanity_checks,
-        "overall_score": overall_score,
-        "passed": passed,
-        "fail_reason": fail_reason,
-    }
-
-
-@traceable(name="evaluate_case")
-def evaluate_single_case(
-    template: str,
-    test_case: dict,
-    expected: dict,
-    mode: RunMode = "quick",
-    eval_config: dict | None = None,
-) -> dict[str, Any]:
-    """단일 테스트 케이스 평가.
-
-    Args:
-        template: 프롬프트 템플릿
-        test_case: 테스트 케이스 데이터
-        expected: 기대 결과
-        mode: 실행 모드
-        eval_config: 평가 설정
-
-    Returns:
-        {
-            "case_id": str,
-            "output": str,
-            "evaluation": dict,
-            "duration_ms": int
-        }
-    """
-    start = time.time()
-
-    case_id = test_case.get("id", "unknown")
-    inputs = test_case.get("inputs", {})
-
-    # LLM 실행
-    output = execute_prompt(template, inputs)
-
-    # 평가 실행
-    evaluation = run_evaluation(output, expected, inputs, mode, eval_config)
-
-    duration_ms = int((time.time() - start) * 1000)
-
-    return {
-        "case_id": case_id,
-        "description": test_case.get("description", ""),
-        "output": output,
-        "evaluation": evaluation,
-        "duration_ms": duration_ms,
-    }
-
-
-def run_pipeline(
-    prompt_name: str,
-    mode: RunMode = "quick",
-    case_ids: list[str] | None = None,
-) -> dict[str, Any]:
-    """전체 평가 파이프라인 실행.
-
-    Args:
-        prompt_name: 평가 세트 이름 (예: "prep_analyzer")
-        mode: 실행 모드 (quick/standard/full)
-        case_ids: 특정 케이스만 실행 (None이면 전체)
-
-    Returns:
-        {
-            "prompt_name": str,
-            "mode": str,
-            "timestamp": str,
-            "cases": list[dict],
-            "summary": {
-                "total": int,
-                "passed": int,
-                "failed": int,
-                "pass_rate": float,
-                "avg_score": float
-            }
-        }
-    """
-    # 데이터 로드
-    data = load_evaluation_set(prompt_name)
-    template = data["template"]
-    test_cases = data["test_cases"]
-    expected_all = data["expected"]
-    eval_config = data["eval_config"]
-
-    # 케이스 필터링
-    if case_ids:
-        test_cases = [tc for tc in test_cases if tc.get("id") in case_ids]
-
-    results = []
-    for test_case in test_cases:
-        case_id = test_case.get("id", "unknown")
-        expected = expected_all.get(case_id, {})
-
-        print(f"  [{case_id}] {test_case.get('description', '')[:40]}...", end=" ")
-
-        result = evaluate_single_case(
-            template=template,
-            test_case=test_case,
-            expected=expected,
-            mode=mode,
-            eval_config=eval_config,
-        )
-
-        status = "✓" if result["evaluation"]["passed"] else "✗"
-        score = result["evaluation"]["overall_score"]
-        score_str = f"{score:.2f}" if score is not None else "-"
-        print(f"{status} ({score_str}) [{result['duration_ms']}ms]")
-
-        results.append(result)
-
-    # 요약 계산
-    total = len(results)
-    passed = sum(1 for r in results if r["evaluation"]["passed"])
-    scores = [
-        r["evaluation"]["overall_score"]
-        for r in results
-        if r["evaluation"]["overall_score"] is not None
-    ]
-
-    summary = {
-        "total": total,
-        "passed": passed,
-        "failed": total - passed,
-        "pass_rate": passed / total if total > 0 else 0.0,
-        "avg_score": sum(scores) / len(scores) if scores else None,
-    }
-
-    return {
-        "prompt_name": prompt_name,
-        "mode": mode,
-        "model": execution_llm.model_name,
-        "timestamp": datetime.now().isoformat(),
-        "cases": results,
-        "summary": summary,
-    }
 
 
 # ============================================================
@@ -321,53 +129,13 @@ def run_langsmith_experiment(
         output = execute_prompt(template, inputs)
         return {"output": output}
 
-    # 4. 평가자 함수들 정의
-    def keyword_evaluator(run, example) -> EvaluationResult:
-        """키워드 포함 평가."""
-        output = run.outputs.get("output", "")
-        # case_id는 metadata에 저장됨
-        case_id = example.metadata.get("case_id", "") if example.metadata else ""
-        expected = expected_all.get(case_id, {})
-        keywords = expected.get("keywords", [])
+    # 4. 평가자 구성
+    evaluators = [
+        create_langsmith_keyword_evaluator(expected_all),
+        create_langsmith_forbidden_evaluator(expected_all),
+    ]
 
-        if not keywords:
-            return EvaluationResult(key="keyword_inclusion", score=1.0)
-
-        found = sum(1 for k in keywords if k.lower() in output.lower())
-        score = found / len(keywords)
-
-        return EvaluationResult(
-            key="keyword_inclusion",
-            score=score,
-            comment=f"Found {found}/{len(keywords)} keywords",
-        )
-
-    def forbidden_evaluator(run, example) -> EvaluationResult:
-        """금지어 검사."""
-        output = run.outputs.get("output", "")
-        # case_id는 metadata에 저장됨
-        case_id = example.metadata.get("case_id", "") if example.metadata else ""
-        expected = expected_all.get(case_id, {})
-        forbidden = expected.get("forbidden", [])
-
-        if not forbidden:
-            return EvaluationResult(key="forbidden_word_check", score=1.0)
-
-        violations = [w for w in forbidden if w.lower() in output.lower()]
-        score = 1.0 if not violations else 0.0
-
-        return EvaluationResult(
-            key="forbidden_word_check",
-            score=score,
-            comment=f"Violations: {violations}" if violations else "No violations",
-        )
-
-    # 5. 모드에 따른 평가자 선택
-    # Note: rule-based 평가자는 sanity check용으로만 사용 (LangSmith에서는 점수로 기록되지만
-    # 실제 pass/fail 판정은 llm_judge 기준으로 함)
-    evaluators = [keyword_evaluator, forbidden_evaluator]
-
-    # 6. LLM Judge 평가자 추가 (full 모드 또는 eval_config에 설정된 경우)
+    # 5. LLM Judge 평가자 추가 (full 모드 또는 eval_config에 설정된 경우)
     llm_judge_config = None
     for evaluator in eval_config.get("evaluators", []):
         if evaluator.get("type") == "llm_judge":
@@ -412,7 +180,7 @@ def run_langsmith_experiment(
 # ============================================================
 
 
-def _run_langfuse_experiment(
+def run_langfuse_experiment(
     prompt_name: str,
     mode: RunMode = "full",
     experiment_prefix: str | None = None,
@@ -498,53 +266,11 @@ def _run_langfuse_experiment(
         output = execute_prompt(template, item.input, callbacks=[handler])
         return {"output": output}
 
-    # 6. Evaluator 함수들 정의
-    def keyword_evaluator(*, output, expected_output, input, metadata, **kwargs):
-        """키워드 포함 평가."""
-        text = output.get("output", "") if isinstance(output, dict) else str(output)
-        case_id = metadata.get("case_id", "") if metadata else ""
-        expected = expected_all.get(case_id, {})
-        keywords = expected.get("keywords", [])
-
-        if not keywords:
-            return Evaluation(
-                name="keyword_inclusion",
-                value=1.0,
-                comment="No keywords to check",
-            )
-
-        found = sum(1 for k in keywords if k.lower() in text.lower())
-        score = found / len(keywords)
-        return Evaluation(
-            name="keyword_inclusion",
-            value=score,
-            comment=f"Found {found}/{len(keywords)} keywords",
-        )
-
-    def forbidden_evaluator(*, output, expected_output, input, metadata, **kwargs):
-        """금지어 검사."""
-        text = output.get("output", "") if isinstance(output, dict) else str(output)
-        case_id = metadata.get("case_id", "") if metadata else ""
-        expected = expected_all.get(case_id, {})
-        forbidden = expected.get("forbidden", [])
-
-        if not forbidden:
-            return Evaluation(
-                name="forbidden_word_check",
-                value=1.0,
-                comment="No forbidden words to check",
-            )
-
-        violations = [w for w in forbidden if w.lower() in text.lower()]
-        score = 1.0 if not violations else 0.0
-        return Evaluation(
-            name="forbidden_word_check",
-            value=score,
-            comment=f"Violations: {violations}" if violations else "No violations",
-        )
-
-    # 7. 평가자 목록 구성
-    evaluators = [keyword_evaluator, forbidden_evaluator]
+    # 6. 평가자 구성
+    evaluators = [
+        create_langfuse_keyword_evaluator(expected_all),
+        create_langfuse_forbidden_evaluator(expected_all),
+    ]
 
     # LLM Judge 평가자 추가 (full 모드)
     if use_llm_judge:
@@ -688,7 +414,7 @@ def run_experiment(
             prompt_version=prompt_version,
         )
     elif backend == "langfuse":
-        return _run_langfuse_experiment(
+        return run_langfuse_experiment(
             prompt_name=prompt_name,
             mode=mode,
             experiment_prefix=experiment_prefix,
