@@ -18,6 +18,7 @@ from langsmith.evaluation import EvaluationResult, evaluate
 
 # Langfuse imports (lazy import for optional dependency)
 try:
+    from langfuse import Evaluation
     from utils.langfuse_client import (
         get_langfuse_client,
         get_langfuse_handler,
@@ -28,16 +29,13 @@ try:
 except ImportError:
     LANGFUSE_AVAILABLE = False
 
-from configs.config import (
-    DEFAULT_MIN_SCORE,
-    DEFAULT_STRING_SIMILARITY_THRESHOLD,
-)
 from src.evaluators.rule_based import run_rule_evaluators
-from src.evaluators.llm_judge import run_checklist_evaluation
-from src.evaluators.similarity import _levenshtein_similarity
 from src.loaders import load_evaluation_set
 from utils.dataset_sync import upload_dataset, get_dataset
-from utils.eval_adapters import create_langfuse_evaluator
+from src.evaluators.adapters import (
+    create_langfuse_evaluator,
+    create_langsmith_evaluator,
+)
 from utils.prompt_sync import get_prompt
 from utils.models import execution_llm
 
@@ -96,23 +94,19 @@ def run_evaluation(
     inputs: dict,
     mode: RunMode = "quick",
     eval_config: dict | None = None,
-    callbacks: list | None = None,
 ) -> dict[str, Any]:
     """출력에 대한 평가 실행.
 
     Args:
         output: LLM 출력
         expected: 기대 결과 (keywords, forbidden, reference)
-        inputs: 원본 입력 (LLM Judge용)
-        mode: 실행 모드 (quick/standard/full)
+        inputs: 원본 입력
+        mode: 실행 모드 (quick/full)
         eval_config: 평가 설정
-        callbacks: LangChain 콜백 핸들러 목록 (Langfuse 트레이싱 등)
 
     Returns:
         {
             "rule_based": {...},
-            "embedding": {...},  # standard 이상
-            "llm_judge": {...},  # full만
             "overall_score": float,
             "passed": bool
         }
@@ -130,115 +124,18 @@ def run_evaluation(
     }
 
     # ============================================================
-    # 2. Scoring (점수에 반영되는 평가들) - full 모드에서만 실행
+    # 2. 점수 (로컬 파이프라인에서는 scoring 없음, 어댑터 경로에서 LLM Judge 실행)
     # ============================================================
-    scoring_results = {}
-    score_breakdown = []  # (name, score, weight) 튜플 리스트
+    overall_score = None
+    passed = sanity_all_passed
+    fail_reason = None if sanity_all_passed else "sanity_check_failed"
 
-    if mode == "full":
-        # 2-1. 문자열 유사도 (reference가 있는 경우만)
-        try:
-            reference = expected.get("reference", {})
-            if reference:
-                ref_str = json.dumps(reference, ensure_ascii=False)
-                similarity = _levenshtein_similarity(output, ref_str)
-                scoring_results["string_similarity"] = {
-                    "score": similarity,
-                    "passed": similarity >= DEFAULT_STRING_SIMILARITY_THRESHOLD,
-                    "details": f"Levenshtein similarity: {similarity:.3f}",
-                    "weight": 1.0,
-                }
-                score_breakdown.append(("string_similarity", similarity, 1.0))
-        except Exception as e:
-            scoring_results["string_similarity"] = {
-                "score": 0.0,
-                "passed": False,
-                "details": f"Error: {str(e)}",
-                "weight": 1.0,
-            }
-
-        # 2-2. LLM Judge
-        try:
-            # config에서 criteria 가져오기
-            criteria = ["helpfulness", "relevance"]  # 기본값
-            if eval_config:
-                for evaluator in eval_config.get("evaluators", []):
-                    if evaluator.get("type") == "llm_judge":
-                        criteria = evaluator.get("criteria", criteria)
-                        break
-
-            llm_results = run_checklist_evaluation(
-                output=output,
-                inputs=inputs,
-                criteria=criteria,
-                callbacks=callbacks,
-            )
-            scoring_results["llm_judge"] = {
-                "criteria": llm_results,
-                "weight": 1.0,
-            }
-
-            # LLM Judge 점수 추가
-            for criterion, result in llm_results.items():
-                if criterion != "overall":
-                    score_breakdown.append(
-                        (f"llm_judge.{criterion}", result["score"], 1.0)
-                    )
-        except Exception as e:
-            scoring_results["llm_judge"] = {
-                "error": str(e),
-                "criteria": {},
-                "weight": 1.0,
-            }
-
-    # ============================================================
-    # 3. 최종 점수 계산
-    # ============================================================
-    if score_breakdown:
-        total_weight = sum(w for _, _, w in score_breakdown)
-        weighted_sum = sum(s * w for _, s, w in score_breakdown)
-        overall_score = weighted_sum / total_weight
-    else:
-        overall_score = None  # quick 모드: 점수 없음
-
-    min_score = (
-        eval_config.get("thresholds", {}).get("min_score", DEFAULT_MIN_SCORE)
-        if eval_config
-        else DEFAULT_MIN_SCORE
-    )
-
-    # passed 판정
-    # - quick: sanity check만 통과하면 pass
-    # - full: sanity check + 점수 기준 통과
-    if mode == "quick":
-        passed = sanity_all_passed
-        fail_reason = None if sanity_all_passed else "sanity_check_failed"
-    else:
-        passed = sanity_all_passed and (overall_score or 0) >= min_score
-        fail_reason = _get_fail_reason(sanity_all_passed, overall_score or 0, min_score)
-
-    # 결과 조합
     return {
         "sanity_checks": sanity_checks,
-        "scoring": scoring_results,
-        "score_breakdown": [
-            {"name": name, "score": score, "weight": weight}
-            for name, score, weight in score_breakdown
-        ],
         "overall_score": overall_score,
-        "min_score": min_score if mode == "full" else None,
         "passed": passed,
         "fail_reason": fail_reason,
     }
-
-
-def _get_fail_reason(sanity_passed: bool, score: float, min_score: float) -> str | None:
-    """실패 사유 반환 (full 모드용)."""
-    if not sanity_passed:
-        return "sanity_check_failed"
-    if score < min_score:
-        return f"score_below_threshold ({score:.3f} < {min_score})"
-    return None
 
 
 @traceable(name="evaluate_case")
@@ -610,19 +507,19 @@ def _run_langfuse_experiment(
         keywords = expected.get("keywords", [])
 
         if not keywords:
-            return {
-                "name": "keyword_inclusion",
-                "value": 1.0,
-                "comment": "No keywords to check",
-            }
+            return Evaluation(
+                name="keyword_inclusion",
+                value=1.0,
+                comment="No keywords to check",
+            )
 
         found = sum(1 for k in keywords if k.lower() in text.lower())
         score = found / len(keywords)
-        return {
-            "name": "keyword_inclusion",
-            "value": score,
-            "comment": f"Found {found}/{len(keywords)} keywords",
-        }
+        return Evaluation(
+            name="keyword_inclusion",
+            value=score,
+            comment=f"Found {found}/{len(keywords)} keywords",
+        )
 
     def forbidden_evaluator(*, output, expected_output, input, metadata, **kwargs):
         """금지어 검사."""
@@ -632,19 +529,19 @@ def _run_langfuse_experiment(
         forbidden = expected.get("forbidden", [])
 
         if not forbidden:
-            return {
-                "name": "forbidden_word_check",
-                "value": 1.0,
-                "comment": "No forbidden words to check",
-            }
+            return Evaluation(
+                name="forbidden_word_check",
+                value=1.0,
+                comment="No forbidden words to check",
+            )
 
         violations = [w for w in forbidden if w.lower() in text.lower()]
         score = 1.0 if not violations else 0.0
-        return {
-            "name": "forbidden_word_check",
-            "value": score,
-            "comment": f"Violations: {violations}" if violations else "No violations",
-        }
+        return Evaluation(
+            name="forbidden_word_check",
+            value=score,
+            comment=f"Violations: {violations}" if violations else "No violations",
+        )
 
     # 7. 평가자 목록 구성
     evaluators = [keyword_evaluator, forbidden_evaluator]

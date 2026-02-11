@@ -19,7 +19,7 @@ def run_checklist_evaluation(
     inputs: dict,
     prompt_template: str = "",
     criteria: list[str] | None = None,
-    callbacks: list | None = None,
+    llm=None,
 ) -> dict[str, Any]:
     """체크리스트 기반 LLM 평가 실행.
 
@@ -28,7 +28,7 @@ def run_checklist_evaluation(
         inputs: 입력 데이터
         prompt_template: 원본 프롬프트 (instruction_following용)
         criteria: 평가 기준 목록 (None이면 기본 3개)
-        callbacks: LangChain 콜백 핸들러 목록 (Langfuse 트레이싱 등)
+        llm: Judge LLM 인스턴스 (None이면 기본 judge_llm 사용)
 
     Returns:
         각 기준별 점수 및 상세 결과
@@ -42,21 +42,16 @@ def run_checklist_evaluation(
     input_text = json.dumps(inputs, ensure_ascii=False, indent=2)
     results = {}
 
-    invoke_kwargs = {}
-    if callbacks:
-        invoke_kwargs["config"] = {"callbacks": callbacks}
+    # LLM 선택: 주입된 LLM or 기본 judge_llm
+    evaluator_llm = llm if llm is not None else judge_llm
 
     # JSON 응답 강제: structured output으로 순수 JSON 반환
-    json_judge = judge_llm.bind(response_mime_type="application/json")
+    json_judge = evaluator_llm.bind(response_mime_type="application/json")
 
     for criterion in criteria:
         prompt_path = PROMPTS_DIR / f"{criterion}.txt"
         if not prompt_path.exists():
-            results[criterion] = {
-                "score": 0.0,
-                "checklist": {},
-                "passed": False,
-            }
+            results[criterion] = {"score": 0.0}
             continue
 
         template = prompt_path.read_text(encoding="utf-8")
@@ -74,33 +69,24 @@ def run_checklist_evaluation(
                 ),
                 ("user", eval_prompt),
             ]
-            response = json_judge.invoke(messages, **invoke_kwargs)
+            response = json_judge.invoke(messages)
 
             result = json.loads(response.content)
 
-            # 체크리스트 점수 계산
             checklist = result.get("checklist", {})
             if checklist:
                 score = sum(checklist.values()) / len(checklist)
             else:
                 score = result.get("score", 0)
 
-            results[criterion] = {
-                "score": float(score),
-                "checklist": checklist,
-                "passed": float(score) >= 0.6,
-            }
+            results[criterion] = {"score": float(score)}
 
         except Exception:
-            results[criterion] = {
-                "score": 0.0,
-                "checklist": {},
-                "passed": False,
-            }
+            results[criterion] = {"score": 0.0}
 
     # 전체 점수 계산
     if results:
         overall = sum(r["score"] for r in results.values()) / len(results)
-        results["overall"] = {"score": overall, "passed": overall >= 0.6}
+        results["overall"] = {"score": overall}
 
     return results

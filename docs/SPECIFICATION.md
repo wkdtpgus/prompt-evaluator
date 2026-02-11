@@ -158,10 +158,10 @@ Langfuse는 LLM 애플리케이션을 위한 오픈소스 observability 플랫�
 utils/
 ├── prompt_sync.py          # 프롬프트 업로드/조회 (LangSmith + Langfuse 통합)
 ├── dataset_sync.py         # 데이터셋 업로드/조회 (LangSmith + Langfuse 통합)
-├── eval_adapters.py        # LLM Judge 어댑터 (LangSmith/Langfuse 형식 변환)
 └── langfuse_client.py      # Langfuse 싱글톤 클라이언트
 
 src/
+├── evaluators/adapters.py  # LLM Judge 어댑터 (LangSmith/Langfuse 형식 변환)
 └── pipelines/pipeline.py   # run_experiment(backend=...)
 ```
 
@@ -278,24 +278,21 @@ run_experiment(
 
 모든 LLM 호출에 Langfuse 트레이싱이 적용됩니다:
 
-- `src/pipelines/pipeline.py`: `execute_prompt()`에 `callbacks` 파라미터
-- `src/evaluators/llm_judge.py`: `run_checklist_evaluation()`에 `callbacks` 파라미터
+- `src/pipelines/pipeline.py`: `execute_prompt()`에 `callbacks` 파라미터 (execution LLM 트레이싱)
+- `src/evaluators/adapters.py`: Langfuse 어댑터에서 `judge_llm.with_config()`으로 callbacks 바인딩
 - `src/pipelines/e2e_chain.py`: `_run_e2e_chain()`에 `callbacks` 파라미터
-- Langfuse 실험 시 `get_langfuse_handler()` 자동 생성 후 전달
+- Langfuse 실험 시 `get_langfuse_handler()` 자동 생성
+
+LLM Judge는 `llm` 파라미터 주입 방식으로 트레이싱합니다:
 
 ```python
-from langfuse.langchain import CallbackHandler
+# execution LLM: callbacks 파라미터로 전달
+handler = get_langfuse_handler()
+output = execute_prompt(template, inputs, callbacks=[handler])
 
-def execute_prompt(prompt_text: str, inputs: dict, trace_name: str = None):
-    """프롬프트 실행 (Langfuse 트레이싱 포함)"""
-    handler = CallbackHandler()
-
-    result = execution_llm.invoke(
-        prompt_text.format(**inputs),
-        config={"callbacks": [handler]}
-    )
-
-    return result
+# judge LLM: callbacks가 바인딩된 LLM 인스턴스를 주입
+bound_judge = judge_llm.with_config({"callbacks": [handler]})
+results = run_checklist_evaluation(output=text, inputs=input, llm=bound_judge)
 ```
 
 #### 의사결정 방향성

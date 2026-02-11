@@ -38,7 +38,10 @@ except ImportError:
 
 from src.loaders.prompt_loader import find_prompt_file, load_prompt_file
 from src.pipelines.pipeline import execute_prompt, run_evaluation, RunMode
-from utils.eval_adapters import create_langfuse_evaluator, create_langsmith_evaluator
+from src.evaluators.adapters import (
+    create_langfuse_evaluator,
+    create_langsmith_evaluator,
+)
 from utils.models import execution_llm
 
 

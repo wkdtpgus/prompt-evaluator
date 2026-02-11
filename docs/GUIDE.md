@@ -128,6 +128,8 @@ prompt-evaluator/
 │   │   ├── pipeline.py         # 평가 파이프라인 (backend 파라미터)
 │   │   └── e2e_chain.py        # E2E 체인 파이프라인
 │   ├── evaluators/             # 평가자
+│   │   ├── adapters.py        # LLM Judge 어댑터 (LangSmith/Langfuse 형식 변환)
+│   │   └── llm_judge.py       # LLM-as-a-Judge 평가
 │   ├── loaders/                # 로더
 │   ├── versioning/             # 버전 관리
 │   └── regression/             # 회귀 테스트
@@ -135,7 +137,6 @@ prompt-evaluator/
 ├── utils/                      # 유틸리티 모듈
 │   ├── prompt_sync.py          # 프롬프트 업로드/조회 (LangSmith + Langfuse 통합)
 │   ├── dataset_sync.py         # 데이터셋 업로드/조회 (LangSmith + Langfuse 통합)
-│   ├── eval_adapters.py        # LLM Judge 어댑터 (LangSmith/Langfuse 형식 변환)
 │   ├── langfuse_client.py      # Langfuse 싱글톤 클라이언트
 │   ├── models.py               # LLM 인스턴스
 │   └── git.py                  # git 관련 유틸

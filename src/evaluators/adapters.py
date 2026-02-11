@@ -6,6 +6,8 @@ from langsmith.evaluation import EvaluationResult
 
 from src.evaluators.llm_judge import run_checklist_evaluation
 from utils.langfuse_client import get_langfuse_handler
+from utils.models import judge_llm
+from langfuse import Evaluation
 
 
 def create_langsmith_evaluator(
@@ -44,22 +46,23 @@ def create_langfuse_evaluator(
         name = f"llm_judge_{criterion}"
         text = output.get("output", "") if isinstance(output, dict) else str(output)
         if not text:
-            return {"name": name, "value": 0.0, "comment": "Empty output"}
+            return Evaluation(name=name, value=0.0, comment="Empty output")
 
         judge_handler = get_langfuse_handler()
+        bound_judge = judge_llm.with_config({"callbacks": [judge_handler]})
         try:
             results = run_checklist_evaluation(
                 output=text,
                 inputs=input,
                 criteria=[criterion],
-                callbacks=[judge_handler],
+                llm=bound_judge,
             )
             if criterion in results:
-                return {"name": name, "value": results[criterion]["score"]}
+                return Evaluation(name=name, value=results[criterion]["score"])
         except Exception as e:
-            return {"name": name, "value": 0.0, "comment": f"Error: {e}"}
+            return Evaluation(name=name, value=0.0, comment=f"Error: {e}")
 
-        return {"name": name, "value": 0.0, "comment": "Evaluation failed"}
+        return Evaluation(name=name, value=0.0, comment="Evaluation failed")
 
     evaluator.__name__ = f"llm_judge_{criterion}"
     return evaluator

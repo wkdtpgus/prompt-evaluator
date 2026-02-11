@@ -163,6 +163,7 @@ prompt-evaluator/
 ├── src/
 │   ├── pipeline.py              # 평가 파이프라인
 │   ├── evaluators/
+│   │   ├── adapters.py            # LLM Judge 어댑터 (LangSmith/Langfuse 형식 변환)
 │   │   ├── rule_based.py
 │   │   ├── llm_judge.py
 │   │   └── similarity.py
@@ -178,7 +179,6 @@ prompt-evaluator/
 │   ├── models.py
 │   ├── git.py                   # git 관련 유틸
 │   ├── config_validator.py
-│   ├── eval_adapters.py         # LLM Judge 어댑터 (LangSmith/Langfuse)
 │   ├── prompt_sync.py           # 프롬프트 관리 (LangSmith + Langfuse 통합)
 │   ├── dataset_sync.py          # 데이터셋 관리 (LangSmith + Langfuse 통합)
 │   └── langfuse_client.py       # Langfuse 싱글톤 클라이언트
