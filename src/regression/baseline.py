@@ -10,6 +10,8 @@ from typing import Optional
 
 from langsmith import Client
 
+from src.evaluators.scoring import compute_pass_result
+
 
 BASELINES_DIR = Path("results/baselines")
 RESULTS_DIR = Path("results/experiments")
@@ -367,21 +369,10 @@ def fetch_langfuse_experiment(
                 for score in trace.scores:
                     scores[score.name] = score.value
 
-            # overall_score: llm_judge scores 평균
-            llm_judge_scores = {
-                k: v for k, v in scores.items() if k.startswith("llm_judge_")
-            }
-            overall_score = (
-                sum(llm_judge_scores.values()) / len(llm_judge_scores)
-                if llm_judge_scores
-                else None
-            )
-
-            # pass/fail 판정 (pipeline.py 로직 동일)
-            keyword_score = scores.get("keyword_inclusion", 1.0)
-            forbidden_score = scores.get("forbidden_word_check", 1.0)
-            sanity_passed = keyword_score >= 0.5 and forbidden_score == 1.0
-            passed = sanity_passed and (overall_score is None or overall_score >= 0.5)
+            # pass/fail 판정
+            pass_result = compute_pass_result(scores)
+            overall_score = pass_result["overall_score"]
+            passed = pass_result["passed"]
 
             results.append(
                 {

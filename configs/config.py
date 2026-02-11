@@ -9,7 +9,7 @@ load_dotenv()
 # 모델 기본값
 # =============================================================================
 
-# DEFAULT_MODEL = "gpt-5"
+DEFAULT_MODEL = "gpt-4o-mini"
 # DEFAULT_LLM_JUDGE_MODEL = "gpt-4o-mini"
 DEFAULT_LLM_JUDGE_MODEL = "gemini-2.5-pro"
 DEFAULT_EMBEDDING_PROVIDER = "openai"

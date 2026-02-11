@@ -6,6 +6,7 @@
 from langchain_openai import ChatOpenAI
 
 from configs.config import (
+    DEFAULT_MODEL,
     DEFAULT_LLM_JUDGE_MODEL,
     DEFAULT_TEMPERATURE,
     GEMINI_MODEL,

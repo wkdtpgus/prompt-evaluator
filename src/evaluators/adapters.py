@@ -11,13 +11,9 @@ Note: keyword/forbidden 어댑터는 LangSmith/Langfuse 간 핵심 로직이 동
 
 from typing import Callable
 
-from langsmith.evaluation import EvaluationResult
-
 from src.evaluators.llm_judge import run_checklist_evaluation
 from src.evaluators.rule_based import keyword_inclusion, forbidden_word_check
-from utils.langfuse_client import get_langfuse_handler
 from utils.models import judge_llm
-from langfuse import Evaluation
 
 
 # =============================================================================
@@ -28,7 +24,9 @@ from langfuse import Evaluation
 def create_langsmith_keyword_evaluator(expected_all: dict) -> Callable:
     """LangSmith용 키워드 포함 평가자."""
 
-    def evaluator(run, example) -> EvaluationResult:
+    def evaluator(run, example):
+        from langsmith.evaluation import EvaluationResult
+
         output = run.outputs.get("output", "")
         case_id = example.metadata.get("case_id", "") if example.metadata else ""
         expected = expected_all.get(case_id, {})
@@ -47,7 +45,9 @@ def create_langsmith_keyword_evaluator(expected_all: dict) -> Callable:
 def create_langsmith_forbidden_evaluator(expected_all: dict) -> Callable:
     """LangSmith용 금지어 검사 평가자."""
 
-    def evaluator(run, example) -> EvaluationResult:
+    def evaluator(run, example):
+        from langsmith.evaluation import EvaluationResult
+
         output = run.outputs.get("output", "")
         case_id = example.metadata.get("case_id", "") if example.metadata else ""
         expected = expected_all.get(case_id, {})
@@ -69,7 +69,9 @@ def create_langsmith_evaluator(
 ) -> Callable:
     """LangSmith용 LLM Judge 평가자."""
 
-    def evaluator(run, example) -> EvaluationResult:
+    def evaluator(run, example):
+        from langsmith.evaluation import EvaluationResult
+
         output = run.outputs.get("output", "")
         inputs = example.inputs
 
@@ -99,6 +101,8 @@ def create_langfuse_keyword_evaluator(expected_all: dict) -> Callable:
     """Langfuse용 키워드 포함 평가자."""
 
     def evaluator(*, output, expected_output, input, metadata, **kwargs):
+        from langfuse import Evaluation
+
         text = output.get("output", "") if isinstance(output, dict) else str(output)
         case_id = metadata.get("case_id", "") if metadata else ""
         expected = expected_all.get(case_id, {})
@@ -118,6 +122,8 @@ def create_langfuse_forbidden_evaluator(expected_all: dict) -> Callable:
     """Langfuse용 금지어 검사 평가자."""
 
     def evaluator(*, output, expected_output, input, metadata, **kwargs):
+        from langfuse import Evaluation
+
         text = output.get("output", "") if isinstance(output, dict) else str(output)
         case_id = metadata.get("case_id", "") if metadata else ""
         expected = expected_all.get(case_id, {})
@@ -135,10 +141,14 @@ def create_langfuse_forbidden_evaluator(expected_all: dict) -> Callable:
 
 def create_langfuse_evaluator(
     criterion: str,
+    prompt_template: str = "",
 ) -> Callable:
     """Langfuse용 LLM Judge 평가자."""
 
     def evaluator(*, output, expected_output, input, metadata, **kwargs):
+        from langfuse import Evaluation
+        from utils.langfuse_client import get_langfuse_handler
+
         name = f"llm_judge_{criterion}"
         text = output.get("output", "") if isinstance(output, dict) else str(output)
         if not text:
@@ -150,6 +160,7 @@ def create_langfuse_evaluator(
             results = run_checklist_evaluation(
                 output=text,
                 inputs=input,
+                prompt_template=prompt_template,
                 criteria=[criterion],
                 llm=bound_judge,
             )

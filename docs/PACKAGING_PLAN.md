@@ -246,8 +246,11 @@ if __name__ == "__main__":
 ```python
 """평가 컨텍스트 — 프로젝트 경로 설정"""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
+
+import yaml
 
 
 @dataclass
@@ -258,20 +261,17 @@ class EvalContext:
     개별 경로를 직접 지정할 수도 있음.
 
     Usage:
-        # 프로덕션: 프롬프트는 기존 위치, 평가 산출물은 .prompt-eval/
+        # 프로덕션: init 후 config.yaml이 있으면 자동 로드
+        ctx = EvalContext.from_config()  # .prompt-eval/config.yaml 자동 탐색
+
+        # 또는 직접 지정
         ctx = EvalContext(
-            targets_dir="src/prompts",     # 프로덕션 프롬프트 위치
-            root=".prompt-eval",           # datasets, eval_prompts, results
+            targets_dir="src/prompts",
+            root=".prompt-eval",
         )
-        # → targets_dir = src/prompts
-        # → datasets_dir = .prompt-eval/datasets
-        # → eval_prompts_dir = .prompt-eval/eval_prompts
-        # → results_dir = .prompt-eval/results
 
         # 개발 (이 프로젝트): 기본값 = CWD 기준 (기존 동작 그대로)
         ctx = EvalContext()
-        # → targets_dir = ./targets
-        # → datasets_dir = ./datasets
     """
 
     root: str | Path | None = None
@@ -311,12 +311,44 @@ class EvalContext:
     def experiments_dir(self) -> Path:
         return self.results_dir / "experiments"
 
+    @classmethod
+    def from_config(cls, config_path: str | Path | None = None) -> "EvalContext":
+        """config.yaml에서 컨텍스트 로드.
 
-# 전역 기본 컨텍스트 (CWD 기준, 기존 동작과 동일)
-_default_context = EvalContext()
+        config_path 미지정 시 자동 탐색:
+          1. .prompt-eval/config.yaml
+          2. config.yaml (CWD)
+
+        파일이 없으면 기본 EvalContext() 반환 (하위 호환).
+        """
+        if config_path:
+            path = Path(config_path)
+        else:
+            for candidate in [Path(".prompt-eval/config.yaml"), Path("config.yaml")]:
+                if candidate.exists():
+                    path = candidate
+                    break
+            else:
+                return cls()  # config 없음 → 기본값
+
+        data: dict[str, Any] = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        return cls(
+            root=data.get("root"),
+            targets_dir=data.get("targets_dir"),
+            datasets_dir=data.get("datasets_dir"),
+            eval_prompts_dir=data.get("eval_prompts_dir"),
+            results_dir=data.get("results_dir"),
+        )
+
+
+# 전역 컨텍스트 — 모듈 로드 시 config.yaml 자동 탐색
+_default_context: EvalContext | None = None
 
 
 def get_context() -> EvalContext:
+    global _default_context
+    if _default_context is None:
+        _default_context = EvalContext.from_config()
     return _default_context
 
 
@@ -499,6 +531,7 @@ my-app/                                    # 프로덕션 프로젝트
 │   └── prompts/
 │       └── chat_prompt.py                 # ← 프롬프트는 이미 여기 있음
 ├── .prompt-eval/                          # ← 평가 전용 (prompt-eval init 생성)
+│   ├── config.yaml                        # 경로 설정 (init이 생성, 이후 자동 로드)
 │   ├── datasets/
 │   │   └── chat_prompt/
 │   │       ├── test_cases.json
@@ -513,13 +546,14 @@ my-app/                                    # 프로덕션 프로젝트
 └── pyproject.toml
 ```
 
-**targets_dir은 프로덕션 프롬프트의 기존 위치를 가리킨다:**
+**targets_dir은 프로덕션 프롬프트의 기존 위치를 가리킨다.**
 
-```python
-set_context(EvalContext(
-    targets_dir="src/prompts",             # 프로덕션 프롬프트 (이미 있는 곳)
-    root=".prompt-eval",                   # datasets, eval_prompts, results
-))
+`init` 시 `--targets-dir`로 지정하면 config.yaml에 저장되므로, 이후 자동 적용:
+
+```yaml
+# .prompt-eval/config.yaml (init이 자동 생성)
+root: .prompt-eval
+targets_dir: src/prompts
 ```
 
 **또는 프롬프트 파일을 직접 지정:**
@@ -570,36 +604,38 @@ prompt-evaluator/
 
 ### 6.3. 사용법
 
-```python
-# Python API — 프로덕션 프로젝트에서
-from prompt_evaluator import run_experiment, EvalContext, set_context
+`init` 이후에는 config.yaml이 경로를 기억하므로, **경로 지정 없이 바로 사용**:
 
-set_context(EvalContext(
-    targets_dir="src/prompts",       # 프롬프트는 프로덕션 코드 위치 그대로
-    root=".prompt-eval",             # datasets, eval_prompts, results
-))
+```python
+# Python API — init 이후 경로 설정 불필요
+from prompt_evaluator import run_experiment
 
 result = run_experiment("chat_prompt", mode="full", backend="langfuse")
+# → config.yaml에서 root, targets_dir 자동 로드
+```
+
+```bash
+# CLI — init 이후 경로 옵션 불필요
+prompt-eval experiment --name chat_prompt --backend langfuse
+prompt-eval regression --name chat_prompt --source langfuse
 ```
 
 ```python
-# 또는 프롬프트 파일을 직접 지정 (컨벤션 구조 없이)
+# set_context()는 config.yaml 없이 Python에서 직접 설정할 때만 필요
+from prompt_evaluator import EvalContext, set_context, run_experiment
+
+set_context(EvalContext(root=".prompt-eval", targets_dir="src/prompts"))
+run_experiment("chat_prompt")
+```
+
+```python
+# 프롬프트 파일 직접 지정도 여전히 가능
 from prompt_evaluator import load_evaluation_set
 
 data = load_evaluation_set(
     "chat_prompt",
     prompt_file="src/prompts/chat_prompt.py",
-    datasets_dir=".prompt-eval/datasets",
 )
-```
-
-```bash
-# CLI
-prompt-eval --root .prompt-eval --targets-dir src/prompts experiment --name chat_prompt
-
-# 또는 환경변수
-PROMPT_EVAL_ROOT=.prompt-eval PROMPT_EVAL_TARGETS_DIR=src/prompts \
-  prompt-eval experiment --name chat_prompt
 ```
 
 ### 6.4. `prompt-eval init` — 평가 환경 초기화
@@ -609,16 +645,15 @@ PROMPT_EVAL_ROOT=.prompt-eval PROMPT_EVAL_TARGETS_DIR=src/prompts \
 
 ```bash
 cd my-app/
-prompt-eval init
-# 또는 평가 디렉토리를 지정
-prompt-eval init --dir .prompt-eval
+prompt-eval init --dir .prompt-eval --targets-dir src/prompts
 ```
 
 이 명령이 하는 일:
 
 ```
 my-app/
-├── .prompt-eval/                          # --dir로 지정 (기본: 프로젝트 루트)
+├── .prompt-eval/                          # --dir로 지정
+│   ├── config.yaml                        # 경로 설정 (자동 생성, 이후 자동 로드)
 │   ├── datasets/                          # 테스트 데이터 (스킬로 생성)
 │   ├── eval_prompts/
 │   │   └── general/                       # 범용 평가 기준 (번들에서 복사)
@@ -640,13 +675,24 @@ my-app/
 └── .gitignore                             # .prompt-eval/results/ 자동 추가
 ```
 
+생성된 `config.yaml` 내용:
+
+```yaml
+# .prompt-eval/config.yaml
+root: .prompt-eval
+targets_dir: src/prompts
+```
+
 #### 구현
 
 ```python
 # prompt_evaluator/cli/init.py
 
+import yaml
+
 def init(
     dir: Path = Path("."),
+    targets_dir: str | None = None,
     with_skills: bool = True,
     with_general_prompts: bool = True,
 ):
@@ -655,18 +701,37 @@ def init(
     for d in ["datasets", "eval_prompts", "results"]:
         (dir / d).mkdir(parents=True, exist_ok=True)
 
-    # 2. Claude Code 스킬 복사 (프로젝트 루트의 .claude/skills/)
+    # 2. config.yaml 생성 — 이후 경로 자동 해석에 사용
+    _write_config(dir, targets_dir)
+
+    # 3. Claude Code 스킬 복사 (프로젝트 루트의 .claude/skills/)
     if with_skills:
         templates = files("prompt_evaluator.templates.skills")
         copy_tree(templates, Path(".claude") / "skills")
 
-    # 3. 범용 평가 기준 복사
+    # 4. 범용 평가 기준 복사
     if with_general_prompts:
         general = files("prompt_evaluator.templates.eval_prompts.general")
         copy_tree(general, dir / "eval_prompts" / "general")
 
-    # 4. .gitignore에 results/ 추가
+    # 5. .gitignore에 results/ 추가
     _update_gitignore(dir)
+
+
+def _write_config(eval_dir: Path, targets_dir: str | None):
+    """config.yaml 생성 — 경로 설정을 저장하여 이후 자동 로드"""
+    config = {"root": str(eval_dir)}
+    if targets_dir:
+        config["targets_dir"] = targets_dir
+
+    config_path = eval_dir / "config.yaml"
+    config_path.write_text(
+        yaml.dump(config, default_flow_style=False, allow_unicode=True),
+        encoding="utf-8",
+    )
+    # 예시 결과:
+    # root: .prompt-eval
+    # targets_dir: src/prompts
 
 
 def _update_gitignore(eval_dir: Path):
@@ -717,20 +782,18 @@ vi .claude/skills/test_case_generator/SKILL.md
 # 0. 패키지 설치
 pip install prompt-evaluator
 
-# 1. 평가 환경 초기화
-prompt-eval init --dir .prompt-eval
+# 1. 평가 환경 초기화 (한 번만 — config.yaml 생성됨)
+prompt-eval init --dir .prompt-eval --targets-dir src/prompts
 
 # 2. Claude Code에서 스킬로 데이터 생성
 #    /gen-testcases chat_prompt  →  .prompt-eval/datasets/chat_prompt/ 생성
 #    /eval-criteria chat_prompt  →  .prompt-eval/eval_prompts/chat/ 생성
 
-# 3. 평가 실행 (프롬프트는 프로덕션 코드에서 참조)
-prompt-eval --root .prompt-eval --targets-dir src/prompts \
-  experiment --name chat_prompt --backend langfuse
+# 3. 평가 실행 (경로는 config.yaml에서 자동 로드)
+prompt-eval experiment --name chat_prompt --backend langfuse
 
 # 4. 회귀 테스트
-prompt-eval --root .prompt-eval --targets-dir src/prompts \
-  regression --name chat_prompt --source langfuse
+prompt-eval regression --name chat_prompt --source langfuse
 ```
 
 ### 6.5. 경로 해석 우선순위
@@ -738,6 +801,10 @@ prompt-eval --root .prompt-eval --targets-dir src/prompts \
 ```
 1. 함수 인자로 직접 전달된 경로 (최우선)
 2. set_context()로 설정된 EvalContext
-3. 환경변수 PROMPT_EVAL_ROOT
-4. CWD 기준 기본 컨벤션 (targets/, datasets/, ...)
+3. config.yaml 자동 탐색 (.prompt-eval/config.yaml → config.yaml)
+4. 환경변수 PROMPT_EVAL_ROOT
+5. CWD 기준 기본 컨벤션 (targets/, datasets/, ...)
 ```
+
+**일반적인 프로덕션 사용에서는 3번(config.yaml)에서 해결되므로,
+사용자가 경로를 신경 쓸 일이 없다.**

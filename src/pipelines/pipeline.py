@@ -33,6 +33,7 @@ from src.evaluators.adapters import (
     create_langsmith_forbidden_evaluator,
     create_langsmith_keyword_evaluator,
 )
+from src.evaluators.scoring import compute_pass_result
 from utils.prompt_sync import get_prompt
 from utils.models import execution_llm
 
@@ -87,7 +88,7 @@ def execute_prompt(
 
 def run_langsmith_experiment(
     prompt_name: str,
-    mode: RunMode = "standard",
+    mode: RunMode = "full",
     experiment_prefix: str | None = None,
     prompt_version: str | None = None,
 ) -> str:
@@ -98,7 +99,7 @@ def run_langsmith_experiment(
 
     Args:
         prompt_name: 평가 세트 이름
-        mode: 실행 모드 (quick/standard/full)
+        mode: 실행 모드 (quick/full)
         experiment_prefix: 실험 이름 접두사
         prompt_version: LangSmith 프롬프트 버전 태그 (None이면 로컬 파일 사용)
 
@@ -275,7 +276,7 @@ def run_langfuse_experiment(
     # LLM Judge 평가자 추가 (full 모드)
     if use_llm_judge:
         for criterion in criteria:
-            evaluators.append(create_langfuse_evaluator(criterion))
+            evaluators.append(create_langfuse_evaluator(criterion, template))
 
     # 8. Langfuse 내장 run_experiment 실행
     print("  실험 실행 중...")
@@ -308,25 +309,13 @@ def run_langfuse_experiment(
                 value = evaluation.value
             scores[name] = value
 
-        # LLM Judge 점수만 추출하여 overall 계산
-        llm_judge_scores = {
-            k: v for k, v in scores.items() if k.startswith("llm_judge_")
-        }
-        overall_score = (
-            sum(llm_judge_scores.values()) / len(llm_judge_scores)
-            if llm_judge_scores
-            else None
-        )
-
-        # sanity check
-        keyword_score = scores.get("keyword_inclusion", 1.0)
-        forbidden_score = scores.get("forbidden_word_check", 1.0)
-        sanity_passed = keyword_score >= 0.5 and forbidden_score == 1.0
-
-        passed = sanity_passed and (overall_score is None or overall_score >= 0.5)
+        # pass/fail 판정
+        pass_result = compute_pass_result(scores)
+        overall_score = pass_result["overall_score"]
+        passed = pass_result["passed"]
 
         status = "✓" if passed else "✗"
-        score_str = f"{overall_score:.2f}" if overall_score else "-"
+        score_str = f"{overall_score:.2f}" if overall_score is not None else "-"
         print(f"  [{case_id}] {status} ({score_str})")
 
         output_text = ""
@@ -364,7 +353,7 @@ def run_langfuse_experiment(
 
     print("\n✅ Langfuse Experiment 완료!")
     print(f"  결과: {passed_count}/{total} 통과 ({summary['pass_rate']:.1%})")
-    if summary["avg_score"]:
+    if summary["avg_score"] is not None:
         print(f"  평균 점수: {summary['avg_score']:.3f}")
     print("  확인: http://localhost:3000")
 

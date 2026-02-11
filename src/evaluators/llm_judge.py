@@ -45,8 +45,13 @@ def run_checklist_evaluation(
     # LLM 선택: 주입된 LLM or 기본 judge_llm
     evaluator_llm = llm if llm is not None else judge_llm
 
-    # JSON 응답 강제: structured output으로 순수 JSON 반환
-    json_judge = evaluator_llm.bind(response_mime_type="application/json")
+    # JSON 응답 강제: provider별 분기
+    from langchain_openai import ChatOpenAI
+
+    if isinstance(evaluator_llm, ChatOpenAI):
+        json_judge = evaluator_llm.bind(response_format={"type": "json_object"})
+    else:
+        json_judge = evaluator_llm.bind(response_mime_type="application/json")
 
     for criterion in criteria:
         prompt_path = PROMPTS_DIR / f"{criterion}.txt"
@@ -81,8 +86,9 @@ def run_checklist_evaluation(
 
             results[criterion] = {"score": float(score)}
 
-        except Exception:
-            results[criterion] = {"score": 0.0}
+        except Exception as e:
+            print(f"  ⚠ LLM Judge 평가 실패 [{criterion}]: {e}")
+            results[criterion] = {"score": 0.0, "error": str(e)}
 
     # 전체 점수 계산
     if results:

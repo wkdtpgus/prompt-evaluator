@@ -19,6 +19,8 @@ from src.regression.baseline import (
     save_experiment_result,
     load_latest_experiment,
     normalize_experiment_to_baseline,
+    _compute_summary_from_runs,
+    _extract_case_results,
 )
 from src.regression.comparator import compare_results, format_regression_report
 from utils.prompt_sync import push_prompt
@@ -420,52 +422,3 @@ def regression(
 
     if fail_on_regression and report.has_regression:
         raise typer.Exit(1)
-
-
-def _compute_summary_from_runs(runs: list) -> dict:
-    """실행 결과에서 요약 통계 계산"""
-    if not runs:
-        return {"total": 0, "passed": 0, "failed": 0, "pass_rate": 0.0}
-
-    scores = []
-    for run in runs:
-        if run.feedback_stats:
-            for key, stats in run.feedback_stats.items():
-                if "avg" in stats:
-                    scores.append(stats["avg"])
-
-    total = len(runs)
-    passed = sum(1 for run in runs if _is_run_passed(run))
-
-    return {
-        "total": total,
-        "passed": passed,
-        "failed": total - passed,
-        "pass_rate": passed / total if total > 0 else 0.0,
-        "avg_score": sum(scores) / len(scores) if scores else None,
-    }
-
-
-def _is_run_passed(run) -> bool:
-    """실행이 통과했는지 판단"""
-    if not run.feedback_stats:
-        return True
-    for key, stats in run.feedback_stats.items():
-        if "avg" in stats and stats["avg"] < 0.5:
-            return False
-    return True
-
-
-def _extract_case_results(runs: list) -> list[dict]:
-    """실행 결과에서 케이스별 결과 추출"""
-    case_results = []
-    for run in runs:
-        case_data = {
-            "run_id": str(run.id),
-            "inputs": run.inputs,
-            "outputs": run.outputs,
-            "feedback_stats": run.feedback_stats,
-            "passed": _is_run_passed(run),
-        }
-        case_results.append(case_data)
-    return case_results
