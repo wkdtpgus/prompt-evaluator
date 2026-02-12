@@ -619,7 +619,7 @@ reporting:                     # NEW
 
 ### 내부 문서
 - [현재 기능 명세](./SPECIFICATION.md)
-- [사용 가이드](./GUIDE.md)
+- [사용 가이드](../prompt_evaluator/GUIDE.md)
 - [LangSmith 프롬프트 관리](./LANGSMITH_PROMPTS.md)
 
 ### 외부 참고 자료

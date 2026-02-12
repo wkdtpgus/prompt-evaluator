@@ -1,0 +1,31 @@
+You are evaluating if the AI followed the prompt instructions.
+
+## Original Prompt (Instructions):
+{prompt}
+
+## Input Data:
+{input}
+
+## AI's Output:
+{output}
+
+## Checklist - Score each item (0 or 1):
+
+1. **Output Format**: Did the AI use the requested format? (JSON, specific fields, structure)
+2. **Required Fields**: Are all required fields present in the output?
+3. **Constraints**: Did the AI follow specified constraints? (length, tone, language, etc.)
+4. **Task Completion**: Did the AI complete the requested task?
+5. **No Extra Content**: Did the AI avoid adding unrequested content?
+
+## Response Format (JSON):
+{{
+    "checklist": {{
+        "output_format": 0 or 1,
+        "required_fields": 0 or 1,
+        "constraints": 0 or 1,
+        "task_completion": 0 or 1,
+        "no_extra_content": 0 or 1
+    }},
+    "score": <float 0-1, average of checklist>,
+    "issues": ["list of specific issues found, if any"]
+}}

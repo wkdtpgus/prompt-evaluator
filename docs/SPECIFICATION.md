@@ -1,7 +1,7 @@
 # Prompt Evaluator 기능 명세서
 
-> **버전**: 1.3.0
-> **최종 수정일**: 2026-02-05
+> **버전**: 1.4.0
+> **최종 수정일**: 2026-02-11
 
 ---
 
@@ -152,23 +152,22 @@ Langfuse는 LLM 애플리케이션을 위한 오픈소스 observability 플랫�
 
 #### 통합 유틸리티 구조
 
-모든 백엔드 연동은 `utils/` 하위 2개 모듈로 통합 관리됩니다:
+모든 백엔드 연동은 `prompt_evaluator/utils/` 하위 모듈로 통합 관리됩니다:
 
 ```
-utils/
-├── prompt_sync.py          # 프롬프트 업로드/조회 (LangSmith + Langfuse 통합)
-├── dataset_sync.py         # 데이터셋 업로드/조회 (LangSmith + Langfuse 통합)
-└── langfuse_client.py      # Langfuse 싱글톤 클라이언트
-
-src/
-├── evaluators/adapters.py  # LLM Judge 어댑터 (LangSmith/Langfuse 형식 변환)
-└── pipelines/pipeline.py   # run_experiment(backend=...)
+prompt_evaluator/
+├── utils/
+│   ├── prompt_sync.py          # 프롬프트 업로드/조회 (LangSmith + Langfuse 통합)
+│   ├── dataset_sync.py         # 데이터셋 업로드/조회 (LangSmith + Langfuse 통합)
+│   └── langfuse_client.py      # Langfuse 싱글톤 클라이언트
+├── evaluators/adapters.py      # LLM Judge 어댑터 (LangSmith/Langfuse 형식 변환)
+└── pipelines/pipeline.py       # run_experiment(backend=...)
 ```
 
 **통합 API 사용 예시:**
 
 ```python
-from utils.prompt_sync import push_prompt, get_prompt, list_prompt_versions
+from prompt_evaluator.utils.prompt_sync import push_prompt, get_prompt, list_prompt_versions
 
 # 프롬프트 업로드 (backend 선택 가능)
 result = push_prompt("my_prompt", backend="langfuse")       # Langfuse만
@@ -182,7 +181,7 @@ versions = list_prompt_versions("my_prompt")
 ```
 
 ```python
-from utils.dataset_sync import upload_dataset, get_dataset
+from prompt_evaluator.utils.dataset_sync import upload_dataset, get_dataset
 
 # 데이터셋 업로드 (backend 선택 가능)
 result = upload_dataset("my_prompt", backend="langfuse")    # Langfuse만
@@ -193,7 +192,7 @@ dataset = get_dataset("my_prompt")
 ```
 
 ```python
-from src.pipelines.pipeline import run_experiment
+from prompt_evaluator.pipelines.pipeline import run_experiment
 
 # 통합 실험 실행 (backend 파라미터로 선택)
 run_experiment(
@@ -278,9 +277,8 @@ run_experiment(
 
 모든 LLM 호출에 Langfuse 트레이싱이 적용됩니다:
 
-- `src/pipelines/pipeline.py`: `execute_prompt()`에 `callbacks` 파라미터 (execution LLM 트레이싱)
-- `src/evaluators/adapters.py`: Langfuse 어댑터에서 `judge_llm.with_config()`으로 callbacks 바인딩
-- `src/pipelines/e2e_chain.py`: `_run_e2e_chain()`에 `callbacks` 파라미터
+- `prompt_evaluator/pipelines/pipeline.py`: `execute_prompt()`에 `callbacks` 파라미터 (execution LLM 트레이싱)
+- `prompt_evaluator/evaluators/adapters.py`: Langfuse 어댑터에서 `judge_llm.with_config()`으로 callbacks 바인딩
 - Langfuse 실험 시 `get_langfuse_handler()` 자동 생성
 
 LLM Judge는 `llm` 파라미터 주입 방식으로 트레이싱합니다:
@@ -393,8 +391,17 @@ run_mode: quick  # quick | full
 
 ## 5. CLI 명령어
 
+```bash
+# 패키지 설치 후
+prompt-eval <command> [options]
+
+# 또는 개발 시
+poetry run python main.py <command> [options]
+```
+
 | 명령어 | 설명 |
 |--------|------|
+| `init --dir {dir} --targets-dir {path}` | 평가 환경 초기화 |
 | `experiment --name {name}` | 평가 실행 (기본: Langfuse + LangSmith 동시) |
 | `experiment --name {name} --backend {backend}` | 백엔드 지정 (langsmith/langfuse/both) |
 | `regression --name {name} --experiment {exp}` | 회귀 테스트 실행 |
@@ -455,6 +462,7 @@ run_mode: quick  # quick | full
 | Langfuse 통합 (Phase 2.5) | ✅ | 본 문서 Section 3.3 |
 | CLI 모듈화 | ✅ | [cli-reference.md](./features/cli-reference.md) |
 | 유틸리티 통합 (prompt_sync + dataset_sync) | ✅ | 본 문서 Section 3.3 |
+| 패키지화 (pip install) | ✅ | [PACKAGING_PLAN.md](./PACKAGING_PLAN.md) |
 | GCP 클라우드 배포 | 🔄 | 인프라/배포/보안 완료, 운영 남음 |
 
 ### 미구현 항목
@@ -497,6 +505,6 @@ run_mode: quick  # quick | full
 - [Langfuse 마이그레이션 계획](./langfuse-migration-plan.md) - Langfuse 통합 상세
 
 ### 가이드
-- [사용 가이드](./GUIDE.md) - 평가 체계 활용 방법
+- [사용 가이드](../prompt_evaluator/GUIDE.md) - 평가 체계 활용 방법
 - [LangSmith 프롬프트 관리](./LANGSMITH_PROMPTS.md) - LangSmith 연동 상세
 - [PromptOps 기획서](./PROMPTOPS_PLAN.md) - 전체 로드맵

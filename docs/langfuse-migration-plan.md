@@ -1,6 +1,6 @@
 # Langfuse 마이그레이션 — 미완료 작업
 
-> 완료된 Phase 1-6 및 Phase 7 인프라/배포/보안 내용은 [기능 명세서](./SPECIFICATION.md), [사용 가이드](./GUIDE.md)로 이관됨
+> 완료된 Phase 1-6 및 Phase 7 인프라/배포/보안 내용은 [기능 명세서](./SPECIFICATION.md), [사용 가이드](../prompt_evaluator/GUIDE.md)로 이관됨
 
 ---
 

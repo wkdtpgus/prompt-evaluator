@@ -1,10 +1,10 @@
 [tool.poetry]
 name = "prompt-evaluator"
 version = "0.1.0"
-description = "LangSmith 기반 프롬프트 정량 평가 시스템"
-readme = "PROMPT_EVALUATION_PLAN.md"
+description = "LLM 프롬프트 정량 평가 엔진"
+readme = "README.md"
 authors = ["Your Name <your.email@example.com>"]
-package-mode = false
+packages = [{include = "prompt_evaluator"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -26,7 +26,7 @@ pytest-asyncio = "^0.23.0"
 ruff = "^0.9.0"
 
 [tool.poetry.scripts]
-prompt-eval = "main:app"
+prompt-eval = "prompt_evaluator.cli:app"
 
 [build-system]
 requires = ["poetry-core"]

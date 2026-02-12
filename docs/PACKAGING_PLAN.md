@@ -2,6 +2,7 @@
 
 > **버전**: 0.1.0
 > **작성일**: 2026-02-11
+> **상태**: ✅ 구현 완료
 
 ---
 
@@ -808,3 +809,26 @@ prompt-eval regression --name chat_prompt --source langfuse
 
 **일반적인 프로덕션 사용에서는 3번(config.yaml)에서 해결되므로,
 사용자가 경로를 신경 쓸 일이 없다.**
+
+---
+
+## 7. 구현 결과
+
+### 7.1. 완료 항목
+
+| 단계 | 항목 | 상태 |
+|------|------|:----:|
+| 4.1 | 디렉토리 이동 (`git mv`) | ✅ |
+| 4.2 | `__init__.py`, `cli/__init__.py`, `main.py` 생성 | ✅ |
+| 4.3 | import 경로 전체 수정 | ✅ |
+| 4.4 | `EvalContext` + `context.py` 구현 | ✅ |
+| 4.5 | `pyproject.toml` 수정 (packages, scripts) | ✅ |
+| 4.6 | 스킬/평가기준 번들 (`skills/`, `evaluators/eval_prompts/`) | ✅ |
+| 4.6 | `prompt-eval init` CLI 명령어 (`scaffold.py`) | ✅ |
+| 4.7 | 빈 디렉토리 정리 | ✅ |
+
+### 7.2. 추가 구현 사항
+
+- `prompt_evaluator/cli/scaffold.py`: `init` 명령어 (디렉토리 생성, config.yaml, 스킬 복사, 범용 평가기준 복사, .gitignore 업데이트)
+- `prompt_evaluator/evaluators/eval_prompts/general/`: 번들 평가 기준 (instruction_following, factual_accuracy, output_quality)
+- `prompt_evaluator/skills/`: 번들 스킬 (test_case_generator, llm_judge_generator, prompt_ab_comparator)

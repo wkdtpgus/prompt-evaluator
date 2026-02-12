@@ -9,13 +9,18 @@
 ### 1.1. 기본 사용법
 
 ```bash
+# 패키지 설치 후
+prompt-eval <command> [options]
+
+# 또는 개발 시
 poetry run python main.py <command> [options]
 ```
 
 ### 1.2. 명령어 구조
 
 ```
-main.py
+prompt-eval
+├── init                # 평가 환경 초기화
 ├── experiment          # 평가 실행
 ├── regression          # 회귀 테스트
 ├── validate            # 설정 검증
@@ -39,23 +44,61 @@ main.py
 
 | 파일 | 역할 |
 |------|------|
-| `main.py` | 앱 엔트리포인트 (조립만) |
-| `cli/prompt.py` | `prompt` 서브커맨드 |
-| `cli/baseline.py` | `baseline` 서브커맨드 |
-| `cli/experiment.py` | `experiment`, `regression` 명령어 |
-| `cli/config.py` | `validate` 명령어 |
-| `cli/dataset.py` | `list`, `upload` 명령어 |
+| `prompt_evaluator/cli/__init__.py` | Typer app 정의 (entry point) |
+| `prompt_evaluator/cli/scaffold.py` | `init` 명령어 |
+| `prompt_evaluator/cli/prompt.py` | `prompt` 서브커맨드 |
+| `prompt_evaluator/cli/baseline.py` | `baseline` 서브커맨드 |
+| `prompt_evaluator/cli/experiment.py` | `experiment`, `regression` 명령어 |
+| `prompt_evaluator/cli/config.py` | `validate` 명령어 |
+| `prompt_evaluator/cli/dataset.py` | `list`, `upload` 명령어 |
+| `main.py` | 개발용 thin wrapper |
 
 ---
 
-## 2. 평가 실행
+## 2. 환경 초기화
 
-### 2.1. experiment
+### 2.0. init
+
+프로덕션 프로젝트에서 평가 환경 초기화
+
+```bash
+prompt-eval init [options]
+```
+
+| 옵션 | 축약 | 설명 | 기본값 |
+|------|------|------|--------|
+| `--dir` | `-d` | 평가 산출물 디렉토리 | `.prompt-eval` |
+| `--targets-dir` | `-t` | 프로덕션 프롬프트 위치 | None |
+| `--no-skills` | | Claude Code 스킬 설치 생략 | false |
+| `--no-eval-prompts` | | 범용 평가 기준 복사 생략 | false |
+
+**수행 작업**:
+1. 평가 산출물 디렉토리 생성 (`datasets/`, `eval_prompts/`, `results/`)
+2. `config.yaml` 생성 (경로 설정)
+3. Claude Code 스킬 복사 (`.claude/skills/`)
+4. 범용 평가 기준 복사 (`eval_prompts/general/`)
+5. `.gitignore` 업데이트 (`results/` 추가)
+
+**예시**:
+
+```bash
+# 기본 초기화
+prompt-eval init --dir .prompt-eval --targets-dir src/prompts
+
+# 스킬 없이 초기화
+prompt-eval init --dir .prompt-eval --no-skills
+```
+
+---
+
+## 3. 평가 실행
+
+### 3.1. experiment
 
 평가 실험 실행 (LangSmith, Langfuse, 또는 동시 실행)
 
 ```bash
-poetry run python main.py experiment --name <name> [options]
+prompt-eval experiment --name <name> [options]
 ```
 
 **자동화 플로우** (LangSmith 백엔드):
@@ -82,35 +125,35 @@ poetry run python main.py experiment --name <name> [options]
 
 ```bash
 # 기본 실행 (Langfuse + LangSmith 동시)
-poetry run python main.py experiment --name prep_generate
+prompt-eval experiment --name prep_generate
 
 # Langfuse만 실행
-poetry run python main.py experiment --name prep_generate --backend langfuse
+prompt-eval experiment --name prep_generate --backend langfuse
 
 # LangSmith만 실행 (자동 버전 관리)
-poetry run python main.py experiment --name prep_generate --backend langsmith
+prompt-eval experiment --name prep_generate --backend langsmith
 
 # 변경 내용 직접 지정 (LangSmith 백엔드)
-poetry run python main.py experiment --name prep_generate --backend langsmith --changes "톤 개선"
+prompt-eval experiment --name prep_generate --backend langsmith --changes "톤 개선"
 
 # 빠른 테스트 (quick 모드)
-poetry run python main.py experiment --name prep_generate --mode quick
+prompt-eval experiment --name prep_generate --mode quick
 
 # 특정 버전으로 평가
-poetry run python main.py experiment --name prep_generate --version v1.0
+prompt-eval experiment --name prep_generate --version v1.0
 
 # 자동 push 없이 실행 (LangSmith만)
-poetry run python main.py experiment --name prep_generate --backend langsmith --no-push
+prompt-eval experiment --name prep_generate --backend langsmith --no-push
 ```
 
 ---
 
-### 2.2. regression
+### 3.2. regression
 
 회귀 테스트 실행 (기준선과 비교)
 
 ```bash
-poetry run python main.py regression --name <name> --experiment <experiment_name> [options]
+prompt-eval regression --name <name> --experiment <experiment_name> [options]
 ```
 
 | 옵션 | 축약 | 설명 | 기본값 |
@@ -125,28 +168,28 @@ poetry run python main.py regression --name <name> --experiment <experiment_name
 
 ```bash
 # 기본 회귀 테스트
-poetry run python main.py regression --name prep_generate --experiment "prep_generate-full-2026-01-26"
+prompt-eval regression --name prep_generate --experiment "prep_generate-full-2026-01-26"
 
 # CI/CD에서 회귀 시 실패 처리
-poetry run python main.py regression --name prep_generate --experiment "..." --fail
+prompt-eval regression --name prep_generate --experiment "..." --fail
 
 # 임계값 10%로 조정
-poetry run python main.py regression --name prep_generate --experiment "..." --threshold 0.1
+prompt-eval regression --name prep_generate --experiment "..." --threshold 0.1
 
 # 특정 기준선 버전과 비교
-poetry run python main.py regression --name prep_generate --baseline v1.0 --experiment "..."
+prompt-eval regression --name prep_generate --baseline v1.0 --experiment "..."
 ```
 
 ---
 
-## 3. 설정 및 검증
+## 4. 설정 및 검증
 
-### 3.1. validate
+### 4.1. validate
 
 설정 파일 검증
 
 ```bash
-poetry run python main.py validate [options]
+prompt-eval validate [options]
 ```
 
 | 옵션 | 축약 | 설명 | 기본값 |
@@ -158,22 +201,22 @@ poetry run python main.py validate [options]
 
 ```bash
 # 특정 세트 검증
-poetry run python main.py validate --name prep_generate
+prompt-eval validate --name prep_generate
 
 # 전체 검증
-poetry run python main.py validate --all
+prompt-eval validate --all
 ```
 
 ---
 
-## 4. 데이터셋 관리
+## 5. 데이터셋 관리
 
-### 4.1. list
+### 5.1. list
 
 사용 가능한 평가 세트 목록 출력
 
 ```bash
-poetry run python main.py list
+prompt-eval list
 ```
 
 **출력 예시**:
@@ -187,12 +230,12 @@ poetry run python main.py list
 
 ---
 
-### 4.2. upload
+### 5.2. upload
 
 데이터셋을 LangSmith에 업로드
 
 ```bash
-poetry run python main.py upload --name <name>
+prompt-eval upload --name <name>
 ```
 
 | 옵션 | 축약 | 설명 | 기본값 |
@@ -202,19 +245,19 @@ poetry run python main.py upload --name <name>
 **예시**:
 
 ```bash
-poetry run python main.py upload --name prep_generate
+prompt-eval upload --name prep_generate
 ```
 
 ---
 
-## 5. 프롬프트 관리 (prompt 서브커맨드)
+## 6. 프롬프트 관리 (prompt 서브커맨드)
 
-### 5.1. prompt info
+### 6.1. prompt info
 
 프롬프트 메타데이터 조회 (로컬 버전 이력)
 
 ```bash
-poetry run python main.py prompt info <name>
+prompt-eval prompt info <name>
 ```
 
 **출력 예시**:
@@ -234,12 +277,12 @@ poetry run python main.py prompt info <name>
 
 ---
 
-### 5.2. prompt init
+### 6.2. prompt init
 
 프롬프트 메타데이터 초기화
 
 ```bash
-poetry run python main.py prompt init <name> [options]
+prompt-eval prompt init <name> [options]
 ```
 
 | 옵션 | 축약 | 설명 | 기본값 |
@@ -250,20 +293,20 @@ poetry run python main.py prompt init <name> [options]
 
 ```bash
 # git config에서 owner 자동 감지
-poetry run python main.py prompt init prep_generate
+prompt-eval prompt init prep_generate
 
 # owner 직접 지정
-poetry run python main.py prompt init prep_generate --owner user@example.com
+prompt-eval prompt init prep_generate --owner user@example.com
 ```
 
 ---
 
-### 5.3. prompt add-version
+### 6.3. prompt add-version
 
 새 버전 추가
 
 ```bash
-poetry run python main.py prompt add-version <name> <version> <changes> [options]
+prompt-eval prompt add-version <name> <version> <changes> [options]
 ```
 
 | 인자 | 설명 |
@@ -279,17 +322,17 @@ poetry run python main.py prompt add-version <name> <version> <changes> [options
 **예시**:
 
 ```bash
-poetry run python main.py prompt add-version prep_generate v1.2 "민감 주제 처리 강화"
+prompt-eval prompt add-version prep_generate v1.2 "민감 주제 처리 강화"
 ```
 
 ---
 
-### 5.4. prompt push
+### 6.4. prompt push
 
 로컬 프롬프트를 LangSmith에 업로드
 
 ```bash
-poetry run python main.py prompt push --name <name> [options]
+prompt-eval prompt push --name <name> [options]
 ```
 
 | 옵션 | 축약 | 설명 | 기본값 |
@@ -305,23 +348,23 @@ poetry run python main.py prompt push --name <name> [options]
 
 ```bash
 # 기본 업로드
-poetry run python main.py prompt push --name prep_generate
+prompt-eval prompt push --name prep_generate
 
 # 버전 태그 지정
-poetry run python main.py prompt push --name prep_generate --tag v1.0
+prompt-eval prompt push --name prep_generate --tag v1.0
 
 # 특정 키만 업로드 (.py/.xml 파일)
-poetry run python main.py prompt push --name prep_generate --key SYSTEM_PROMPT
+prompt-eval prompt push --name prep_generate --key SYSTEM_PROMPT
 ```
 
 ---
 
-### 5.5. prompt pull
+### 6.5. prompt pull
 
 LangSmith에서 프롬프트 가져오기
 
 ```bash
-poetry run python main.py prompt pull --name <name> [options]
+prompt-eval prompt pull --name <name> [options]
 ```
 
 | 옵션 | 축약 | 설명 | 기본값 |
@@ -334,23 +377,23 @@ poetry run python main.py prompt pull --name <name> [options]
 
 ```bash
 # 프롬프트 조회 (출력만)
-poetry run python main.py prompt pull --name prep_generate
+prompt-eval prompt pull --name prep_generate
 
 # 특정 버전 조회
-poetry run python main.py prompt pull --name prep_generate --tag v1.0
+prompt-eval prompt pull --name prep_generate --tag v1.0
 
 # 로컬 파일로 저장
-poetry run python main.py prompt pull --name prep_generate --save
+prompt-eval prompt pull --name prep_generate --save
 ```
 
 ---
 
-### 5.6. prompt keys
+### 6.6. prompt keys
 
 로컬 프롬프트 파일의 키 목록 조회 (.py/.xml 파일용)
 
 ```bash
-poetry run python main.py prompt keys --name <name>
+prompt-eval prompt keys --name <name>
 ```
 
 **출력 예시**:
@@ -367,12 +410,12 @@ poetry run python main.py prompt keys --name <name>
 
 ---
 
-### 5.7. prompt versions
+### 6.7. prompt versions
 
 프롬프트의 LangSmith 버전 목록 조회
 
 ```bash
-poetry run python main.py prompt versions --name <name>
+prompt-eval prompt versions --name <name>
 ```
 
 **출력 예시**:
@@ -387,14 +430,14 @@ poetry run python main.py prompt versions --name <name>
 
 ---
 
-## 6. 기준선 관리 (baseline 서브커맨드)
+## 7. 기준선 관리 (baseline 서브커맨드)
 
-### 6.1. baseline list
+### 7.1. baseline list
 
 기준선 목록 조회
 
 ```bash
-poetry run python main.py baseline list <name>
+prompt-eval baseline list <name>
 ```
 
 **출력 예시**:
@@ -409,12 +452,12 @@ poetry run python main.py baseline list <name>
 
 ---
 
-### 6.2. baseline set
+### 7.2. baseline set
 
 LangSmith 실험을 기준선으로 설정
 
 ```bash
-poetry run python main.py baseline set <name> <experiment_name>
+prompt-eval baseline set <name> <experiment_name>
 ```
 
 | 인자 | 설명 |
@@ -425,17 +468,17 @@ poetry run python main.py baseline set <name> <experiment_name>
 **예시**:
 
 ```bash
-poetry run python main.py baseline set prep_generate "prep_generate-full-2026-01-26"
+prompt-eval baseline set prep_generate "prep_generate-full-2026-01-26"
 ```
 
 ---
 
-### 6.3. baseline delete
+### 7.3. baseline delete
 
 기준선 삭제
 
 ```bash
-poetry run python main.py baseline delete <name> <version>
+prompt-eval baseline delete <name> <version>
 ```
 
 | 인자 | 설명 |
@@ -446,61 +489,61 @@ poetry run python main.py baseline delete <name> <version>
 **예시**:
 
 ```bash
-poetry run python main.py baseline delete prep_generate v1.0
+prompt-eval baseline delete prep_generate v1.0
 ```
 
 ---
 
-## 7. 빠른 참조
+## 8. 빠른 참조
 
-### 7.1. 일반 워크플로우
+### 8.1. 일반 워크플로우
 
 ```bash
 # 1. 평가 세트 목록 확인
-poetry run python main.py list
+prompt-eval list
 
 # 2. 설정 검증
-poetry run python main.py validate --name prep_generate
+prompt-eval validate --name prep_generate
 
 # 3. 평가 실행 (Langfuse + LangSmith 동시 - 기본값)
-poetry run python main.py experiment --name prep_generate
+prompt-eval experiment --name prep_generate
 
 # 3-1. Langfuse만 실행
-poetry run python main.py experiment --name prep_generate --backend langfuse
+prompt-eval experiment --name prep_generate --backend langfuse
 
 # 3-2. LangSmith만 실행 (자동 버전 관리)
-poetry run python main.py experiment --name prep_generate --backend langsmith
+prompt-eval experiment --name prep_generate --backend langsmith
 
 # 4. 기준선 설정
-poetry run python main.py baseline set prep_generate "prep_generate-full-2026-01-26"
+prompt-eval baseline set prep_generate "prep_generate-full-2026-01-26"
 
 # 5. 회귀 테스트
-poetry run python main.py regression --name prep_generate --experiment "prep_generate-full-2026-01-27"
+prompt-eval regression --name prep_generate --experiment "prep_generate-full-2026-01-27"
 ```
 
-### 7.2. 프롬프트 버전 관리
+### 8.2. 프롬프트 버전 관리
 
 ```bash
 # 메타데이터 조회
-poetry run python main.py prompt info prep_generate
+prompt-eval prompt info prep_generate
 
 # LangSmith 버전 목록
-poetry run python main.py prompt versions --name prep_generate
+prompt-eval prompt versions --name prep_generate
 
 # 수동 push
-poetry run python main.py prompt push --name prep_generate --tag v1.0
+prompt-eval prompt push --name prep_generate --tag v1.0
 ```
 
-### 7.3. CI/CD 사용
+### 8.3. CI/CD 사용
 
 ```bash
 # 회귀 시 실패 처리 (exit code 1)
-poetry run python main.py regression --name prep_generate --experiment "..." --fail
+prompt-eval regression --name prep_generate --experiment "..." --fail
 ```
 
 ---
 
-## 8. 관련 문서
+## 9. 관련 문서
 
 - [버전 관리](./versioning.md) - 프롬프트 버전 추적 상세
 - [회귀 테스트](./regression.md) - 회귀 테스트 상세

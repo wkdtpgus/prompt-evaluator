@@ -71,7 +71,7 @@ results/baselines/{name}/{version}.json
 
 ### 2.3. 구현 모듈
 
-**파일**: `src/regression/baseline.py`
+**파일**: `prompt_evaluator/regression/baseline.py`
 
 | 함수 | 설명 |
 |------|------|
@@ -85,7 +85,7 @@ results/baselines/{name}/{version}.json
 ### 2.4. 사용 예시
 
 ```python
-from src.regression.baseline import save_baseline, load_baseline, list_baselines
+from prompt_evaluator.regression.baseline import save_baseline, load_baseline, list_baselines
 
 # 기준선 저장
 save_baseline(
@@ -129,7 +129,7 @@ baselines = list_baselines("prep_generate")
 
 ### 3.2. RegressionReport 구조
 
-**파일**: `src/regression/comparator.py`
+**파일**: `prompt_evaluator/regression/comparator.py`
 
 ```python
 @dataclass
@@ -167,8 +167,8 @@ class RegressionReport:
 ### 3.5. 사용 예시
 
 ```python
-from src.regression.baseline import load_baseline
-from src.regression.comparator import compare_results, format_regression_report
+from prompt_evaluator.regression.baseline import load_baseline
+from prompt_evaluator.regression.comparator import compare_results, format_regression_report
 
 # 기준선 로드
 baseline = load_baseline("prep_generate")
@@ -250,26 +250,26 @@ if report.has_regression:
 
 ```bash
 # 기준선 목록 조회
-poetry run python main.py baseline list prep_generate
+prompt-eval baseline list prep_generate
 
 # LangSmith 실험을 기준선으로 설정
-poetry run python main.py baseline set prep_generate "prep_generate-full-2026-01-26"
+prompt-eval baseline set prep_generate "prep_generate-full-2026-01-26"
 
 # 기준선 삭제
-poetry run python main.py baseline delete prep_generate v1.0
+prompt-eval baseline delete prep_generate v1.0
 ```
 
 ### 5.2. 회귀 테스트 실행
 
 ```bash
 # 기준선과 실험 비교
-poetry run python main.py regression --name prep_generate --experiment "prep_generate-full-2026-01-26"
+prompt-eval regression --name prep_generate --experiment "prep_generate-full-2026-01-26"
 
 # CI/CD에서 회귀 시 실패 처리 (exit code 1)
-poetry run python main.py regression --name prep_generate --experiment "..." --fail
+prompt-eval regression --name prep_generate --experiment "..." --fail
 
 # 임계값 조정 (기본 5%)
-poetry run python main.py regression --name prep_generate --experiment "..." --threshold 0.1
+prompt-eval regression --name prep_generate --experiment "..." --threshold 0.1
 ```
 
 ### 5.3. 옵션 상세
@@ -313,8 +313,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install poetry
-          poetry install
+          pip install prompt-evaluator
 
       - name: Detect changed prompts
         id: changes
@@ -326,11 +325,11 @@ jobs:
           LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          poetry run python main.py experiment --name ${{ steps.changes.outputs.prompt }}
+          prompt-eval experiment --name ${{ steps.changes.outputs.prompt }}
 
       - name: Check regression
         run: |
-          poetry run python main.py regression --name ${{ steps.changes.outputs.prompt }} --fail
+          prompt-eval regression --name ${{ steps.changes.outputs.prompt }} --fail
 
       - name: Comment PR
         uses: actions/github-script@v7

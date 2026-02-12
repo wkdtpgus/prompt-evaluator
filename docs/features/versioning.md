@@ -146,7 +146,7 @@ versions:
 ### 4.1. 파일 위치
 
 ```
-src/versioning/prompt_metadata.py
+prompt_evaluator/versioning/prompt_metadata.py
 ```
 
 ### 4.2. 함수 목록
@@ -169,7 +169,7 @@ src/versioning/prompt_metadata.py
 ### 4.3. 사용 예시
 
 ```python
-from src.versioning.prompt_metadata import (
+from prompt_evaluator.versioning.prompt_metadata import (
     load_metadata,
     is_prompt_changed,
     auto_version_and_push_info,
@@ -215,7 +215,7 @@ date: 2026-01-26
 ### 5.3. 구현 파일
 
 ```
-utils/prompt_sync.py    # push_prompt(backend=...), get_prompt(backend=...)
+prompt_evaluator/utils/prompt_sync.py    # push_prompt(backend=...), get_prompt(backend=...)
 ```
 
 ---
@@ -226,35 +226,35 @@ utils/prompt_sync.py    # push_prompt(backend=...), get_prompt(backend=...)
 
 ```bash
 # 기본 사용 (변경 감지 시 인터랙티브 입력)
-poetry run python main.py experiment --name prep_generate
+prompt-eval experiment --name prep_generate
 
 # 변경 내용 직접 지정
-poetry run python main.py experiment --name prep_generate --changes "톤 개선"
+prompt-eval experiment --name prep_generate --changes "톤 개선"
 
 # 자동 push 없이 기존 버전으로 평가
-poetry run python main.py experiment --name prep_generate --no-push
+prompt-eval experiment --name prep_generate --no-push
 
 # 특정 버전으로 평가 (수동 push한 경우)
-poetry run python main.py experiment --name prep_generate --version v1.0
+prompt-eval experiment --name prep_generate --version v1.0
 ```
 
 ### 6.2. 수동 관리
 
 ```bash
 # 메타데이터 초기화 (git config에서 owner 자동 감지)
-poetry run python main.py prompt init prep_generate
+prompt-eval prompt init prep_generate
 
 # 버전 추가 (git config에서 author 자동 감지)
-poetry run python main.py prompt add-version prep_generate v1.2 "민감 주제 처리 강화"
+prompt-eval prompt add-version prep_generate v1.2 "민감 주제 처리 강화"
 
 # 메타데이터 조회
-poetry run python main.py prompt info prep_generate
+prompt-eval prompt info prep_generate
 
 # LangSmith에 수동 push
-poetry run python main.py prompt push --name prep_generate --tag v1.0
+prompt-eval prompt push --name prep_generate --tag v1.0
 
 # LangSmith 버전 목록 조회
-poetry run python main.py prompt versions --name prep_generate
+prompt-eval prompt versions --name prep_generate
 ```
 
 ---
@@ -288,7 +288,7 @@ versions:
 ### 7.3. 계획 모듈
 
 ```
-src/versioning/dataset_snapshot.py
+prompt_evaluator/versioning/dataset_snapshot.py
 ```
 
 | 함수 | 설명 |
