@@ -21,9 +21,7 @@ def _get_metadata_path(prompt_name: str, targets_dir: Path = Path("targets")) ->
     return targets_dir / prompt_name / METADATA_FILENAME
 
 
-def load_metadata(
-    prompt_name: str, targets_dir: Path = Path("targets")
-) -> dict | None:
+def load_metadata(prompt_name: str, targets_dir: Path = Path("targets")) -> dict | None:
     """프롬프트 메타데이터 로드
 
     Args:
@@ -61,7 +59,9 @@ def save_metadata(
     metadata_path.parent.mkdir(parents=True, exist_ok=True)
 
     with open(metadata_path, "w", encoding="utf-8") as f:
-        yaml.dump(metadata, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
+        yaml.dump(
+            metadata, f, allow_unicode=True, default_flow_style=False, sort_keys=False
+        )
 
     return metadata_path
 
@@ -133,8 +133,7 @@ def add_version(
 
     if metadata is None:
         raise FileNotFoundError(
-            f"메타데이터 없음: {prompt_name}. "
-            f"먼저 init_metadata()로 초기화하세요."
+            f"메타데이터 없음: {prompt_name}. 먼저 init_metadata()로 초기화하세요."
         )
 
     if version in metadata.get("versions", {}):
@@ -197,14 +196,16 @@ def get_version_history(
 
     history = []
     for version, info in metadata["versions"].items():
-        history.append({
-            "version": version,
-            "date": info.get("date"),
-            "author": info.get("author"),
-            "changes": info.get("changes"),
-            "langsmith_hash": info.get("langsmith_hash"),
-            "langfuse_version": info.get("langfuse_version"),
-        })
+        history.append(
+            {
+                "version": version,
+                "date": info.get("date"),
+                "author": info.get("author"),
+                "changes": info.get("changes"),
+                "langsmith_hash": info.get("langsmith_hash"),
+                "langfuse_version": info.get("langfuse_version"),
+            }
+        )
 
     # 날짜 역순 정렬 (최신 먼저)
     history.sort(key=lambda x: x["date"] or "", reverse=True)
@@ -279,9 +280,7 @@ def update_langfuse_version(
     return metadata
 
 
-def compute_prompt_hash(
-    prompt_name: str, targets_dir: Path = Path("targets")
-) -> str:
+def compute_prompt_hash(prompt_name: str, targets_dir: Path = Path("targets")) -> str:
     """프롬프트 파일의 해시 계산
 
     Args:
@@ -291,8 +290,26 @@ def compute_prompt_hash(
     Returns:
         프롬프트 내용의 SHA256 해시 (앞 16자리)
     """
-    prompt_file = find_prompt_file(prompt_name, targets_dir)
+    # config.yaml에서 prompt_file/prompt_key 확인
+    config_file = targets_dir / prompt_name / "config.yaml"
+    prompt_file_override = None
+    prompt_key = None
+    if config_file.exists():
+        import yaml
+
+        with open(config_file, "r", encoding="utf-8") as f:
+            config = yaml.safe_load(f) or {}
+        prompt_file_override = config.get("prompt_file")
+        prompt_key = config.get("prompt_key")
+
+    prompt_file = find_prompt_file(
+        prompt_name, targets_dir, prompt_file_override=prompt_file_override
+    )
     prompts = load_prompt_file(prompt_file)
+
+    # prompt_key가 지정된 경우 해당 키만 해시에 포함
+    if prompt_key and prompt_key in prompts:
+        prompts = {prompt_key: prompts[prompt_key]}
 
     # 프롬프트 내용을 정렬된 문자열로 변환하여 해시
     content = ""
@@ -345,9 +362,7 @@ def update_last_pushed_hash(
     return metadata
 
 
-def is_prompt_changed(
-    prompt_name: str, targets_dir: Path = Path("targets")
-) -> bool:
+def is_prompt_changed(prompt_name: str, targets_dir: Path = Path("targets")) -> bool:
     """프롬프트가 마지막 push 이후 변경되었는지 확인
 
     Args:

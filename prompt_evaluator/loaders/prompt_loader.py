@@ -37,7 +37,9 @@ def load_prompt_file(prompt_file: Path) -> dict[str, str]:
     elif suffix == ".xml":
         return _load_prompt_from_xml(prompt_file)
     else:
-        raise ValueError(f"지원하지 않는 프롬프트 형식: {suffix} (지원: .txt, .md, .py, .xml)")
+        raise ValueError(
+            f"지원하지 않는 프롬프트 형식: {suffix} (지원: .txt, .md, .py, .xml)"
+        )
 
 
 def _load_prompt_from_py(prompt_file: Path) -> dict[str, str]:
@@ -65,13 +67,17 @@ def _load_prompt_from_py(prompt_file: Path) -> dict[str, str]:
                     if isinstance(target, ast.Name):
                         var_name = target.id
                         if var_name.endswith("_PROMPT") or var_name == "PROMPT":
-                            if isinstance(node.value, ast.Constant) and isinstance(node.value.value, str):
+                            if isinstance(node.value, ast.Constant) and isinstance(
+                                node.value.value, str
+                            ):
                                 prompts[var_name] = node.value.value
     except SyntaxError as e:
         raise ValueError(f"Python 파일 파싱 실패: {e}")
 
     if not prompts:
-        raise ValueError(f"프롬프트 변수를 찾을 수 없음: {prompt_file} (*_PROMPT 패턴 필요)")
+        raise ValueError(
+            f"프롬프트 변수를 찾을 수 없음: {prompt_file} (*_PROMPT 패턴 필요)"
+        )
 
     return prompts
 
@@ -110,15 +116,20 @@ def _load_prompt_from_xml(prompt_file: Path) -> dict[str, str]:
     return prompts
 
 
-def find_prompt_file(prompt_name: str, targets_dir: Path) -> Path:
+def find_prompt_file(
+    prompt_name: str,
+    targets_dir: Path,
+    prompt_file_override: str | Path | None = None,
+) -> Path:
     """프롬프트 파일 찾기 (다중 형식 지원)
 
-    파일명 패턴:
-    - targets/{name}/prompt.txt/.py/.xml/.md
+    prompt_file_override가 지정되면 해당 경로를 직접 사용.
+    미지정 시 targets/{name}/prompt.[txt|py|xml|md] 패턴으로 검색.
 
     Args:
         prompt_name: 프롬프트 이름
         targets_dir: 프롬프트 파일 디렉토리
+        prompt_file_override: 프롬프트 파일 직접 경로 (선택)
 
     Returns:
         프롬프트 파일 경로
@@ -126,6 +137,12 @@ def find_prompt_file(prompt_name: str, targets_dir: Path) -> Path:
     Raises:
         FileNotFoundError: 프롬프트 파일이 없는 경우
     """
+    if prompt_file_override is not None:
+        override_path = Path(prompt_file_override)
+        if not override_path.exists():
+            raise FileNotFoundError(f"지정된 프롬프트 파일 없음: {override_path}")
+        return override_path
+
     folder_path = targets_dir / prompt_name
 
     if folder_path.is_dir():

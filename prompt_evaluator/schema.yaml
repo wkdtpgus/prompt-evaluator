@@ -62,6 +62,23 @@ run_mode:
     quick: Rule-based만 실행
     full: Rule-based + LLM Judge
 
+prompt_file:
+  type: string
+  required: false
+  description: |
+    프롬프트 파일 직접 경로 (프로젝트 루트 기준 상대 경로).
+    지정 시 targets/{name}/prompt.* 대신 해당 파일을 사용합니다.
+    지원 확장자: .txt, .md, .py, .xml
+  example: src/prompts/prep_output_analyze.py
+
+prompt_key:
+  type: string
+  required: false
+  description: |
+    .py 파일에서 특정 프롬프트 변수만 선택 (예: SYSTEM_PROMPT).
+    prompt_file과 함께 사용. 미지정 시 모든 *_PROMPT 변수를 로드합니다.
+  example: SYSTEM_PROMPT
+
 # =============================================================================
 # 예시 config
 # =============================================================================

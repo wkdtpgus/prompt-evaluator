@@ -22,7 +22,10 @@ from prompt_evaluator.regression.baseline import (
     _compute_summary_from_runs,
     _extract_case_results,
 )
-from prompt_evaluator.regression.comparator import compare_results, format_regression_report
+from prompt_evaluator.regression.comparator import (
+    compare_results,
+    format_regression_report,
+)
 from prompt_evaluator.utils.prompt_sync import push_prompt
 from prompt_evaluator.utils.git import get_git_user_email
 
@@ -169,7 +172,7 @@ def experiment(
 
     --no-push 또는 --version 지정 시 버저닝 건너뜀.
     """
-    from pathlib import Path
+    from prompt_evaluator.context import get_context
 
     if mode not in ["quick", "full"]:
         typer.echo(f"Invalid mode: {mode}. Use quick/full")
@@ -179,7 +182,8 @@ def experiment(
         typer.echo(f"Invalid backend: {backend}. Use langsmith/langfuse/both")
         raise typer.Exit(1)
 
-    prompt_dir = Path("targets") / name
+    ctx = get_context()
+    prompt_dir = ctx.targets_dir / name
     if not prompt_dir.exists():
         typer.echo(f"프롬프트 폴더 없음: {prompt_dir}")
         raise typer.Exit(1)

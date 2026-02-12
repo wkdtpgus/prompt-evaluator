@@ -110,7 +110,14 @@ def run_langsmith_experiment(
     dataset_name = ds_result.get("langsmith_name", f"prompt-eval-{prompt_name}")
 
     # 2. 프롬프트 템플릿 로드
-    data = load_evaluation_set(prompt_name)
+    from prompt_evaluator.context import get_context
+
+    ctx = get_context()
+    data = load_evaluation_set(
+        prompt_name,
+        targets_dir=ctx.targets_dir,
+        datasets_dir=ctx.datasets_dir,
+    )
     expected_all = data["expected"]
     eval_config = data["eval_config"]
 
@@ -208,7 +215,14 @@ def run_langfuse_experiment(
     langfuse = get_langfuse_client()
 
     # 1. 프롬프트 템플릿 로드
-    data = load_evaluation_set(prompt_name)
+    from prompt_evaluator.context import get_context
+
+    ctx = get_context()
+    data = load_evaluation_set(
+        prompt_name,
+        targets_dir=ctx.targets_dir,
+        datasets_dir=ctx.datasets_dir,
+    )
     expected_all = data["expected"]
     eval_config = data["eval_config"]
 

@@ -40,7 +40,6 @@ def load_evaluation_set(
     datasets_dir = Path(datasets_dir)
 
     # 파일 경로 구성
-    prompt_file = find_prompt_file(prompt_name, targets_dir)
     data_dir = datasets_dir / prompt_name
     config_file = targets_dir / prompt_name / "config.yaml"
 
@@ -53,8 +52,28 @@ def load_evaluation_set(
     if not config_file.exists():
         raise FileNotFoundError(f"설정 파일 없음: {config_file}")
 
+    # config 먼저 로드 (prompt_file 필드 확인)
+    with open(config_file, "r", encoding="utf-8") as f:
+        eval_config = yaml.safe_load(f)
+
+    # 프롬프트 파일 찾기 (prompt_file 오버라이드 지원)
+    prompt_file_override = eval_config.get("prompt_file")
+    prompt_file = find_prompt_file(
+        prompt_name, targets_dir, prompt_file_override=prompt_file_override
+    )
+
     # 프롬프트 로드
     prompts = load_prompt_file(prompt_file)
+
+    # prompt_key가 지정된 경우 해당 키만 사용
+    prompt_key = eval_config.get("prompt_key")
+    if prompt_key:
+        if prompt_key not in prompts:
+            available = list(prompts.keys())
+            raise ValueError(
+                f"prompt_key '{prompt_key}'을 찾을 수 없음. 사용 가능한 키: {available}"
+            )
+        prompts = {prompt_key: prompts[prompt_key]}
 
     # 단일 템플릿 추출
     template = _extract_template(prompts)
@@ -66,15 +85,12 @@ def load_evaluation_set(
     with open(data_dir / "expected.json", "r", encoding="utf-8") as f:
         expected = json.load(f)
 
-    with open(config_file, "r", encoding="utf-8") as f:
-        eval_config = yaml.safe_load(f)
-
     return {
         "template": template,
         "prompts": prompts,
         "test_cases": test_cases,
         "expected": expected,
-        "eval_config": eval_config
+        "eval_config": eval_config,
     }
 
 
@@ -101,11 +117,14 @@ def list_evaluation_sets(
 ) -> list[str]:
     """사용 가능한 평가 세트 목록
 
-    폴더 구조: targets/{name}/prompt.[txt|md|py|xml]
+    폴더 구조: targets/{name}/config.yaml + prompt 파일 (또는 prompt_file 참조)
     """
     targets_dir = Path(targets_dir)
     datasets_dir = Path(datasets_dir)
     sets = []
+
+    if not targets_dir.exists():
+        return sets
 
     for folder in targets_dir.iterdir():
         if not folder.is_dir():
@@ -113,24 +132,30 @@ def list_evaluation_sets(
 
         name = folder.name
 
-        # prompt.* 파일 존재 확인
-        has_prompt = any(
-            (folder / f"prompt{ext}").exists()
-            for ext in SUPPORTED_EXTENSIONS
-        )
-        if not has_prompt:
-            continue
-
-        # config.yaml 존재 확인 (targets/{name}/config.yaml)
+        # config.yaml 존재 확인
         config_file = folder / "config.yaml"
         if not config_file.exists():
+            continue
+
+        # config에서 prompt_file 확인
+        with open(config_file, "r", encoding="utf-8") as f:
+            config = yaml.safe_load(f) or {}
+
+        prompt_file_override = config.get("prompt_file")
+        if prompt_file_override:
+            has_prompt = Path(prompt_file_override).exists()
+        else:
+            has_prompt = any(
+                (folder / f"prompt{ext}").exists() for ext in SUPPORTED_EXTENSIONS
+            )
+
+        if not has_prompt:
             continue
 
         # 데이터셋 확인
         data_dir = datasets_dir / name
         required_data = ["test_cases.json", "expected.json"]
-        if (data_dir.exists()
-            and all((data_dir / f).exists() for f in required_data)):
+        if data_dir.exists() and all((data_dir / f).exists() for f in required_data):
             sets.append(name)
 
     return sets

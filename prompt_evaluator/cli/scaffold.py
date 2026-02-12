@@ -30,7 +30,7 @@ def init(
     eval_dir = Path(dir)
 
     # 1. 평가 산출물 디렉토리 생성
-    for d in ["datasets", "eval_prompts", "results"]:
+    for d in ["targets", "datasets", "eval_prompts", "results"]:
         (eval_dir / d).mkdir(parents=True, exist_ok=True)
     typer.echo(f"  {eval_dir}/ 디렉토리 생성 완료")
 

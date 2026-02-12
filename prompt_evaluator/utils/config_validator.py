@@ -72,15 +72,29 @@ def validate_config(
         errors.append(f"잘못된 run_mode: {run_mode} (허용: {VALID_RUN_MODES})")
 
     # 5. 프롬프트 파일 존재 확인
-    prompt_folder = targets_dir / prompt_name
-    if prompt_folder.is_dir():
-        has_prompt = any(
-            (prompt_folder / f"prompt{ext}").exists() for ext in SUPPORTED_EXTENSIONS
-        )
-        if not has_prompt:
-            errors.append(f"프롬프트 파일 없음: {prompt_folder}/prompt.[txt|py|xml|md]")
+    prompt_file_override = config.get("prompt_file")
+    if prompt_file_override:
+        prompt_path = Path(prompt_file_override)
+        if not prompt_path.exists():
+            errors.append(f"prompt_file 경로 없음: {prompt_path}")
+        elif prompt_path.suffix.lower() not in SUPPORTED_EXTENSIONS:
+            errors.append(
+                f"지원하지 않는 프롬프트 형식: {prompt_path.suffix} "
+                f"(지원: {list(SUPPORTED_EXTENSIONS)})"
+            )
     else:
-        errors.append(f"프롬프트 폴더 없음: {prompt_folder}")
+        prompt_folder = targets_dir / prompt_name
+        if prompt_folder.is_dir():
+            has_prompt = any(
+                (prompt_folder / f"prompt{ext}").exists()
+                for ext in SUPPORTED_EXTENSIONS
+            )
+            if not has_prompt:
+                errors.append(
+                    f"프롬프트 파일 없음: {prompt_folder}/prompt.[txt|py|xml|md]"
+                )
+        else:
+            errors.append(f"프롬프트 폴더 없음: {prompt_folder}")
 
     # 6. 데이터셋 파일 존재 확인
     data_dir = datasets_dir / prompt_name

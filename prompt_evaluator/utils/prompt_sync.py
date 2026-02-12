@@ -16,6 +16,7 @@ Backend = Literal["langsmith", "langfuse", "both"]
 # Push (로컬 → 원격)
 # ---------------------------------------------------------------------------
 
+
 def push_prompt(
     prompt_name: str,
     backend: Backend = "both",
@@ -31,7 +32,20 @@ def push_prompt(
         {"url": str | None, "langfuse_version": int | None}
     """
     targets_dir = Path(targets_dir)
-    prompt_file = find_prompt_file(prompt_name, targets_dir)
+
+    # config.yaml에서 prompt_file 오버라이드 확인
+    config_file = targets_dir / prompt_name / "config.yaml"
+    prompt_file_override = None
+    if config_file.exists():
+        import yaml
+
+        with open(config_file, "r", encoding="utf-8") as f:
+            config = yaml.safe_load(f) or {}
+        prompt_file_override = config.get("prompt_file")
+
+    prompt_file = find_prompt_file(
+        prompt_name, targets_dir, prompt_file_override=prompt_file_override
+    )
     prompts = load_prompt_file(prompt_file)
 
     result: dict = {}
@@ -39,8 +53,12 @@ def push_prompt(
     if backend in ("langsmith", "both"):
         try:
             url = _push_langsmith(
-                prompt_name, prompts, version_tag, description,
-                prompt_key, metadata_info,
+                prompt_name,
+                prompts,
+                version_tag,
+                description,
+                prompt_key,
+                metadata_info,
             )
             result["url"] = url
         except Exception as e:
@@ -120,16 +138,24 @@ def _push_langfuse(
     client = get_langfuse_client()
     if isinstance(content, list):
         prompt_obj = client.create_prompt(
-            name=langfuse_name, type="chat", prompt=content,
-            labels=labels, config=config,
+            name=langfuse_name,
+            type="chat",
+            prompt=content,
+            labels=labels,
+            config=config,
         )
     else:
         prompt_obj = client.create_prompt(
-            name=langfuse_name, type="text", prompt=content,
-            labels=labels, config=config,
+            name=langfuse_name,
+            type="text",
+            prompt=content,
+            labels=labels,
+            config=config,
         )
 
-    print(f"✓ [Langfuse] 프롬프트 업로드 완료: {langfuse_name} (version: {prompt_obj.version})")
+    print(
+        f"✓ [Langfuse] 프롬프트 업로드 완료: {langfuse_name} (version: {prompt_obj.version})"
+    )
     if version_tag:
         print(f"  태그: {version_tag}")
     return prompt_obj.version
@@ -138,6 +164,7 @@ def _push_langfuse(
 # ---------------------------------------------------------------------------
 # Get (원격 → 로컬)
 # ---------------------------------------------------------------------------
+
 
 def get_prompt(
     prompt_name: str,
@@ -151,7 +178,9 @@ def get_prompt(
     backend="both"는 지원하지 않음 (조회는 단일 백엔드만 의미 있음)
     """
     if backend == "both":
-        raise ValueError("get_prompt은 backend='both'를 지원하지 않습니다. 하나를 지정하세요.")
+        raise ValueError(
+            "get_prompt은 backend='both'를 지원하지 않습니다. 하나를 지정하세요."
+        )
 
     if backend == "langsmith":
         return _get_langsmith_prompt(prompt_name, version_tag)
@@ -193,6 +222,7 @@ def _get_langfuse_prompt(
 # LangSmith 전용
 # ---------------------------------------------------------------------------
 
+
 def list_prompt_versions(prompt_name: str) -> list[dict]:
     """프롬프트의 모든 버전/태그 목록 조회 (LangSmith)"""
     from langsmith import Client
@@ -206,11 +236,13 @@ def list_prompt_versions(prompt_name: str) -> list[dict]:
 
         versions = []
         for commit in commits:
-            versions.append({
-                "commit_hash": commit.commit_hash,
-                "tags": commit.tags or [],
-                "created_at": str(commit.created_at),
-            })
+            versions.append(
+                {
+                    "commit_hash": commit.commit_hash,
+                    "tags": commit.tags or [],
+                    "created_at": str(commit.created_at),
+                }
+            )
         return versions
     except Exception as e:
         print(f"프롬프트 조회 실패: {e}")
@@ -220,6 +252,7 @@ def list_prompt_versions(prompt_name: str) -> list[dict]:
 # ---------------------------------------------------------------------------
 # Private helpers
 # ---------------------------------------------------------------------------
+
 
 def _build_langfuse_content(prompts: dict) -> str | list[dict]:
     """프롬프트 딕셔너리를 Langfuse 업로드 형식으로 변환"""
@@ -312,5 +345,3 @@ def _build_description_with_metadata(prompt_name: str, metadata_info: dict) -> s
         lines.append(f"date: {metadata_info['date']}")
 
     return "\n".join(lines)
-
-
