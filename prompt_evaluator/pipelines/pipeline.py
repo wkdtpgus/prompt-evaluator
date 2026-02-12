@@ -8,7 +8,7 @@ import re
 from datetime import datetime
 from typing import Any, Literal
 
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 from langsmith import traceable
 from langsmith.evaluation import evaluate
 
