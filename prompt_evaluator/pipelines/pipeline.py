@@ -34,6 +34,7 @@ from prompt_evaluator.evaluators.adapters import (
     create_langsmith_keyword_evaluator,
 )
 from prompt_evaluator.evaluators.scoring import compute_pass_result
+from prompt_evaluator.models import get_execution_llm
 from prompt_evaluator.utils.prompt_sync import get_prompt
 
 load_dotenv(find_dotenv(usecwd=True))
