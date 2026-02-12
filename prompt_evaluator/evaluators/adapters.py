@@ -16,6 +16,7 @@ from prompt_evaluator.evaluators.rule_based import (
     keyword_inclusion,
     forbidden_word_check,
 )
+from prompt_evaluator.models import get_judge_llm
 
 
 # =============================================================================

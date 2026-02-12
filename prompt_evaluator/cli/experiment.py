@@ -46,6 +46,10 @@ def _auto_version_and_push(
         버전 정보 dict 또는 None (에러 시 typer.Exit 호출)
     """
     from datetime import datetime
+    from prompt_evaluator.context import get_context
+
+    ctx = get_context()
+    targets_dir = ctx.targets_dir
 
     typer.echo(f"\n프롬프트 버전 관리 체크: {name}")
     typer.echo("-" * 60)
@@ -55,15 +59,15 @@ def _auto_version_and_push(
         typer.echo("git config user.email이 설정되지 않았습니다.")
         raise typer.Exit(1)
 
-    metadata = load_metadata(name)
+    metadata = load_metadata(name, targets_dir)
     is_first_init = metadata is None
 
     if is_first_init:
         typer.echo("  메타데이터 없음 → 자동 초기화")
-        metadata = init_metadata(name, author)
+        metadata = init_metadata(name, author, targets_dir)
         typer.echo(f"  ✓ 초기화 완료 (owner: {author}, version: v1.0)")
 
-        prompt_hash = compute_prompt_hash(name)
+        prompt_hash = compute_prompt_hash(name, targets_dir)
         version_tag = "v1.0"
         metadata_info = {
             "version": version_tag,
@@ -82,19 +86,21 @@ def _auto_version_and_push(
                     typer.echo(f"  ✗ {key}: {result[key]}")
             raise typer.Exit(1)
         if result.get("langfuse_version") is not None:
-            update_langfuse_version(name, version_tag, result["langfuse_version"])
+            update_langfuse_version(
+                name, version_tag, result["langfuse_version"], targets_dir
+            )
         typer.echo("  ✓ 업로드 완료")
 
-        update_last_pushed_hash(name, prompt_hash)
+        update_last_pushed_hash(name, prompt_hash, targets_dir)
         return {"version": version_tag, "is_new": True}
 
-    elif is_prompt_changed(name):
+    elif is_prompt_changed(name, targets_dir):
         typer.echo("  프롬프트 변경 감지됨")
 
         if changes is None:
             changes = typer.prompt("  변경 내용을 입력하세요")
 
-        version_info = auto_version_and_push_info(name, author, changes)
+        version_info = auto_version_and_push_info(name, author, changes, targets_dir)
         new_version = version_info["version"]
         prompt_hash = version_info["prompt_hash"]
 
@@ -119,10 +125,12 @@ def _auto_version_and_push(
                     typer.echo(f"  ✗ {key}: {result[key]}")
             raise typer.Exit(1)
         if result.get("langfuse_version") is not None:
-            update_langfuse_version(name, new_version, result["langfuse_version"])
+            update_langfuse_version(
+                name, new_version, result["langfuse_version"], targets_dir
+            )
         typer.echo("  ✓ 업로드 완료")
 
-        update_last_pushed_hash(name, prompt_hash)
+        update_last_pushed_hash(name, prompt_hash, targets_dir)
         return {"version": new_version, "is_new": True}
 
     else:
