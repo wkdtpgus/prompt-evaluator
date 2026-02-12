@@ -36,7 +36,7 @@ from prompt_evaluator.evaluators.adapters import (
 from prompt_evaluator.evaluators.scoring import compute_pass_result
 from prompt_evaluator.utils.prompt_sync import get_prompt
 
-load_dotenv()
+load_dotenv(find_dotenv(usecwd=True))
 
 RunMode = Literal["quick", "full"]
 Backend = Literal["langsmith", "langfuse"]

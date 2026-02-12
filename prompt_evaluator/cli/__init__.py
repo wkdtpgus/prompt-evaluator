@@ -1,9 +1,9 @@
 """CLI 모듈 - prompt-eval 엔트리 포인트"""
 
 import typer
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
-load_dotenv()
+load_dotenv(find_dotenv(usecwd=True))
 
 app = typer.Typer(name="prompt-evaluator", help="프롬프트 평가 시스템 CLI")
 

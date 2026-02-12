@@ -1,9 +1,9 @@
 """중앙 설정 관리 모듈."""
 
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
-load_dotenv()
+load_dotenv(find_dotenv(usecwd=True))
 
 # =============================================================================
 # 모델 기본값
