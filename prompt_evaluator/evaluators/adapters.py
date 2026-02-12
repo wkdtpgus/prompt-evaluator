@@ -12,8 +12,10 @@ Note: keyword/forbidden 어댑터는 LangSmith/Langfuse 간 핵심 로직이 동
 from typing import Callable
 
 from prompt_evaluator.evaluators.llm_judge import run_checklist_evaluation
-from prompt_evaluator.evaluators.rule_based import keyword_inclusion, forbidden_word_check
-from prompt_evaluator.models import judge_llm
+from prompt_evaluator.evaluators.rule_based import (
+    keyword_inclusion,
+    forbidden_word_check,
+)
 
 
 # =============================================================================
@@ -155,7 +157,7 @@ def create_langfuse_evaluator(
             return Evaluation(name=name, value=0.0, comment="Empty output")
 
         judge_handler = get_langfuse_handler()
-        bound_judge = judge_llm.with_config({"callbacks": [judge_handler]})
+        bound_judge = get_judge_llm().with_config({"callbacks": [judge_handler]})
         try:
             results = run_checklist_evaluation(
                 output=text,

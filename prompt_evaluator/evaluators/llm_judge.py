@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 
-from prompt_evaluator.models import judge_llm
+from prompt_evaluator.models import get_judge_llm
 
 
 def run_checklist_evaluation(
@@ -41,7 +41,7 @@ def run_checklist_evaluation(
     results = {}
 
     # LLM 선택: 주입된 LLM or 기본 judge_llm
-    evaluator_llm = llm if llm is not None else judge_llm
+    evaluator_llm = llm if llm is not None else get_judge_llm()
 
     # JSON 응답 강제: provider별 분기
     from langchain_openai import ChatOpenAI

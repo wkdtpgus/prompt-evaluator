@@ -1,162 +1,198 @@
-# Prompt Evaluator
+# prompt-evaluator
 
-LangSmith / Langfuse 기반 프롬프트 정량 평가 시스템
+LLM 프롬프트 정량 평가 엔진. LangSmith / Langfuse 기반 실험, 회귀 테스트, 버전 관리를 지원합니다.
 
-## 빠른 시작
+## 설치
 
-```bash
-# 의존성 설치
-poetry install
+### 요구사항
 
-# 평가 실행 (Langfuse + LangSmith 동시 - 기본값)
-poetry run python main.py experiment --name prep_analyzer
+- Python 3.10+
+- 가상환경 (venv, Poetry 등) — macOS는 시스템 Python에 직접 설치 불가
 
-# Langfuse만 실행
-poetry run python main.py experiment --name prep_analyzer --backend langfuse
-
-# LangSmith만 실행
-poetry run python main.py experiment --name prep_analyzer --backend langsmith
-
-# full 모드 (LLM Judge 포함)
-poetry run python main.py experiment --name prep_analyzer --mode full
-```
-
-## 프로젝트 구조
-
-```
-prompt-evaluator/
-├── targets/                    # 평가 대상 프롬프트
-│   └── {name}.txt
-│
-├── datasets/                   # 테스트 데이터
-│   └── {name}_data/
-│       ├── test_cases.json     # 입력 케이스
-│       └── expected.json       # 기대 결과 (keywords, forbidden, reference)
-│
-├── configs/                    # 평가 설정
-│   └── {name}.yaml             # evaluators, thresholds, output_schema
-│
-├── eval_prompts/               # LLM Judge 평가 프롬프트
-│   ├── general/                # 범용 평가 기준
-│   │   ├── instruction_following.txt
-│   │   ├── factual_accuracy.txt
-│   │   └── output_quality.txt
-│   └── {domain}/               # 도메인 특화 평가 기준
-│       └── {criterion}.txt
-│
-├── src/
-│   ├── pipeline.py             # 평가 파이프라인
-│   ├── data.py                 # 데이터 로더
-│   ├── report.py               # 결과 리포터
-│   └── evaluators/
-│       ├── rule_based.py       # 규칙 기반 평가 (무료)
-│       ├── similarity.py       # 유사도 평가 (저비용)
-│       └── llm_judge.py        # LLM 평가 (고비용)
-│
-├── results/                    # 평가 결과 저장
-├── tests/                      # 단위 테스트
-├── main.py                     # CLI 진입점
-└── docs/                       # 문서
-```
-
-## 평가자 종류
-
-| 평가자 | 파일 | 비용 | 설명 |
-|--------|------|------|------|
-| Rule-based | `rule_based.py` | 무료 | 키워드, 금지어, 포맷 검증 |
-| Similarity | `similarity.py` | 저비용 | 임베딩/문자열 유사도 (OpenAI, Vertex AI) |
-| LLM Judge | `llm_judge.py` | 고비용 | 체크리스트 기반 LLM 평가 |
-
-## 실행 모드
+### Public 레포
 
 ```bash
-# quick: Rule-based만 (빠름)
-poetry run python main.py eval --name prep_analyzer --mode quick
+# pip
+pip install git+https://github.com/wkdtpgus/prompt-evaluator.git
 
-# standard: Rule-based + Similarity
-poetry run python main.py eval --name prep_analyzer --mode standard
-
-# full: 모든 평가자
-poetry run python main.py eval --name prep_analyzer --mode full
+# Poetry
+poetry add git+https://github.com/wkdtpgus/prompt-evaluator.git
 ```
 
-## 설정 예시
+### Private 레포 (GitHub PAT 필요)
 
-**configs/{name}.yaml:**
+1. GitHub에서 Personal Access Token 생성:
+   - Settings → Developer settings → Personal access tokens → Fine-grained tokens
+   - 권한: `Contents: Read-only` (해당 레포)
 
-```yaml
-evaluators:
-  - type: rule_based
-    checks:
-      - keyword_inclusion
-      - forbidden_word_check
-
-  - type: similarity
-    name: embedding_distance
-    threshold: 0.75
-    # provider: vertex  # GCP Vertex AI 사용 시
-
-  - type: llm_judge
-    criteria:
-      - instruction_following
-      - output_quality
-    enabled: true
-
-thresholds:
-  pass_rate: 0.85
-  min_score: 0.70
-```
-
-## 환경 변수
+2. PAT를 사용해 설치:
 
 ```bash
-# .env
-OPENAI_API_KEY=your_key
+# pip
+pip install git+https://<PAT>@github.com/wkdtpgus/prompt-evaluator.git
+
+# Poetry
+poetry add git+https://<PAT>@github.com/wkdtpgus/prompt-evaluator.git
+```
+
+> `<PAT>` 부분에 생성한 토큰을 넣으세요. 예: `ghp_xxxxxxxxxxxx`
+
+### 설치 확인
+
+```bash
+prompt-eval --help
+```
+
+> **주의**: 반드시 가상환경 안에서 설치하세요.
+> macOS에서 `pip3 install ...` 하면 `externally-managed-environment` 에러가 납니다.
+> ```bash
+> # venv 사용 시
+> source .venv/bin/activate && pip install ...
+>
+> # Poetry 사용 시 (자동으로 가상환경에 설치)
+> poetry add ...
+> ```
+
+## 프로덕션 프로젝트에 적용하기
+
+### 1단계: 평가 환경 초기화
+
+프로젝트 루트에서 실행:
+
+```bash
+cd your-project/
+prompt-eval init --dir .prompt-eval --targets-dir src/prompts
+```
+
+생성되는 구조:
+
+```
+your-project/
+├── .prompt-eval/
+│   ├── config.yaml              # 경로 설정
+│   ├── GUIDE.md                 # 상세 사용 가이드
+│   ├── datasets/                # 테스트 데이터
+│   ├── eval_prompts/
+│   │   └── general/             # 범용 평가 기준 (3개)
+│   └── results/                 # 평가 결과 (gitignore됨)
+├── .claude/skills/              # Claude Code 스킬 (3개)
+│   ├── test_case_generator/
+│   ├── llm_judge_generator/
+│   └── prompt_ab_comparator/
+└── .gitignore                   # results 경로 자동 추가
+```
+
+init 옵션:
+
+| 옵션 | 설명 | 기본값 |
+|------|------|--------|
+| `--dir`, `-d` | 평가 산출물 디렉토리 | `.prompt-eval` |
+| `--targets-dir`, `-t` | 프로덕션 프롬프트 위치 | None |
+| `--no-skills` | Claude Code 스킬 설치 생략 | false |
+| `--no-eval-prompts` | 범용 평가 기준 복사 생략 | false |
+
+### 2단계: 환경변수 설정
+
+`.env` 파일에 추가:
+
+```bash
+# LLM (필수 - 하나 이상)
+OPENAI_API_KEY=sk-...
+
+# 또는 GCP Vertex AI (Gemini)
+GOOGLE_CLOUD_PROJECT=your-project-id
 
 # LangSmith (선택)
-LANGSMITH_API_KEY=your_key
+LANGSMITH_API_KEY=lsv2_...
 
-# Langfuse (선택 - Docker 로컬 또는 클라우드)
-LANGFUSE_HOST=http://localhost:3000  # Docker 로컬
-LANGFUSE_PUBLIC_KEY=your_key
-LANGFUSE_SECRET_KEY=your_key
+# Langfuse (선택)
+LANGFUSE_HOST=http://localhost:3000
+LANGFUSE_PUBLIC_KEY=pk-...
+LANGFUSE_SECRET_KEY=sk-...
+```
 
-# 임베딩 프로바이더 (선택)
-EMBEDDING_PROVIDER=openai  # 또는 vertex
+### 3단계: 평가 데이터 준비
+
+```
+.prompt-eval/
+├── datasets/
+│   └── {name}/
+│       ├── test_cases.json    # 테스트 입력
+│       └── expected.json      # 기대 결과 (keywords, forbidden)
+└── eval_prompts/
+    └── {name}/
+        └── {criterion}.txt    # LLM Judge 평가 기준
+```
+
+Claude Code 스킬로 자동 생성 가능:
+- `/gen-testcases` - 테스트 케이스 생성
+- `/eval-criteria` - 평가 기준 생성
+
+### 4단계: 평가 실행
+
+```bash
+# 평가 실험 실행
+prompt-eval experiment --name {name}
+
+# Langfuse만
+prompt-eval experiment --name {name} --backend langfuse
+
+# LangSmith만
+prompt-eval experiment --name {name} --backend langsmith
+
+# 빠른 테스트 (Rule-based만)
+prompt-eval experiment --name {name} --mode quick
 ```
 
 ## CLI 명령어
 
-```bash
-# 평가 실행 (기본: Langfuse + LangSmith 동시)
-poetry run python main.py experiment --name {name}
-
-# 백엔드 지정
-poetry run python main.py experiment --name {name} --backend langfuse
-poetry run python main.py experiment --name {name} --backend langsmith
-poetry run python main.py experiment --name {name} --backend both  # 기본값
-
-# 모드 지정
-poetry run python main.py experiment --name {name} --mode {quick|full}
-
-# 평가 세트 목록
-poetry run python main.py list
-
-# 사용 가능한 LLM Judge 기준
-poetry run python main.py criteria
+```
+prompt-eval
+├── init                # 평가 환경 초기화
+├── experiment          # 평가 실행
+├── regression          # 회귀 테스트 (기준선 비교)
+├── validate            # 설정 검증
+├── list                # 평가 세트 목록
+├── upload              # 데이터셋 업로드
+├── prompt              # 프롬프트 버전 관리
+│   ├── info / init / add-version
+│   ├── push / pull / keys / versions
+└── baseline            # 기준선 관리
+    ├── list / set / delete
 ```
 
-## Claude Code 스킬
+## 평가자 종류
 
-| 스킬 | 용도 |
-|------|------|
-| `/eval-criteria {name}` | LLM Judge 평가기준 생성 |
-| `/gen-testcases {name}` | 테스트 케이스 생성 |
-| `/ab-compare` | 프롬프트 A/B 비교 |
+| 평가자 | 비용 | 설명 |
+|--------|------|------|
+| Rule-based | 무료 | 키워드 포함, 금지어 검사 |
+| LLM Judge | API 호출 | 체크리스트 기반 LLM 평가 (커스텀 기준) |
+
+## Python API
+
+```python
+from prompt_evaluator import run_experiment, EvalContext, set_context
+
+# 컨텍스트 설정
+ctx = EvalContext(root=".prompt-eval", targets_dir="src/prompts")
+set_context(ctx)
+
+# 평가 실행
+result = run_experiment("my_prompt", backend="langfuse")
+```
+
+## 개발
+
+```bash
+git clone https://github.com/wkdtpgus/prompt-evaluator.git
+cd prompt-evaluator
+poetry install
+poetry run prompt-eval --help
+```
 
 ## 문서
 
-- [사용 가이드](docs/GUIDE.md)
-- [기능 명세서](docs/SPECIFICATION.md)
+- `.prompt-eval/GUIDE.md` - init 후 생성되는 상세 사용 가이드
 - [CLI 레퍼런스](docs/features/cli-reference.md)
-- [Langfuse 마이그레이션 계획](docs/langfuse-migration-plan.md)
+- [회귀 테스트](docs/features/regression.md)
+- [버전 관리](docs/features/versioning.md)

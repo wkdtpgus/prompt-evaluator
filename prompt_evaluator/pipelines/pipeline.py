@@ -35,7 +35,6 @@ from prompt_evaluator.evaluators.adapters import (
 )
 from prompt_evaluator.evaluators.scoring import compute_pass_result
 from prompt_evaluator.utils.prompt_sync import get_prompt
-from prompt_evaluator.models import execution_llm
 
 load_dotenv()
 
@@ -76,7 +75,7 @@ def execute_prompt(
     if callbacks:
         invoke_kwargs["config"] = {"callbacks": callbacks}
 
-    response = execution_llm.invoke(prompt, **invoke_kwargs)
+    response = get_execution_llm().invoke(prompt, **invoke_kwargs)
 
     return response.content
 
@@ -158,7 +157,7 @@ def run_langsmith_experiment(
     print(f"\nLangSmith Experiment 시작: {experiment_prefix}")
     print(f"  Dataset: {dataset_name}")
     print(f"  Mode: {mode}")
-    print(f"  Model: {execution_llm.model_name}")
+    print(f"  Model: {get_execution_llm().model_name}")
     print()
 
     results = evaluate(
@@ -241,7 +240,7 @@ def run_langfuse_experiment(
     print(f"\nLangfuse Experiment 시작: {experiment_name}")
     print(f"  Dataset: {prompt_name}")
     print(f"  Mode: {mode}")
-    print(f"  Model: {execution_llm.model_name}")
+    print(f"  Model: {get_execution_llm().model_name}")
     print(f"  Items: {len(dataset.items)}")
     print()
 
@@ -285,7 +284,7 @@ def run_langfuse_experiment(
         data=dataset.items,
         task=task,
         evaluators=evaluators,
-        metadata={"mode": mode, "model": execution_llm.model_name},
+        metadata={"mode": mode, "model": get_execution_llm().model_name},
     )
 
     # 9. 결과 변환
@@ -361,7 +360,7 @@ def run_langfuse_experiment(
         "experiment_name": experiment_name,
         "prompt_name": prompt_name,
         "mode": mode,
-        "model": execution_llm.model_name,
+        "model": get_execution_llm().model_name,
         "timestamp": datetime.now().isoformat(),
         "results": results,
         "summary": summary,
