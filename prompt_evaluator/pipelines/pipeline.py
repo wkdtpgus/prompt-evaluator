@@ -105,14 +105,20 @@ def run_langsmith_experiment(
     Returns:
         실험 URL
     """
-    # 1. 데이터셋 업로드 (없으면 생성)
-    ds_result = upload_dataset(prompt_name, backend="langsmith")
-    dataset_name = ds_result.get("langsmith_name", f"prompt-eval-{prompt_name}")
-
-    # 2. 프롬프트 템플릿 로드
     from prompt_evaluator.context import get_context
 
     ctx = get_context()
+
+    # 1. 데이터셋 업로드 (없으면 생성)
+    ds_result = upload_dataset(
+        prompt_name,
+        backend="langsmith",
+        targets_dir=str(ctx.targets_dir),
+        datasets_dir=str(ctx.datasets_dir),
+    )
+    dataset_name = ds_result.get("langsmith_name", f"prompt-eval-{prompt_name}")
+
+    # 2. 프롬프트 템플릿 로드
     data = load_evaluation_set(
         prompt_name,
         targets_dir=ctx.targets_dir,

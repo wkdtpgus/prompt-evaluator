@@ -10,11 +10,19 @@ from prompt_evaluator.utils.dataset_sync import upload_dataset
 
 def list_sets():
     """사용 가능한 평가 세트 목록 출력."""
-    sets = list_evaluation_sets()
+    from prompt_evaluator.context import get_context
+
+    ctx = get_context()
+    sets = list_evaluation_sets(
+        targets_dir=ctx.targets_dir,
+        datasets_dir=ctx.datasets_dir,
+    )
 
     if not sets:
         typer.echo("사용 가능한 평가 세트가 없습니다.")
-        typer.echo("targets/{name}/prompt.*, targets/{name}/config.yaml, datasets/{name}/ 구조가 필요합니다.")
+        typer.echo(
+            f"{ctx.targets_dir}/{{name}}/config.yaml, {ctx.datasets_dir}/{{name}}/ 구조가 필요합니다."
+        )
         return
 
     typer.echo("\n사용 가능한 평가 세트:")
@@ -25,15 +33,26 @@ def list_sets():
 
 def upload(
     name: Annotated[str, typer.Option("--name", "-n", help="평가 세트 이름")],
-    backend: Annotated[str, typer.Option("--backend", "-b", help="업로드 대상 (langsmith/langfuse/both)")] = "both",
+    backend: Annotated[
+        str,
+        typer.Option("--backend", "-b", help="업로드 대상 (langsmith/langfuse/both)"),
+    ] = "both",
 ):
     """데이터셋을 LangSmith/Langfuse에 업로드."""
     if backend not in ("langsmith", "langfuse", "both"):
         typer.echo(f"Invalid backend: {backend}. Use langsmith/langfuse/both")
         raise typer.Exit(1)
 
+    from prompt_evaluator.context import get_context
+
+    ctx = get_context()
     typer.echo(f"\n데이터셋 업로드: {name} (backend: {backend})")
-    result = upload_dataset(name, backend=backend)
+    result = upload_dataset(
+        name,
+        backend=backend,
+        targets_dir=str(ctx.targets_dir),
+        datasets_dir=str(ctx.datasets_dir),
+    )
 
     if result.get("langsmith_name"):
         typer.echo(f"✓ [LangSmith] 완료: {result['langsmith_name']}")
