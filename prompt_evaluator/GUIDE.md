@@ -117,38 +117,7 @@ LANGFUSE_HOST=http://localhost:3000  # 로컬 또는 클라우드 서버 URL
 
 > 양쪽 플랫폼 환경변수를 모두 설정하면 `--backend both` (기본값)로 동시 실행됩니다.
 
-### 1.5. Langfuse 로컬 서버 구축
-
-Langfuse를 로컬에서 실행하려면 Docker가 필요합니다:
-
-```bash
-# 1. Langfuse 저장소 클론
-git clone https://github.com/langfuse/langfuse.git ~/langfuse
-cd ~/langfuse
-
-# 2. Docker Compose 실행
-docker compose up -d
-
-# 3. 접속 확인
-# http://localhost:3000
-```
-
-**서버 구축 후:**
-
-1. http://localhost:3000 에서 Langfuse 계정 생성
-2. 프로젝트 생성
-3. API 키 발급 (Secret Key, Public Key)
-4. `.env` 파일에 `LANGFUSE_SECRET_KEY`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_HOST` 추가
-
-**Docker 리소스 요구사항:**
-
-- PostgreSQL, ClickHouse, Redis 동시 실행
-- 최소 8GB RAM 권장
-- 디스크 공간: 10GB 이상
-
-> 팀 공유용 GCP 클라우드 배포에 대한 상세 내용은 [기능 명세서 Section 3.3](./SPECIFICATION.md) 참조
-
-### 1.6. Langfuse 프로젝트별 트레이싱 분리
+### 1.5. Langfuse 프로젝트별 트레이싱 분리
 
 프로덕션 환경에서는 서비스(타겟)별로 Langfuse 프로젝트를 분리하여 트레이스와 평가 결과를 관리하는 것을 권장합니다.
 

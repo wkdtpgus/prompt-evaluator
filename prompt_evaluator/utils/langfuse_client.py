@@ -48,7 +48,8 @@ def get_langfuse_handler(**kwargs) -> CallbackHandler:
         handler = get_langfuse_handler(user_id="user_123", tags=["test"])
         chain.invoke({"input": "hello"}, config={"callbacks": [handler]})
     """
-    return CallbackHandler(**kwargs)
+    client = get_langfuse_client()
+    return CallbackHandler(langfuse_client=client, **kwargs)
 
 
 def flush():
