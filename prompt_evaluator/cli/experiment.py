@@ -196,9 +196,25 @@ def experiment(
         typer.echo(f"프롬프트 폴더 없음: {prompt_dir}")
         raise typer.Exit(1)
 
-    # 자동 버저닝 (--no-push, --version 미지정 시)
-    if not no_push and not version:
+    # Pipeline 모드 감지
+    import yaml
+
+    config_file = ctx.targets_dir / name / "config.yaml"
+    is_pipeline = False
+    if config_file.exists():
+        with open(config_file, "r", encoding="utf-8") as f:
+            target_config = yaml.safe_load(f) or {}
+        is_pipeline = "pipeline" in target_config and isinstance(
+            target_config.get("pipeline"), dict
+        )
+
+    # 자동 버저닝 (--no-push, --version 미지정 시, pipeline 모드 아닐 때)
+    if not no_push and not version and not is_pipeline:
         _auto_version_and_push(name, backend=backend, changes=changes)
+        typer.echo("-" * 60)
+    elif is_pipeline:
+        typer.echo(f"\n파이프라인 모드: {name}")
+        typer.echo("  프롬프트 버저닝 건너뜀")
         typer.echo("-" * 60)
 
     # both: Langfuse + LangSmith 동시 실행

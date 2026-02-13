@@ -30,10 +30,15 @@ def prompt_info(
 
     Usage: prompt info prep_generate
     """
+    from prompt_evaluator.context import get_context
+
+    ctx = get_context()
+    targets_dir = ctx.targets_dir
+
     typer.echo(f"\n📋 프롬프트 정보: {name}")
     typer.echo("-" * 60)
 
-    metadata = load_metadata(name)
+    metadata = load_metadata(name, targets_dir)
 
     if metadata is None:
         typer.echo("메타데이터 없음. 'prompt init'으로 초기화하세요.")
@@ -44,7 +49,7 @@ def prompt_info(
     typer.echo(f"  생성일: {metadata.get('created_at', '(미지정)')}")
     typer.echo(f"  현재 버전: {metadata.get('current_version', '(미지정)')}")
 
-    history = get_version_history(name)
+    history = get_version_history(name, targets_dir)
     if history:
         typer.echo(f"\n  [버전 이력] ({len(history)}개)")
         for v in history[:5]:
@@ -86,18 +91,19 @@ def prompt_init(
         typer.echo(f"프롬프트 폴더 없음: {prompt_dir}")
         raise typer.Exit(1)
 
-    existing = load_metadata(name)
+    targets_dir = ctx.targets_dir
+    existing = load_metadata(name, targets_dir)
     if existing:
         typer.echo(
             f"이미 메타데이터가 존재합니다. (현재 버전: {existing.get('current_version')})"
         )
         raise typer.Exit(1)
 
-    init_metadata(name, owner)
+    init_metadata(name, owner, targets_dir)
     typer.echo(f"\n✓ 메타데이터 초기화 완료: {name}")
     typer.echo(f"  소유자: {owner}")
     typer.echo("  버전: v1.0")
-    typer.echo(f"  파일: targets/{name}/.metadata.yaml")
+    typer.echo(f"  파일: {targets_dir / name / '.metadata.yaml'}")
     typer.echo()
 
 
@@ -123,8 +129,11 @@ def prompt_add_version(
             )
             raise typer.Exit(1)
 
+    from prompt_evaluator.context import get_context
+
+    ctx = get_context()
     try:
-        add_version(name, version, author, changes)
+        add_version(name, version, author, changes, targets_dir=ctx.targets_dir)
         typer.echo(f"\n✓ 버전 추가 완료: {name} {version}")
         typer.echo(f"  작성자: {author}")
         typer.echo(f"  변경: {changes}")

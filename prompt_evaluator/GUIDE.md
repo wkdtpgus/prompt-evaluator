@@ -363,6 +363,164 @@ prompt-eval experiment --name my_prompt --mode full
 
 ---
 
+## 2-B. 파이프라인 모드 (E2E 평가)
+
+기존 프롬프트 모드는 **프롬프트 템플릿 + LLM 1회 호출**을 평가합니다.
+파이프라인 모드는 **프로덕션 코드의 실제 파이프라인 클래스를 통째로 호출**하여 E2E 결과를 평가합니다.
+
+### 프롬프트 모드 vs 파이프라인 모드
+
+| | 프롬프트 모드 | 파이프라인 모드 |
+|---|---|---|
+| **실행 대상** | 프롬프트 템플릿 + LLM 1회 호출 | 사용자 파이프라인 클래스 전체 |
+| **프롬프트 관리** | 패키지가 로드/관리 | 프로덕션 코드 내부에서 자체 관리 |
+| **필요 파일** | `prompt.*` + `config.yaml` | `config.yaml`만 (프롬프트 파일 불필요) |
+| **프로덕션 코드 변경** | 불필요 | 불필요 |
+| **용도** | 단일 프롬프트 품질 평가 | 다단계 파이프라인 E2E 평가 |
+
+### 2-B.1. 동작 원리
+
+```
+config.yaml에 pipeline 설정 감지
+    ↓
+PipelineRunner가 프로덕션 모듈을 동적 import
+    ↓
+클래스 인스턴스화 → 메서드 바인딩
+    ↓
+test_cases.json의 각 inputs:
+    → (선택) Pydantic 모델로 변환
+    → 파이프라인 메서드 호출
+    → 내부적으로 src/prompts의 프롬프트를 사용하여 LLM 호출
+    → 결과를 문자열로 변환
+    ↓
+evaluators로 출력 평가 (keyword, forbidden, llm_judge)
+```
+
+**핵심**: 패키지는 프로덕션 파이프라인의 결과만 받아서 평가합니다. 프롬프트 로딩/LLM 호출은 전적으로 프로덕션 코드가 담당합니다.
+
+### 2-B.2. 설정 방법
+
+**1단계: 폴더 생성**
+
+```bash
+mkdir -p targets/prep_output_generate
+mkdir -p datasets/prep_output_generate
+```
+
+**2단계: config.yaml 작성**
+
+`targets/prep_output_generate/config.yaml`:
+```yaml
+name: prep_output_generate
+description: PrepOutput 생성 파이프라인 E2E 평가
+
+# pipeline 블록이 있으면 자동으로 파이프라인 모드로 전환
+pipeline:
+  module: src.services.prep_output_generator.workflow    # import할 모듈
+  class: PrepOutputPipeline                              # 인스턴스화할 클래스
+  method: generate                                       # 호출할 메서드
+  input_model: src.services.prep_output_generator.schemas.PrepOutputInput  # (선택) Pydantic 입력 모델
+  output_key: result                                     # (선택) 반환값에서 추출할 필드
+  init_args:                                             # (선택) 생성자 인자
+    db_url: ${DATABASE_URL}                              # 환경변수 참조 가능
+
+output_format: text
+
+evaluators:
+  - type: rule_based
+    checks:
+      - keyword_inclusion
+      - forbidden_word_check
+  - type: llm_judge
+    enabled: true
+    criteria:
+      - meeting_prep/e2e_information_preservation
+      - general/output_quality
+
+thresholds:
+  pass_rate: 0.80
+  min_score: 0.65
+```
+
+> **프롬프트 파일(`prompt.*`)은 불필요합니다.** `pipeline:` 블록이 있으면 프롬프트 파일 로드를 건너뜁니다.
+
+**3단계: 테스트 데이터 작성**
+
+`datasets/prep_output_generate/test_cases.json`:
+```json
+[
+  {
+    "id": "case_001",
+    "description": "기본 케이스",
+    "inputs": {
+      "chat_history": [
+        {"role": "assistant", "content": "오늘 상태는 어떠세요?"},
+        {"role": "user", "content": "업무가 좀 힘들었어요"}
+      ],
+      "survey_answers": {"condition": "GOOD", "topic": "WORK_ISSUES"},
+      "language": "ko-KR",
+      "member_name": "김테스트"
+    }
+  }
+]
+```
+
+> `inputs`의 키는 `input_model` (Pydantic 모델)의 필드와 일치해야 합니다.
+> `input_model`을 지정하지 않으면 `**kwargs`로 전달됩니다.
+
+`datasets/prep_output_generate/expected.json`:
+```json
+{
+  "case_001": {
+    "keywords": ["김테스트", "업무"],
+    "forbidden": []
+  }
+}
+```
+
+**4단계: 실행**
+
+```bash
+# 파이프라인 모드 실행 (--no-push로 버저닝 건너뜀)
+prompt-eval experiment --name prep_output_generate --mode full --backend langfuse --no-push
+
+# 프롬프트 버저닝은 자동으로 스킵됩니다 (pipeline 모드 감지)
+prompt-eval experiment --name prep_output_generate --mode full --backend langfuse
+```
+
+### 2-B.3. pipeline config 필드 설명
+
+| 필드 | 필수 | 설명 |
+|------|:----:|------|
+| `module` | O | 파이프라인 클래스가 위치한 모듈의 dotted import path |
+| `class` | O | 인스턴스화할 클래스 이름 |
+| `method` | - | 호출할 메서드명. 미지정 시 `__call__()` 사용 |
+| `input_model` | - | 입력 dict를 변환할 Pydantic 모델의 dotted path. 미지정 시 `**kwargs` 전달 |
+| `output_key` | - | 반환값이 dict/Pydantic 모델일 때 특정 필드만 추출 |
+| `init_args` | - | 클래스 생성자에 전달할 키워드 인자. `${ENV_VAR}` 문법으로 환경변수 참조 가능 |
+
+### 2-B.4. 입출력 처리 규칙
+
+**입력 변환:**
+- `input_model` 지정 시: `Model(**inputs)` → Pydantic 모델 인스턴스로 변환 후 단일 인자로 전달
+- `input_model` 미지정 시: `**inputs`로 kwargs 전달 시도, 실패하면 dict 단일 인자로 전달
+
+**출력 변환:**
+1. `output_key` 지정 시 해당 필드 먼저 추출
+2. `str` → 그대로 사용
+3. `dict`/`list` → `json.dumps()`
+4. Pydantic 모델 → `model_dump()` → `json.dumps()`
+5. 기타 → `str()`
+
+### 2-B.5. 주의사항
+
+- **프로젝트 루트에서 실행**: `importlib`이 모듈을 찾으려면 CWD가 프로젝트 루트여야 합니다
+- **프로덕션 의존성 필요**: 파이프라인이 사용하는 모든 패키지가 설치되어 있어야 합니다
+- **환경변수 필요**: 프로덕션 코드가 참조하는 `.env`가 로드되어 있어야 합니다
+- **LLM Judge**: 파이프라인 모드에서는 원본 프롬프트 없이 출력만 평가합니다. `instruction_following` 대신 `output_quality`, `e2e_information_preservation` 같은 **출력 자체를 평가하는 기준**을 사용하세요
+
+---
+
 ## 3. CLI 명령어
 
 > 아래 예시에서 `prompt-eval`은 패키지 설치 후 사용 가능한 CLI 엔트리 포인트입니다.

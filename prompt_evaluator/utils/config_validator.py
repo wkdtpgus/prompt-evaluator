@@ -71,30 +71,47 @@ def validate_config(
     if run_mode and run_mode not in VALID_RUN_MODES:
         errors.append(f"잘못된 run_mode: {run_mode} (허용: {VALID_RUN_MODES})")
 
-    # 5. 프롬프트 파일 존재 확인
-    prompt_file_override = config.get("prompt_file")
-    if prompt_file_override:
-        prompt_path = Path(prompt_file_override)
-        if not prompt_path.exists():
-            errors.append(f"prompt_file 경로 없음: {prompt_path}")
-        elif prompt_path.suffix.lower() not in SUPPORTED_EXTENSIONS:
-            errors.append(
-                f"지원하지 않는 프롬프트 형식: {prompt_path.suffix} "
-                f"(지원: {list(SUPPORTED_EXTENSIONS)})"
+    # 5. Pipeline 설정 검증 또는 프롬프트 파일 존재 확인
+    pipeline_config = config.get("pipeline")
+    if pipeline_config and isinstance(pipeline_config, dict):
+        # Pipeline 모드 검증
+        if not pipeline_config.get("module"):
+            errors.append("pipeline.module은 필수입니다.")
+        if not pipeline_config.get("class"):
+            errors.append("pipeline.class는 필수입니다.")
+        input_model = pipeline_config.get("input_model")
+        if input_model and not isinstance(input_model, str):
+            errors.append("pipeline.input_model은 dotted path 문자열이어야 합니다.")
+        if config.get("prompt_file"):
+            warnings.append(
+                "pipeline과 prompt_file이 동시에 설정됨. "
+                "pipeline 모드에서는 prompt_file이 무시됩니다."
             )
     else:
-        prompt_folder = targets_dir / prompt_name
-        if prompt_folder.is_dir():
-            has_prompt = any(
-                (prompt_folder / f"prompt{ext}").exists()
-                for ext in SUPPORTED_EXTENSIONS
-            )
-            if not has_prompt:
+        # 기존 프롬프트 파일 존재 확인
+        prompt_file_override = config.get("prompt_file")
+        if prompt_file_override:
+            prompt_path = Path(prompt_file_override)
+            if not prompt_path.exists():
+                errors.append(f"prompt_file 경로 없음: {prompt_path}")
+            elif prompt_path.suffix.lower() not in SUPPORTED_EXTENSIONS:
                 errors.append(
-                    f"프롬프트 파일 없음: {prompt_folder}/prompt.[txt|py|xml|md]"
+                    f"지원하지 않는 프롬프트 형식: {prompt_path.suffix} "
+                    f"(지원: {list(SUPPORTED_EXTENSIONS)})"
                 )
         else:
-            errors.append(f"프롬프트 폴더 없음: {prompt_folder}")
+            prompt_folder = targets_dir / prompt_name
+            if prompt_folder.is_dir():
+                has_prompt = any(
+                    (prompt_folder / f"prompt{ext}").exists()
+                    for ext in SUPPORTED_EXTENSIONS
+                )
+                if not has_prompt:
+                    errors.append(
+                        f"프롬프트 파일 없음: {prompt_folder}/prompt.[txt|py|xml|md]"
+                    )
+            else:
+                errors.append(f"프롬프트 폴더 없음: {prompt_folder}")
 
     # 6. 데이터셋 파일 존재 확인
     data_dir = datasets_dir / prompt_name

@@ -56,27 +56,33 @@ def load_evaluation_set(
     with open(config_file, "r", encoding="utf-8") as f:
         eval_config = yaml.safe_load(f)
 
-    # 프롬프트 파일 찾기 (prompt_file 오버라이드 지원)
-    prompt_file_override = eval_config.get("prompt_file")
-    prompt_file = find_prompt_file(
-        prompt_name, targets_dir, prompt_file_override=prompt_file_override
-    )
+    # Pipeline 모드: 프롬프트 파일 불필요
+    pipeline_config = eval_config.get("pipeline")
+    if pipeline_config and isinstance(pipeline_config, dict):
+        template = ""
+        prompts = {}
+    else:
+        # 프롬프트 파일 찾기 (prompt_file 오버라이드 지원)
+        prompt_file_override = eval_config.get("prompt_file")
+        prompt_file = find_prompt_file(
+            prompt_name, targets_dir, prompt_file_override=prompt_file_override
+        )
 
-    # 프롬프트 로드
-    prompts = load_prompt_file(prompt_file)
+        # 프롬프트 로드
+        prompts = load_prompt_file(prompt_file)
 
-    # prompt_key가 지정된 경우 해당 키만 사용
-    prompt_key = eval_config.get("prompt_key")
-    if prompt_key:
-        if prompt_key not in prompts:
-            available = list(prompts.keys())
-            raise ValueError(
-                f"prompt_key '{prompt_key}'을 찾을 수 없음. 사용 가능한 키: {available}"
-            )
-        prompts = {prompt_key: prompts[prompt_key]}
+        # prompt_key가 지정된 경우 해당 키만 사용
+        prompt_key = eval_config.get("prompt_key")
+        if prompt_key:
+            if prompt_key not in prompts:
+                available = list(prompts.keys())
+                raise ValueError(
+                    f"prompt_key '{prompt_key}'을 찾을 수 없음. 사용 가능한 키: {available}"
+                )
+            prompts = {prompt_key: prompts[prompt_key]}
 
-    # 단일 템플릿 추출
-    template = _extract_template(prompts)
+        # 단일 템플릿 추출
+        template = _extract_template(prompts)
 
     # 데이터 파일 로드
     with open(data_dir / "test_cases.json", "r", encoding="utf-8") as f:
@@ -141,13 +147,18 @@ def list_evaluation_sets(
         with open(config_file, "r", encoding="utf-8") as f:
             config = yaml.safe_load(f) or {}
 
-        prompt_file_override = config.get("prompt_file")
-        if prompt_file_override:
-            has_prompt = Path(prompt_file_override).exists()
+        # pipeline 모드에서는 프롬프트 파일 불필요
+        pipeline_config = config.get("pipeline")
+        if pipeline_config and isinstance(pipeline_config, dict):
+            has_prompt = True
         else:
-            has_prompt = any(
-                (folder / f"prompt{ext}").exists() for ext in SUPPORTED_EXTENSIONS
-            )
+            prompt_file_override = config.get("prompt_file")
+            if prompt_file_override:
+                has_prompt = Path(prompt_file_override).exists()
+            else:
+                has_prompt = any(
+                    (folder / f"prompt{ext}").exists() for ext in SUPPORTED_EXTENSIONS
+                )
 
         if not has_prompt:
             continue

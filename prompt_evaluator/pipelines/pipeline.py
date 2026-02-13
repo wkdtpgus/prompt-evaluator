@@ -128,20 +128,43 @@ def run_langsmith_experiment(
     expected_all = data["expected"]
     eval_config = data["eval_config"]
 
-    # 프롬프트 소스 결정: LangSmith 버전 or 로컬 파일
-    if prompt_version:
-        print(f"  LangSmith 프롬프트 버전: {prompt_version}")
-        template = get_prompt(
-            prompt_name, backend="langsmith", version_tag=prompt_version
-        )
-    else:
-        template = data["template"]
+    # Pipeline 모드 감지
+    from prompt_evaluator.pipelines.runner import (
+        is_pipeline_mode,
+        create_pipeline_runner,
+    )
 
-    # 3. Target 함수 정의 (LLM 호출)
-    def target(inputs: dict) -> dict:
-        """LangSmith evaluate()에서 호출할 타겟 함수."""
-        output = execute_prompt(template, inputs)
-        return {"output": output}
+    pipeline_mode = is_pipeline_mode(eval_config)
+    pipeline_runner = None
+
+    if pipeline_mode:
+        pipeline_runner = create_pipeline_runner(eval_config)
+        template = data.get("template", "")
+        model_display = f"pipeline: {eval_config['pipeline']['module']}.{eval_config['pipeline'].get('class', '')}"
+    else:
+        # 프롬프트 소스 결정: LangSmith 버전 or 로컬 파일
+        if prompt_version:
+            print(f"  LangSmith 프롬프트 버전: {prompt_version}")
+            template = get_prompt(
+                prompt_name, backend="langsmith", version_tag=prompt_version
+            )
+        else:
+            template = data["template"]
+        model_display = get_execution_llm().model_name
+
+    # 3. Target 함수 정의
+    if pipeline_mode:
+
+        def target(inputs: dict) -> dict:
+            """Pipeline 모드: 사용자 파이프라인 호출."""
+            output = pipeline_runner.run(inputs)
+            return {"output": output}
+    else:
+
+        def target(inputs: dict) -> dict:
+            """LangSmith evaluate()에서 호출할 타겟 함수."""
+            output = execute_prompt(template, inputs)
+            return {"output": output}
 
     # 4. 평가자 구성
     evaluators = [
@@ -171,7 +194,7 @@ def run_langsmith_experiment(
     print(f"\nLangSmith Experiment 시작: {experiment_prefix}")
     print(f"  Dataset: {dataset_name}")
     print(f"  Mode: {mode}")
-    print(f"  Model: {get_execution_llm().model_name}")
+    print(f"  Model: {model_display}")
     print()
 
     results = evaluate(
@@ -233,17 +256,32 @@ def run_langfuse_experiment(
     expected_all = data["expected"]
     eval_config = data["eval_config"]
 
-    # 프롬프트 소스 결정: Langfuse 버전 or 로컬 파일
-    if prompt_version:
-        print(f"  Langfuse 프롬프트 버전: {prompt_version}")
-        prompt_obj = get_prompt(
-            prompt_name,
-            backend="langfuse",
-            version=int(prompt_version.lstrip("v").split(".")[0]),
-        )
-        template = prompt_obj.compile()
+    # Pipeline 모드 감지
+    from prompt_evaluator.pipelines.runner import (
+        is_pipeline_mode,
+        create_pipeline_runner,
+    )
+
+    pipeline_mode = is_pipeline_mode(eval_config)
+    pipeline_runner = None
+
+    if pipeline_mode:
+        pipeline_runner = create_pipeline_runner(eval_config)
+        template = data.get("template", "")
+        model_display = f"pipeline: {eval_config['pipeline']['module']}.{eval_config['pipeline'].get('class', '')}"
     else:
-        template = data["template"]
+        # 프롬프트 소스 결정: Langfuse 버전 or 로컬 파일
+        if prompt_version:
+            print(f"  Langfuse 프롬프트 버전: {prompt_version}")
+            prompt_obj = get_prompt(
+                prompt_name,
+                backend="langfuse",
+                version=int(prompt_version.lstrip("v").split(".")[0]),
+            )
+            template = prompt_obj.compile()
+        else:
+            template = data["template"]
+        model_display = get_execution_llm().model_name
 
     # 2. 데이터셋 로드
     try:
@@ -261,7 +299,7 @@ def run_langfuse_experiment(
     print(f"\nLangfuse Experiment 시작: {experiment_name}")
     print(f"  Dataset: {prompt_name}")
     print(f"  Mode: {mode}")
-    print(f"  Model: {get_execution_llm().model_name}")
+    print(f"  Model: {model_display}")
     print(f"  Items: {len(dataset.items)}")
     print()
 
@@ -280,12 +318,20 @@ def run_langfuse_experiment(
     if use_llm_judge:
         print(f"  LLM Judge 평가자: {criteria}")
 
-    # 5. Task 함수 정의 (LLM 호출 + Langfuse 트레이싱)
-    def task(item):
-        """Langfuse 실험의 타겟 함수 - 각 데이터셋 아이템에 대해 실행됨."""
-        handler = get_langfuse_handler()
-        output = execute_prompt(template, item.input, callbacks=[handler])
-        return {"output": output}
+    # 5. Task 함수 정의
+    if pipeline_mode:
+
+        def task(item):
+            """Pipeline 모드: 사용자 파이프라인 호출."""
+            output = pipeline_runner.run(item.input)
+            return {"output": output}
+    else:
+
+        def task(item):
+            """Langfuse 실험의 타겟 함수 - 각 데이터셋 아이템에 대해 실행됨."""
+            handler = get_langfuse_handler()
+            output = execute_prompt(template, item.input, callbacks=[handler])
+            return {"output": output}
 
     # 6. 평가자 구성
     evaluators = [
@@ -305,7 +351,7 @@ def run_langfuse_experiment(
         data=dataset.items,
         task=task,
         evaluators=evaluators,
-        metadata={"mode": mode, "model": get_execution_llm().model_name},
+        metadata={"mode": mode, "model": model_display},
     )
 
     # 9. 결과 변환
@@ -381,7 +427,7 @@ def run_langfuse_experiment(
         "experiment_name": experiment_name,
         "prompt_name": prompt_name,
         "mode": mode,
-        "model": get_execution_llm().model_name,
+        "model": model_display,
         "timestamp": datetime.now().isoformat(),
         "results": results,
         "summary": summary,

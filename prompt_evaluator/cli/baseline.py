@@ -61,7 +61,9 @@ def baseline_set(
     typer.echo(f"  실험: {experiment}")
 
     if version is None:
-        metadata = load_metadata(name)
+        from prompt_evaluator.context import get_context
+
+        metadata = load_metadata(name, get_context().targets_dir)
         version = metadata.get("current_version", "latest") if metadata else "latest"
 
     typer.echo(f"  버전: {version}")
@@ -97,7 +99,9 @@ def baseline_set_local(
     typer.echo(f"\n기준선 설정 (로컬): {name}")
 
     if version is None:
-        metadata = load_metadata(name)
+        from prompt_evaluator.context import get_context
+
+        metadata = load_metadata(name, get_context().targets_dir)
         version = metadata.get("current_version", "latest") if metadata else "latest"
 
     typer.echo(f"  버전: {version}")
@@ -142,7 +146,9 @@ def baseline_set_langfuse(
     typer.echo(f"\n기준선 설정 (Langfuse): {name}")
 
     if version is None:
-        metadata = load_metadata(name)
+        from prompt_evaluator.context import get_context
+
+        metadata = load_metadata(name, get_context().targets_dir)
         version = metadata.get("current_version", "latest") if metadata else "latest"
 
     typer.echo(f"  버전: {version}")

@@ -79,6 +79,49 @@ prompt_key:
     prompt_file과 함께 사용. 미지정 시 모든 *_PROMPT 변수를 로드합니다.
   example: SYSTEM_PROMPT
 
+pipeline:
+  type: object
+  required: false
+  description: |
+    파이프라인 모드 설정. 지정 시 execute_prompt 대신 사용자 파이프라인 함수를 호출.
+    pipeline 지정 시 prompt_file/prompt_key는 불필요 (무시됨).
+  properties:
+    module:
+      type: string
+      required: true
+      description: 파이프라인 클래스가 위치한 모듈의 dotted import path
+      example: src.services.prep_output_generator.workflow
+    class:
+      type: string
+      required: true
+      description: 인스턴스화할 클래스 이름
+      example: PrepOutputPipeline
+    method:
+      type: string
+      required: false
+      description: 호출할 메서드명 (미지정 시 __call__ 사용)
+      example: generate
+    input_model:
+      type: string
+      required: false
+      description: |
+        입력 dict를 변환할 Pydantic 모델의 dotted path.
+        미지정 시 dict를 **kwargs로 전달.
+      example: src.services.prep_output_generator.schemas.PrepOutputInput
+    output_key:
+      type: string
+      required: false
+      description: 반환값이 dict/Pydantic 모델일 때 특정 필드만 추출
+      example: result
+    init_args:
+      type: object
+      required: false
+      description: |
+        클래스 생성자에 전달할 키워드 인자.
+        환경변수 참조 가능: ${ENV_VAR_NAME}
+      example:
+        db_url: ${DATABASE_URL}
+
 # =============================================================================
 # 예시 config
 # =============================================================================
@@ -104,3 +147,29 @@ prompt_key:
 #   min_score: 0.70
 #
 # run_mode: full
+#
+# =============================================================================
+# 예시 config (Pipeline 모드)
+# =============================================================================
+#
+# name: prep_output_generate
+# description: PrepOutput 생성 파이프라인 E2E 평가
+#
+# pipeline:
+#   module: src.services.prep_output_generator.workflow
+#   class: PrepOutputPipeline
+#   method: generate
+#   input_model: src.services.prep_output_generator.schemas.PrepOutputInput
+#   output_key: result
+#
+# output_format: text
+#
+# evaluators:
+#   - type: llm_judge
+#     enabled: true
+#     criteria:
+#       - meeting_prep/e2e_information_preservation
+#
+# thresholds:
+#   pass_rate: 0.80
+#   min_score: 0.65
