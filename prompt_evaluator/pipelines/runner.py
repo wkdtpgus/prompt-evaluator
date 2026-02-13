@@ -203,11 +203,18 @@ class PipelineRunner:
                 loop = None
 
             if loop and loop.is_running():
-                # 이미 이벤트 루프 안 (Langfuse 등) → 새 스레드에서 실행
+                # 이미 이벤트 루프 안 (Langfuse 등) → 새 스레드에서 독립 루프 생성
                 import concurrent.futures
 
+                def _run_coro(coro):
+                    new_loop = asyncio.new_event_loop()
+                    try:
+                        return new_loop.run_until_complete(coro)
+                    finally:
+                        new_loop.close()
+
                 with concurrent.futures.ThreadPoolExecutor() as pool:
-                    raw_output = pool.submit(asyncio.run, raw_output).result()
+                    raw_output = pool.submit(_run_coro, raw_output).result()
             else:
                 raw_output = asyncio.run(raw_output)
 
