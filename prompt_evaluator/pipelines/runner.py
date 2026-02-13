@@ -4,6 +4,7 @@
 config.yaml의 pipeline 설정에 따라 동작합니다.
 """
 
+import asyncio
 import importlib
 import json
 import os
@@ -191,6 +192,12 @@ class PipelineRunner:
                 f"파이프라인 실행 실패 ({self.config['module']}.{self.config.get('class', '')}"
                 f".{self.config.get('method', '__call__')}): {e}"
             ) from e
+
+        # async 메서드 지원: 코루틴이면 asyncio.run()으로 실행
+        import inspect
+
+        if inspect.isawaitable(raw_output):
+            raw_output = asyncio.run(raw_output)
 
         return self.normalize_output(raw_output)
 

@@ -9,18 +9,22 @@
 ### 1.1. 설치
 
 ```bash
-# Git 저장소에서 직접 설치
-pip install git+https://github.com/{org}/prompt-evaluator.git
+# Poetry로 프라이빗 Git 저장소에서 설치 (PAT 필요)
+poetry add git+https://{GITHUB_PAT}@github.com/wkdtpgus/prompt-evaluator.git
+
+# 또는 pip으로 설치
+pip install git+https://{GITHUB_PAT}@github.com/wkdtpgus/prompt-evaluator.git
 
 # 또는 로컬 경로에서 설치
 pip install /path/to/prompt-evaluator
 
-# 또는 wheel 파일로 설치
-pip install prompt_evaluator-0.1.0-py3-none-any.whl
-
 # 개발 환경 (이 저장소를 직접 수정하는 경우)
 poetry install
 ```
+
+> **PAT(Personal Access Token) 발급 방법**:
+> GitHub → Settings → Developer settings → Personal access tokens → Generate new token
+> `repo` 권한을 부여한 뒤, 위 `{GITHUB_PAT}` 자리에 발급된 토큰을 넣으세요.
 
 ### 1.2. 평가 환경 초기화
 
