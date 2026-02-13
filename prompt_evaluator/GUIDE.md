@@ -26,6 +26,14 @@ poetry install
 > GitHub → Settings → Developer settings → Personal access tokens → Generate new token
 > `repo` 권한을 부여한 뒤, 위 `{GITHUB_PAT}` 자리에 발급된 토큰을 넣으세요.
 
+```bash
+# 삭제
+poetry remove prompt-evaluator
+
+# 최신 버전으로 업데이트
+poetry update prompt-evaluator
+```
+
 ### 1.2. 평가 환경 초기화
 
 패키지 설치 후, 프로덕션 프로젝트에서 `init` 명령으로 평가 환경을 세팅합니다:

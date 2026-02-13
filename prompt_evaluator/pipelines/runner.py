@@ -193,11 +193,23 @@ class PipelineRunner:
                 f".{self.config.get('method', '__call__')}): {e}"
             ) from e
 
-        # async 메서드 지원: 코루틴이면 asyncio.run()으로 실행
+        # async 메서드 지원: 코루틴이면 실행
         import inspect
 
         if inspect.isawaitable(raw_output):
-            raw_output = asyncio.run(raw_output)
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
+
+            if loop and loop.is_running():
+                # 이미 이벤트 루프 안 (Langfuse 등) → 새 스레드에서 실행
+                import concurrent.futures
+
+                with concurrent.futures.ThreadPoolExecutor() as pool:
+                    raw_output = pool.submit(asyncio.run, raw_output).result()
+            else:
+                raw_output = asyncio.run(raw_output)
 
         return self.normalize_output(raw_output)
 
