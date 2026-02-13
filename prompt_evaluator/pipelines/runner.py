@@ -9,6 +9,7 @@ import importlib
 import json
 import os
 import sys
+import threading
 from typing import Any
 
 
@@ -18,6 +19,18 @@ class PipelineRunner:
     Args:
         pipeline_config: config.yaml의 pipeline 섹션 dict
     """
+
+    _loop: asyncio.AbstractEventLoop | None = None
+    _thread: threading.Thread | None = None
+
+    @classmethod
+    def _get_loop(cls) -> asyncio.AbstractEventLoop:
+        """전용 이벤트 루프를 한 번만 생성하고 백그라운드 스레드에서 유지."""
+        if cls._loop is None or cls._loop.is_closed():
+            cls._loop = asyncio.new_event_loop()
+            cls._thread = threading.Thread(target=cls._loop.run_forever, daemon=True)
+            cls._thread.start()
+        return cls._loop
 
     def __init__(self, pipeline_config: dict):
         self.config = pipeline_config
@@ -193,30 +206,13 @@ class PipelineRunner:
                 f".{self.config.get('method', '__call__')}): {e}"
             ) from e
 
-        # async 메서드 지원: 코루틴이면 실행
+        # async 메서드 지원: 코루틴이면 전용 루프에서 실행
         import inspect
 
         if inspect.isawaitable(raw_output):
-            try:
-                loop = asyncio.get_running_loop()
-            except RuntimeError:
-                loop = None
-
-            if loop and loop.is_running():
-                # 이미 이벤트 루프 안 (Langfuse 등) → 새 스레드에서 독립 루프 생성
-                import concurrent.futures
-
-                def _run_coro(coro):
-                    new_loop = asyncio.new_event_loop()
-                    try:
-                        return new_loop.run_until_complete(coro)
-                    finally:
-                        new_loop.close()
-
-                with concurrent.futures.ThreadPoolExecutor() as pool:
-                    raw_output = pool.submit(_run_coro, raw_output).result()
-            else:
-                raw_output = asyncio.run(raw_output)
+            loop = self._get_loop()
+            future = asyncio.run_coroutine_threadsafe(raw_output, loop)
+            raw_output = future.result()
 
         return self.normalize_output(raw_output)
 
