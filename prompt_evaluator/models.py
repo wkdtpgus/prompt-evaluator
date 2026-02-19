@@ -50,23 +50,13 @@ def get_execution_llm():
 
 
 def get_judge_llm():
-    """LLM Judge 평가용 LLM 인스턴스 반환."""
+    """LLM Judge 평가용 LLM 인스턴스 반환 (OpenAI 고정)."""
     global _judge_llm
     if _judge_llm is None:
-        if GOOGLE_CLOUD_PROJECT:
-            from langchain_google_vertexai import ChatVertexAI
+        from langchain_openai import ChatOpenAI
 
-            _judge_llm = ChatVertexAI(
-                project=GOOGLE_CLOUD_PROJECT,
-                location=GOOGLE_CLOUD_LOCATION,
-                model_name=DEFAULT_LLM_JUDGE_MODEL,
-                temperature=DEFAULT_TEMPERATURE,
-            )
-        else:
-            from langchain_openai import ChatOpenAI
-
-            _judge_llm = ChatOpenAI(
-                model="gpt-4o-mini",
-                temperature=DEFAULT_TEMPERATURE,
-            )
+        _judge_llm = ChatOpenAI(
+            model=DEFAULT_LLM_JUDGE_MODEL,
+            temperature=DEFAULT_TEMPERATURE,
+        )
     return _judge_llm

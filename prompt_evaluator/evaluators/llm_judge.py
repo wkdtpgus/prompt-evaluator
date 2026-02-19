@@ -43,13 +43,8 @@ def run_checklist_evaluation(
     # LLM 선택: 주입된 LLM or 기본 judge_llm
     evaluator_llm = llm if llm is not None else get_judge_llm()
 
-    # JSON 응답 강제: provider별 분기
-    from langchain_openai import ChatOpenAI
-
-    if isinstance(evaluator_llm, ChatOpenAI):
-        json_judge = evaluator_llm.bind(response_format={"type": "json_object"})
-    else:
-        json_judge = evaluator_llm.bind(response_mime_type="application/json")
+    # JSON 응답 강제 (OpenAI)
+    json_judge = evaluator_llm.bind(response_format={"type": "json_object"})
 
     from prompt_evaluator.context import get_context
 

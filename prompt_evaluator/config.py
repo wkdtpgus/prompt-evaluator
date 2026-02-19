@@ -10,8 +10,7 @@ load_dotenv(find_dotenv(usecwd=True))
 # =============================================================================
 
 DEFAULT_MODEL = "gpt-4o-mini"
-# DEFAULT_LLM_JUDGE_MODEL = "gpt-4o-mini"
-DEFAULT_LLM_JUDGE_MODEL = "gemini-2.5-pro"
+DEFAULT_LLM_JUDGE_MODEL = "gpt-4o"
 DEFAULT_EMBEDDING_PROVIDER = "openai"
 OPENAI_EMBEDDING_MODEL = "text-embedding-3-small"
 VERTEX_EMBEDDING_MODEL = "text-embedding-004"
