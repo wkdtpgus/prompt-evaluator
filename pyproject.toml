@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "prompt-evaluator"
+name = "prompt_evaluator"
 version = "0.1.0"
 description = "LLM 프롬프트 정량 평가 엔진"
 readme = "README.md"
