@@ -97,7 +97,11 @@ class PipelineRunner:
         Returns:
             호출 가능한 바인드된 메서드
         """
-        module = importlib.import_module(self.config["module"])
+        mod_path = self.config["module"]
+        if mod_path.startswith("."):
+            module = importlib.import_module(mod_path, package="prompt_evaluator")
+        else:
+            module = importlib.import_module(mod_path)
 
         class_name = self.config.get("class")
         if not class_name:

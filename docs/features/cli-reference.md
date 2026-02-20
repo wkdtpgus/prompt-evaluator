@@ -26,6 +26,7 @@ prompt-eval
 ├── validate            # 설정 검증
 ├── list                # 평가 세트 목록
 ├── upload              # 데이터셋 업로드
+├── collect             # Langfuse 트레이스 수집
 ├── prompt              # 프롬프트 서브커맨드
 │   ├── info
 │   ├── init
@@ -50,7 +51,7 @@ prompt-eval
 | `prompt_evaluator/cli/baseline.py` | `baseline` 서브커맨드 |
 | `prompt_evaluator/cli/experiment.py` | `experiment`, `regression` 명령어 |
 | `prompt_evaluator/cli/config.py` | `validate` 명령어 |
-| `prompt_evaluator/cli/dataset.py` | `list`, `upload` 명령어 |
+| `prompt_evaluator/cli/dataset.py` | `list`, `upload`, `collect` 명령어 |
 | `main.py` | 개발용 thin wrapper |
 
 ---
@@ -246,6 +247,105 @@ prompt-eval upload --name <name>
 
 ```bash
 prompt-eval upload --name prep_generate
+```
+
+---
+
+### 5.3. collect
+
+Langfuse 프로덕션 트레이스에서 데이터를 수집하여 로컬 데이터셋(`test_cases.json` + `expected.json`)으로 변환
+
+```bash
+prompt-eval collect --name <name> [options]
+```
+
+| 옵션 | 축약 | 설명 | 기본값 |
+|------|------|------|--------|
+| `--name` | `-n` | 데이터셋 이름 (datasets/{name}/ 에 저장) | 필수 |
+| `--limit` | `-l` | 수집할 트레이스 최대 개수 | 10 |
+| `--since` | | 시작 날짜 (ISO 형식) | None |
+| `--until` | | 종료 날짜 (ISO 형식) | None |
+| `--tag` | `-t` | 필터링할 태그 (여러 개 가능) | None |
+| `--session` | | 세션 ID 필터 | None |
+| `--trace-name` | | 트레이스 이름 필터 | None |
+| `--user-id` | | 사용자 ID 필터 | None |
+| `--input-key` | | 이 키가 input에 있는 트레이스만 수집 | None |
+| `--input-contains` | | input에 이 문자열이 포함된 트레이스만 수집 | None |
+| `--append` | | 기존 데이터셋에 추가 (중복 자동 제거) | false |
+| `--dry-run` | | 저장하지 않고 미리보기만 | false |
+| `--key-map` | | 입력 키 매핑 (예: `prod_key:prompt_var,key2:var2`) | None |
+| `--prompt-file` | | 프롬프트 파일 경로 (자동 키 매핑에 사용) | None |
+| `--langfuse-profile` | `-p` | Langfuse 프로필명 (다른 프로젝트 수집 시) | None |
+
+**적합한 케이스**:
+- 트레이스 input에 **개별 변수가 분리**되어 있는 경우
+- 예: `{"question": "...", "context": "..."}` 형태의 단일 턴 API
+
+**부적합한 케이스**:
+- 멀티턴 챗봇처럼 input이 `{"messages": [...]}` 통째로 들어오는 경우
+- 이 경우 테스트 케이스를 수동으로 작성하는 것을 권장
+
+**예시**:
+
+```bash
+# 1. 미리보기 (저장 안 함)
+prompt-eval collect --name my_set --limit 5 --dry-run
+
+# 2. 트레이스 이름으로 필터링
+prompt-eval collect --name my_set --trace-name MyChain --limit 20
+
+# 3. 날짜 범위 지정
+prompt-eval collect --name my_set --since 2026-02-01 --until 2026-02-15
+
+# 4. 태그 + 날짜 조합
+prompt-eval collect --name my_set --tag production --tag v2 --since 2026-02-01
+
+# 5. input 내용으로 필터링
+prompt-eval collect --name my_set --input-key question --input-contains "배송"
+
+# 6. 기존 데이터셋에 추가 (중복 자동 제거)
+prompt-eval collect --name my_set --append --limit 10
+
+# 7. 다른 Langfuse 프로젝트에서 수집
+prompt-eval collect --name my_set -p other-project --limit 10
+
+# 8. 키 매핑 (프로덕션 키 → 프롬프트 변수)
+prompt-eval collect --name my_set --key-map "user_question:question,ctx:context"
+```
+
+**다른 Langfuse 프로젝트에서 수집하기**:
+
+기본적으로 `.env`의 `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY`를 사용합니다.
+다른 프로젝트에서 수집하려면 `.env`에 프로필 키를 추가하세요:
+
+```
+# 기본 프로젝트
+LANGFUSE_PUBLIC_KEY=pk-lf-xxx
+LANGFUSE_SECRET_KEY=sk-lf-xxx
+
+# 추가 프로젝트: my-app → LANGFUSE_MY_APP_*
+LANGFUSE_MY_APP_PUBLIC_KEY=pk-lf-yyy
+LANGFUSE_MY_APP_SECRET_KEY=sk-lf-yyy
+LANGFUSE_MY_APP_HOST=https://cloud.langfuse.com  # 선택사항
+```
+
+```bash
+prompt-eval collect --name my_set -p my-app --limit 10
+```
+
+**수집 후 워크플로우**:
+
+```bash
+# 1. 수집
+prompt-eval collect --name my_set --limit 20
+
+# 2. expected.json 수동 큐레이션 (keywords, forbidden 등 작성)
+
+# 3. 업로드
+prompt-eval upload --name my_set
+
+# 4. 평가 실행
+prompt-eval experiment --name my_set
 ```
 
 ---
