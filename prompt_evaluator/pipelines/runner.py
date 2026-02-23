@@ -189,6 +189,44 @@ class PipelineRunner:
 
         return str(output)
 
+    def _invoke(self, converted_input: Any) -> Any:
+        """callable을 호출하고, async이면 전용 루프에서 실행.
+
+        사용자가 sync 래퍼에서 asyncio.run()을 쓸 필요 없이
+        async def 메서드를 직접 지원합니다.
+        """
+        import inspect
+
+        # async callable 자동 감지: 사용자가 asyncio.run() 충돌 없이 사용 가능
+        if inspect.iscoroutinefunction(self._callable):
+            loop = self._get_loop()
+            if self._input_model_class is not None:
+                coro = self._callable(converted_input)
+            else:
+                try:
+                    coro = self._callable(**converted_input)
+                except TypeError:
+                    coro = self._callable(converted_input)
+            future = asyncio.run_coroutine_threadsafe(coro, loop)
+            return future.result()
+
+        # sync callable
+        if self._input_model_class is not None:
+            raw_output = self._callable(converted_input)
+        else:
+            try:
+                raw_output = self._callable(**converted_input)
+            except TypeError:
+                raw_output = self._callable(converted_input)
+
+        # sync callable이 코루틴을 반환하는 경우 (예: __call__이 async)
+        if inspect.isawaitable(raw_output):
+            loop = self._get_loop()
+            future = asyncio.run_coroutine_threadsafe(raw_output, loop)
+            raw_output = future.result()
+
+        return raw_output
+
     def run(self, inputs: dict) -> str:
         """파이프라인 실행: 입력 변환 -> 호출 -> 출력 정규화.
 
@@ -204,26 +242,12 @@ class PipelineRunner:
             raise ValueError(f"파이프라인 입력 변환 실패: {e}") from e
 
         try:
-            if self._input_model_class is not None:
-                raw_output = self._callable(converted_input)
-            else:
-                try:
-                    raw_output = self._callable(**converted_input)
-                except TypeError:
-                    raw_output = self._callable(converted_input)
+            raw_output = self._invoke(converted_input)
         except Exception as e:
             raise RuntimeError(
                 f"파이프라인 실행 실패 ({self.config['module']}.{self.config.get('class', '')}"
                 f".{self.config.get('method', '__call__')}): {e}"
             ) from e
-
-        # async 메서드 지원: 코루틴이면 전용 루프에서 실행
-        import inspect
-
-        if inspect.isawaitable(raw_output):
-            loop = self._get_loop()
-            future = asyncio.run_coroutine_threadsafe(raw_output, loop)
-            raw_output = future.result()
 
         return self.normalize_output(raw_output)
 
