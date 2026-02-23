@@ -99,7 +99,14 @@ class PipelineRunner:
         """
         mod_path = self.config["module"]
         if mod_path.startswith("."):
-            module = importlib.import_module(mod_path, package="prompt_evaluator")
+            # ".prompt-eval.adapters.xxx" → ".prompt-eval" 디렉토리를 sys.path에 추가
+            # 후 나머지 경로를 절대 import로 변환
+            parts = mod_path.lstrip(".").split(".", 1)
+            base_dir = os.path.join(os.getcwd(), f".{parts[0]}")
+            if os.path.isdir(base_dir) and base_dir not in sys.path:
+                sys.path.insert(0, base_dir)
+            absolute_path = parts[1] if len(parts) > 1 else parts[0]
+            module = importlib.import_module(absolute_path)
         else:
             module = importlib.import_module(mod_path)
 
