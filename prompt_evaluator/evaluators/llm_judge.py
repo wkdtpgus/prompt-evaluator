@@ -8,7 +8,11 @@ from pathlib import Path
 from typing import Any
 
 
+import logging
+
 from prompt_evaluator.models import get_judge_llm
+
+logger = logging.getLogger(__name__)
 
 
 def run_checklist_evaluation(
@@ -85,7 +89,7 @@ def run_checklist_evaluation(
             results[criterion] = {"score": float(score)}
 
         except Exception as e:
-            print(f"  ⚠ LLM Judge 평가 실패 [{criterion}]: {e}")
+            logger.warning(f"  ⚠ LLM Judge 평가 실패 [{criterion}]: {e}")
             results[criterion] = {"score": 0.0, "error": str(e)}
 
     # 전체 점수 계산

@@ -177,7 +177,7 @@ prompt-evaluator/
 │   │   ├── scaffold.py         # init 명령어
 │   │   ├── experiment.py       # experiment, regression 명령어
 │   │   ├── config.py           # validate 명령어
-│   │   ├── dataset.py          # list, upload 명령어
+│   │   ├── dataset.py          # list, upload, collect 명령어
 │   │   ├── prompt.py           # prompt 서브커맨드
 │   │   └── baseline.py         # baseline 서브커맨드
 │   ├── loaders/                # 데이터 로더
@@ -193,6 +193,7 @@ prompt-evaluator/
 │   │   ├── prompt_sync.py      # 프롬프트 업로드/조회 (LangSmith + Langfuse 통합)
 │   │   ├── dataset_sync.py     # 데이터셋 업로드/조회 (LangSmith + Langfuse 통합)
 │   │   ├── langfuse_client.py  # Langfuse 싱글톤 클라이언트
+│   │   ├── trace_collector.py  # Langfuse 트레이스 수집
 │   │   └── git.py              # git 관련 유틸
 │   └── skills/                 # 번들 스킬 (init 시 복사)
 │
@@ -580,7 +581,78 @@ prompt-eval upload --name {name}
 prompt-eval upload --name {name} --backend langfuse
 ```
 
-### 3.5. 코드에서 통합 API 사용
+### 3.5. Langfuse 트레이스에서 데이터셋 수집
+
+프로덕션 Langfuse에 쌓인 트레이스를 로컬 `test_cases.json` + `expected.json`으로 변환합니다.
+
+```bash
+# 기본 수집 (최근 10개)
+prompt-eval collect --name my_set
+
+# 미리보기만 (저장 안 함)
+prompt-eval collect --name my_set --limit 5 --dry-run
+
+# 트레이스 이름으로 필터링
+prompt-eval collect --name my_set --trace-name MyChain --limit 20
+
+# 날짜 범위 지정
+prompt-eval collect --name my_set --since 2026-02-01 --until 2026-02-15
+
+# 기존 데이터셋에 추가 (중복 자동 제거)
+prompt-eval collect --name my_set --append --limit 10
+```
+
+**수집 결과:**
+
+```
+datasets/my_set/
+├── test_cases.json    # 트레이스 input → inputs로 변환
+└── expected.json      # 빈 stub (수동 큐레이션 필요)
+```
+
+**수집 후 워크플로우:**
+
+```bash
+# 1. 수집
+prompt-eval collect --name my_set --limit 20
+
+# 2. expected.json 수동 큐레이션 (keywords, forbidden 등 작성)
+
+# 3. 평가 실행
+prompt-eval experiment --name my_set
+```
+
+**필터 옵션:**
+
+| 옵션 | 설명 |
+|------|------|
+| `--trace-name` | 트레이스 이름 필터 (Langfuse의 Name 컬럼) |
+| `--since` / `--until` | 날짜 범위 (ISO 형식) |
+| `--tag` | 태그 필터 (여러 개 가능) |
+| `--session` | 세션 ID 필터 |
+| `--user-id` | 사용자 ID 필터 |
+| `--input-key` | 특정 키가 input에 있는 트레이스만 |
+| `--input-contains` | input에 특정 문자열이 포함된 트레이스만 |
+| `--key-map` | 입력 키 매핑 (예: `prod_key:prompt_var,key2:var2`) |
+
+**다른 Langfuse 프로젝트에서 수집:**
+
+기본 `.env`의 키와 다른 프로젝트에서 수집하려면 프로필 키를 추가합니다:
+
+```bash
+# .env
+LANGFUSE_MY_APP_PUBLIC_KEY=pk-lf-...
+LANGFUSE_MY_APP_SECRET_KEY=sk-lf-...
+```
+
+```bash
+prompt-eval collect --name my_set -p my-app --limit 10
+```
+
+> **적합한 케이스**: 트레이스 input에 개별 변수가 분리된 경우 (예: `{"question": "...", "context": "..."}`)
+> **부적합한 케이스**: 멀티턴 챗봇처럼 input이 `{"messages": [...]}` 통째로 들어오는 경우 → 테스트 케이스를 수동 작성 권장
+
+### 3.6. 코드에서 통합 API 사용
 
 프롬프트와 데이터셋 관리는 `backend` 파라미터로 LangSmith/Langfuse를 선택합니다:
 

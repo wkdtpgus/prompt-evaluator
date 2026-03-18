@@ -1,9 +1,9 @@
 [
   {
-    "id": "trace_0001_6f61d25d",
-    "description": "Langfuse trace 6f61d25db0f552137719bb9b307d3c73",
+    "id": "trace_0001_34475b8f",
+    "description": "Langfuse trace 34475b8f4544d556e754eeb4f742c030",
     "inputs": {
-      "chat_history": [
+      "chat_summary_state": [
         {
           "role": "assistant",
           "content": "안녕하세요, 김 준희님.\n앞으로 3-4가지 질문을 드릴 예정입니다.\n\n공유해주시는 내용은 더 깊이 있고 집중적인 1on1을 만드는 데 도움이 됩니다.\n작성된 요약은 최종 공유 전에 함께 검토하고 수정할 수 있습니다.\n\n현재 가장 중요하게 다루고 계신 업무나 프로젝트는 무엇인가요?"
@@ -17,24 +17,24 @@
           "content": "\"QA 진행 중\"이라고 말씀해주셨는데요, 이 과정에서 특별히 중요하게 고려하고 있는 QA 방법론이나 전략이 있으신가요?"
         }
       ],
-      "survey_answers": {
-        "topic": "WORK_ISSUES",
-        "condition": "NORMAL"
-      },
-      "member_name": "김 준희",
+      "condition_header": "컨디션",
+      "output_language": "Korean",
       "profile_card": {
-        "career_orientation": "LEADER",
-        "communication_style": "SUMMARY",
-        "feedback_style": "SELF_REFLECTION",
+        "communicationStyle": "SUMMARY",
+        "feedbackStyle": "SELF_REFLECTION",
+        "careerOrientation": "LEADER",
         "motivation": "AUTONOMY"
-      }
+      },
+      "condition": "NORMAL",
+      "main_topic_header": "핵심 주제",
+      "topic": "WORK_ISSUES"
     }
   },
   {
-    "id": "trace_0002_375a9e0a",
-    "description": "Langfuse trace 375a9e0aee4a7fdd33d9b8e86cedc124",
+    "id": "trace_0002_d6bda6e9",
+    "description": "Langfuse trace d6bda6e90b936944e6b754beb42a563a",
     "inputs": {
-      "chat_history": [
+      "chat_summary_state": [
         {
           "role": "assistant",
           "content": "안녕하세요, 선민지님. 1on1 미팅 준비를 위한 업무 업데이트를 도와드리겠습니다.\n현재 진행 중인 업무에 대해 3-4가지 질문을 드릴 예정입니다.\n\n선민지님께서 공유해주시는 내용은 더 깊이 있고 집중적인 1on1 대화를 만드는 데 도움이 됩니다.\n작성된 요약은 미팅 전 선민지님께서 직접 검토하고 수정하실 수 있으니 편하게 말씀해주세요.\n\n현재 가장 집중하고 계신 주요 업무나 프로젝트는 무엇인가요?"
@@ -184,24 +184,24 @@
           "content": "네, 논의해주신 내용을 반영하여 1on1 미팅 프렙 요약을 최종적으로 작성했습니다.\n\n---\n컨디션: 현재 업무에 대한 열의와 집중도가 높은 상태입니다.\n핵심 주제: Metal contamination 분석 신뢰성 향상 프로젝트의 최종 목표 및 기준 명확화\n\n1. Metal Contamination 분석 신뢰성 향상 프로젝트 진행\n• 기관별 평가 신뢰성 비교 및 모델링 구조 최적화 작업을 진행 중입니다.\n• 시편과 웨이퍼 단차 및 시편 wall 노출 면적 제어 방안을 적용하여 분석 신뢰성을 높이고 있습니다.\n• ICP-MS/TXFP 분석을 기반으로 오염 수준을 파악하고 있으며, 고객사 분석 자료와 수치를 비교하여 판단하고 있습니다.\n\n2. 평가 신뢰성 확보를 위한 고려 사항\n• 오염 발생 수준의 차이가 커서 원소별 SPEC IN 기준 설정에 어려움이 있습니다.\n• 현재는 전체 오염량 감소 정도와 전체 오염량 중 특정 원소의 오염 ratio를 비교하여 평가의 신뢰성을 파악하고 있습니다.\n\n3. 최종 목표 설정 및 기준 명확화\n• 공정 에처 사용에 따른 외부 요인 오염과 식각 조건 변경 시 고려해야 할 환경적 요인들이 있습니다.\n• 평가 진행 시 비용과 즉각적인 대응에 대한 현실적인 어려움이 있어, 비교 평가를 충분히 수행하는 데 신중한 접근이 필요합니다.\n• 실장평가와 모사 평가의 특성상 유사한 수치나 완벽한 경향성을 확보하기 어려운 점을 감안할 때, 현재 진행 중인 평가가 '최종적으로 어떤 결과를 도출해야 하는지', 그리고 '어느 정도의 기준에 도달해야 성공적인지'에 대한 명확한 목표 설정 논의가 필요합니다.\n---\n\n위 요약이 최종 버전입니다. 프렙 생성하기 버튼을 눌러 최종 요약을 확정해주세요.\n\n추가로, 업무에 대한 열의와 집중도가 높은 상태라고 하셨는데, 혹시 이 외에 전반적인 컨디션이나 업무 외적으로 1on1 미팅에서 다루고 싶은 다른 이야기가 있으실까요?"
         }
       ],
-      "survey_answers": {
-        "topic": "WORK_ISSUES",
-        "condition": "NORMAL"
-      },
-      "member_name": "선민지",
+      "condition_header": "컨디션",
+      "output_language": "Korean",
       "profile_card": {
-        "career_orientation": "SPECIALIST",
-        "communication_style": "DATA",
-        "feedback_style": "DIRECT",
+        "communicationStyle": "DATA",
+        "feedbackStyle": "DIRECT",
+        "careerOrientation": "SPECIALIST",
         "motivation": "IMPACT"
-      }
+      },
+      "condition": "NORMAL",
+      "main_topic_header": "핵심 주제",
+      "topic": "WORK_ISSUES"
     }
   },
   {
-    "id": "trace_0003_00afffd9",
-    "description": "Langfuse trace 00afffd90479e24c5d38afc567bda051",
+    "id": "trace_0003_444cac70",
+    "description": "Langfuse trace 444cac703969d6b419d15db407871a52",
     "inputs": {
-      "chat_history": [
+      "chat_summary_state": [
         {
           "role": "assistant",
           "content": "안녕하세요, 이지영님.\n앞으로 3-4가지 질문을 통해 이지영님의 요즘 업무에 대해 여쭤볼 예정입니다.\n\n이지영님께서 공유해주시는 내용은 더 깊이 있고 집중된 1on1을 만드는 데 큰 도움이 됩니다.\n공유해주신 내용은 1on1 미팅 전 요약본으로 정리되며, 이지영님께서 최종 검토하고 수정하실 수 있습니다.\n\n최근 '유저 여정 맵 작성 및 체크리스트 수립' 건을 포함해서, 요즘 진행하고 계신 주요 업무나 프로젝트가 있다면 편하게 말씀해주세요."
@@ -239,24 +239,24 @@
           "content": "이지영님, 알겠습니다. 페르소나 분류에 대한 상세 내용을 요약에 추가하겠습니다.\n\n수정된 요약 내용입니다.\n\n컨디션: 오늘 하루는 전반적으로 괜찮은 편입니다.\n핵심 주제: 유저 저니 맵 재작성 및 CX 신규 서비스 출시 사전 점검\n\n1. 유저 저니 맵 재작성 현황\n• 기존 CX팀에서 피그마로 작성된 유저 저니 맵을 기반으로 작업 중입니다.\n• '우수대부업' 상품 조회 퍼널에 대한 사용자 여정을 추가하는 데 중점을 두고 있습니다.\n• 이전에는 대출 니즈 위주의 페르소나 설계였으나, 이번에는 문제 발생 맥락에 따라 페르소나를 재설계하여 VOC 관점에서 유저 저니 맵을 재작성하고 있습니다.\n\n2. 문제 발생 맥락 분석 방법\n• VOC 데이터에서 문제 발생 맥락을 파악하고 분류할 때 특정 키워드와 문제가 발생하는 행동, 상황에 집중하고 있습니다.\n• 현재 페르소나는 5가지로 분류되어 있습니다.\n  • 급전 실행형(빠른 대출 실행이 목적): 심사 진행 상태에 대한 문의\n  • 비교 탐색형(조건을 꼼꼼하게 비교): 조건이나 정보가 부족하다는 문의\n  • 갈아타기/대환형: 대환 가능 여부, 한도/금리 문의\n  • 금융 초보형(대출에 대한 이해도 낮음): 기본적인 절차에 대한 문의, 용어 혼란\n  • 거절 반복형(부결/한도 부족 반복 경험): 왜 계속 안되는지, 다른 대안은 없는지에 대한 문의\n• 예를 들어, 사용자가 대출 실행까지 소요되는 시간에 민감하게 반응하는지, 혹은 프로세스나 용어 자체에 대한 이해도가 낮은지 등을 면밀히 살펴보고 있습니다.\n\n3. CX 신규 서비스 출시 사전 점검\n• CX 신규 서비스 출시 사전 점검 체크리스트 작업을 진행하고 있습니다.\n\n혹시 더 수정하거나 추가하고 싶은 내용이 있으신가요?"
         }
       ],
-      "survey_answers": {
-        "topic": "WORK_ISSUES",
-        "condition": "GOOD"
-      },
-      "member_name": "이지영",
+      "condition_header": "컨디션",
+      "output_language": "Korean",
       "profile_card": {
-        "career_orientation": "GENERALIST",
-        "communication_style": "SUMMARY",
-        "feedback_style": "SOLUTION",
+        "communicationStyle": "SUMMARY",
+        "feedbackStyle": "SOLUTION",
+        "careerOrientation": "GENERALIST",
         "motivation": "GROWTH"
-      }
+      },
+      "condition": "GOOD",
+      "main_topic_header": "핵심 주제",
+      "topic": "WORK_ISSUES"
     }
   },
   {
-    "id": "trace_0004_923f20b8",
-    "description": "Langfuse trace 923f20b808b4ce8e682cb1944e84e873",
+    "id": "trace_0004_102e1aa3",
+    "description": "Langfuse trace 102e1aa376889e86a046a466edad108f",
     "inputs": {
-      "chat_history": [
+      "chat_summary_state": [
         {
           "role": "assistant",
           "content": "안녕하세요, 이정란님!\n\n앞으로 진행될 1on1 미팅을 위해 3-4가지 질문을 드릴 예정입니다.\n\n이 시간을 통해 업무에 대한 상황을 공유해주시면, 더 깊이 있고 집중도 높은 1on1을 진행하는 데 큰 도움이 될 것입니다. 공유해주신 내용은 최종 제출 전에 함께 검토하고 수정할 수 있으니 편하게 말씀해주세요.\n\n현재 가장 집중하고 계신 주요 업무나 프로젝트는 무엇인가요?"
@@ -286,18 +286,83 @@
           "content": "기존 답변 템플릿 재활용 방안에 대해 말씀해주셔서 감사합니다. 현재까지 공유해주신 내용을 바탕으로 1on1 미팅 준비 요약을 생성해 보았습니다.\n\n아래 요약을 확인하시고, 수정하거나 추가할 내용이 있으신가요?\n\n\n\n컨디션: 오늘 업무 준비에 집중하며 차분한 마음입니다.\n핵심 주제: AI 기능 접목 프로젝트\n\n1. 주요 업무 진행 상황\n• AI 기능 접목 프로젝트를 진행 중입니다.\n• 상담 요약 및 상담원 추천 답변 생성 기능 개발에 집중하고 있습니다.\n\n2. 핵심 방법론\n• 추천 답변 생성 시 기존 답변 템플릿을 재활용하는 방식을 활용하고 있습니다.\n\n수정하거나 추가할 내용이 있으신가요?"
         }
       ],
-      "survey_answers": {
-        "topic": "GROWTH_CAREER",
-        "condition": "NORMAL"
-      },
-      "member_name": "이정란"
+      "condition_header": "컨디션",
+      "output_language": "Korean",
+      "condition": "NORMAL",
+      "main_topic_header": "핵심 주제",
+      "topic": "GROWTH_CAREER"
     }
   },
   {
-    "id": "trace_0005_b9a04630",
-    "description": "Langfuse trace b9a046303597e88b6495c56980c5e9a6",
+    "id": "trace_0005_b67294c7",
+    "description": "Langfuse trace b67294c7e88fd58ecc7eb4b51894e269",
     "inputs": {
-      "chat_history": [
+      "chat_summary_state": [
+        {
+          "role": "assistant",
+          "content": "안녕하세요, 김규현님! 이번 1on1 미팅을 효과적으로 준비할 수 있도록 제가 도와드리겠습니다. 앞으로 3-4가지 질문을 드릴 예정입니다.\n\n김규현님께서 업무 진행 상황을 공유해주시면, 1on1 미팅에서 더 깊이 있고 집중적인 논의를 할 수 있습니다. 공유해주신 내용은 미팅 전 요약본으로 함께 검토하고 수정할 수 있으니 편하게 말씀해주세요.\n\n최근 'VOC 데이터 기반 문제점 개선 시뮬레이션 예측 결과 자료 작성'을 진행 중이신데, 이 업무를 포함하여 요즘 진행하고 계신 전반적인 업무 근황에 대해 이야기해주실 수 있을까요?"
+        },
+        {
+          "role": "user",
+          "content": "VOC데이터 기반 문제점 개선 시뮬레이션 예측 결과 작성 완료했습니다!"
+        },
+        {
+          "role": "assistant",
+          "content": "VOC 데이터 기반 문제점 개선 시뮬레이션 예측 결과 작성을 완료하셨다니 잘하셨습니다!\n\n이 시뮬레이션을 진행하실 때 어떤 주요 가정들을 기반으로 예측 모델을 설계하셨는지 궁금합니다."
+        },
+        {
+          "role": "user",
+          "content": "12월,1월, 2월 VOC 개선해야 할 우선 순위 와 개선할 때 나타나는 결과 예측(히트맵으로 시각화했고, \n(AS-IS] 상황별 감성 [AS-IS] 산출 점수 (Score) [TO-BE] 상황별 감성 [TO-BE] 산출 점수 (Score) 리스크 감소율 (개선 효율) )을 나타냈습니다."
+        },
+        {
+          "role": "assistant",
+          "content": "12월, 1월, 2월의 VOC 개선 우선순위와 히트맵으로 시각화된 예측 결과, 그리고 AS-IS/TO-BE 점수 및 리스크 감소율까지 자세히 설명해주셔서 감사합니다.\n\n특히 '리스크 감소율 (개선 효율)'은 개선의 효과를 명확히 보여주는 지표인 것 같은데요. 이 리스크 감소율을 산정하실 때 어떤 기준이나 가중치를 두어 '개선 효율'을 정의하고 측정하셨는지 궁금합니다."
+        },
+        {
+          "role": "user",
+          "content": "(1- TO-BE 산출 점수 / AS-IS 산출 점수로 ) 리스크 감소율(개선 효율)을 계산해 %로 나타냈습니다."
+        },
+        {
+          "role": "assistant",
+          "content": "VOC 데이터 기반 문제점 개선 시뮬레이션의 리스크 감소율 산정 기준을 명확하게 설명해주셔서 감사합니다. 이제 1on1 미팅을 위한 요약 내용을 생성해 보겠습니다.\n\n\n\n김규현님을 위한 1on1 미팅 요약 초안이 준비되었습니다.\n\n컨디션: 현재 업무를 성공적으로 완수하여 만족스러운 상태입니다.\n핵심 주제: VOC 데이터 기반 문제점 개선 시뮬레이션 결과 분석 및 우선순위 도출\n\n1. 주요 업무 진행 상황\n• 12월, 1월, 2월 VOC 데이터 기반 문제점 개선 시뮬레이션 예측 결과 자료 작성을 완료했습니다.\n\n2. 시뮬레이션 방법론 및 결과\n• 개선해야 할 우선순위와 개선 시 나타나는 결과를 예측했습니다.\n• 예측 결과는 히트맵으로 시각화하여 표현했습니다.\n• AS-IS 상황별 감성 및 산출 점수와 TO-BE 상황별 감성 및 산출 점수를 비교했습니다.\n\n3. 개선 효율 측정 기준\n• 리스크 감소율(개선 효율)은 (1 - TO-BE 산출 점수 / AS-IS 산출 점수) 공식으로 계산하여 %로 제시했습니다.\n\n수정하거나 추가할 내용이 있으신가요?"
+        },
+        {
+          "role": "user",
+          "content": "아니요."
+        },
+        {
+          "role": "assistant",
+          "content": "알겠습니다. 최종적으로 정리된 1on1 미팅 요약은 다음과 같습니다.\n\n\n컨디션: 현재 업무를 성공적으로 완수하여 만족스러운 상태입니다.\n핵심 주제: VOC 데이터 기반 문제점 개선 시뮬레이션 결과 분석 및 우선순위 도출\n\n1. 주요 업무 진행 상황\n• 12월, 1월, 2월 VOC 데이터 기반 문제점 개선 시뮬레이션 예측 결과 자료 작성을 완료했습니다.\n\n2. 시뮬레이션 방법론 및 결과\n• 개선해야 할 우선순위와 개선 시 나타나는 결과를 예측했습니다.\n• 예측 결과는 히트맵으로 시각화하여 표현했습니다.\n• AS-IS 상황별 감성 및 산출 점수와 TO-BE 상황별 감성 및 산출 점수를 비교했습니다.\n\n3. 개선 효율 측정 기준\n• 리스크 감소율(개선 효율)은 (1 - TO-BE 산출 점수 / AS-IS 산출 점수) 공식으로 계산하여 %로 제시했습니다.\n\n요약 내용이 최종적으로 확정되었습니다. 이 내용을 바탕으로 김규현님의 1on1 미팅이 더욱 생산적이 될 것입니다. 이제 화면 하단의 \"프렙 생성하기\" 버튼을 눌러주세요.\n\n혹시 요즘 업무 외적으로 개인적인 컨디션이나 전반적인 만족도에 대해 이야기 나누고 싶은 부분이 있으실까요?"
+        },
+        {
+          "role": "user",
+          "content": "컨디션은 요새 조금 출퇴근 지침(피로?) 정도 입니다.\n실무적인 측면에서 이번주 1on1 때 이야기해보려 합니다."
+        },
+        {
+          "role": "assistant",
+          "content": "출퇴근으로 인한 피로감이 있으시군요. 업무 외적인 부분에서도 컨디션 관리가 중요하죠.\n\n이 '출퇴근으로 인한 피로감'에 대한 내용을 1on1 미팅 프렙 요약에 추가하시겠어요? 아니면 미팅에서 직접 이야기 나누는 것을 선호하시나요?"
+        },
+        {
+          "role": "user",
+          "content": "넵"
+        },
+        {
+          "role": "assistant",
+          "content": "네, 알겠습니다. 출퇴근으로 인한 피로감에 대한 내용이 요약에 반영되었습니다.\n\n변경 전: 컨디션: 현재 업무를 성공적으로 완수하여 만족스러운 상태입니다.\n변경 후: 컨디션: 업무를 성공적으로 완료했으나, 출퇴근으로 인해 다소 피로감을 느끼고 있습니다.\n\n최종 정리된 1on1 미팅 요약은 다음과 같습니다.\n\n컨디션: 업무를 성공적으로 완료했으나, 출퇴근으로 인해 다소 피로감을 느끼고 있습니다.\n\n핵심 주제: VOC 데이터 기반 문제점 개선 시뮬레이션 결과 분석 및 우선순위 도출\n\n1. 주요 업무 진행 상황\n• 12월, 1월, 2월 VOC 데이터 기반 문제점 개선 시뮬레이션 예측 결과 자료 작성을 완료했습니다.\n\n2. 시뮬레이션 방법론 및 결과\n• 개선해야 할 우선순위와 개선 시 나타나는 결과를 예측했습니다.\n• 예측 결과는 히트맵으로 시각화하여 표현했습니다.\n• AS-IS 상황별 감성 및 산출 점수와 TO-BE 상황별 감성 및 산출 점수를 비교했습니다.\n\n3. 개선 효율 측정 기준\n• 리스크 감소율(개선 효율)은 (1 - TO-BE 산출 점수 / AS-IS 산출 점수) 공식으로 계산하여 %로 제시했습니다.\n\n이제 요약 내용이 최종적으로 확정되었습니다. 이 내용을 바탕으로 김규현님의 1on1 미팅이 더욱 생산적이 될 것입니다. 화면 하단의 \"프렙 생성하기\" 버튼을 눌러주세요."
+        }
+      ],
+      "condition_header": "컨디션",
+      "output_language": "Korean",
+      "condition": "TIRED",
+      "main_topic_header": "핵심 주제",
+      "topic": "WORK_ISSUES"
+    }
+  },
+  {
+    "id": "trace_0006_d2eb603b",
+    "description": "Langfuse trace d2eb603b1a131d70f5b828b1cd3f90af",
+    "inputs": {
+      "chat_summary_state": [
         {
           "role": "assistant",
           "content": "안녕하세요, 한슬기님! 만나서 반갑습니다.\n앞으로 3-4가지 질문을 통해 한슬기님의 업무 현황을 파악할 예정입니다.\n\n한슬기님께서 공유해주시는 내용은 더 깊이 있고 집중된 1on1을 만드는 데 큰 도움이 될 것입니다.\n최종 요약은 한슬기님께서 직접 검토하고 수정할 수 있으니 편하게 말씀해주세요.\n\n현재 가장 집중하고 계신 주요 업무나 프로젝트는 무엇인가요?"
@@ -335,24 +400,24 @@
           "content": "네, 말씀해주신 내용들을 바탕으로 1on1 미팅을 위한 요약 초안을 작성했습니다.\n\n\n\n컨디션: 현재 업무에 집중할 준비가 되어 있고, 전반적으로 좋은 컨디션을 유지하고 있습니다.\n\n핵심 주제: 브랜드 리뉴얼에 따른 패키지 리뉴얼 및 박람회 업무를 통해 반려동물 제품의 아이덴티티를 강화하는 것에 대한 논의.\n\n1. 주요 업무 현황\n• 브랜드 리뉴얼에 따른 패키지 리뉴얼 업무를 진행하고 있습니다.\n• 박람회 업무도 함께 진행하고 있습니다.\n\n2. 패키지 리뉴얼 접근 방식\n• 새로운 브랜드 아이덴티티를 패키지 디자인에 반영하는 데 중점을 두고 있습니다.\n• 특히 반려동물 제품임을 명확히 인지시키고, 제품의 종류를 확실히 보여주는 것을 목표로 하고 있습니다.\n\n수정하거나 추가할 내용이 있으신가요?"
         }
       ],
-      "survey_answers": {
-        "topic": "PERFORMANCE_FEEDBACK",
-        "condition": "NORMAL"
-      },
-      "member_name": "한슬기",
+      "condition_header": "컨디션",
+      "output_language": "Korean",
       "profile_card": {
-        "career_orientation": "SPECIALIST",
-        "communication_style": "CONTEXT",
-        "feedback_style": "SELF_REFLECTION",
+        "communicationStyle": "CONTEXT",
+        "feedbackStyle": "SELF_REFLECTION",
+        "careerOrientation": "SPECIALIST",
         "motivation": "GROWTH"
-      }
+      },
+      "condition": "NORMAL",
+      "main_topic_header": "핵심 주제",
+      "topic": "PERFORMANCE_FEEDBACK"
     }
   },
   {
-    "id": "trace_0006_a489739a",
-    "description": "Langfuse trace a489739ab9958632021c23f7dd15c8a2",
+    "id": "trace_0007_3bdd1d61",
+    "description": "Langfuse trace 3bdd1d614f08aad309dc7289267afd57",
     "inputs": {
-      "chat_history": [
+      "chat_summary_state": [
         {
           "role": "assistant",
           "content": "안녕하세요, 강지희님!\n강지희님과의 1on1 미팅을 효과적으로 준비하기 위해 3-4가지 질문을 드릴 예정입니다.\n\n공유해주시는 내용들을 바탕으로 더 깊이 있고 집중된 대화를 나눌 수 있습니다.\n모든 내용은 요약본으로 정리되며, 최종적으로 강지희님께서 직접 검토하고 수정하실 수 있으니 편하게 말씀해주세요.\n\n지난 액션 아이템 중 '공유 시트 권한 확인 및 허규범에게 알리기'는 잘 진행되셨을까요? 해당 내용을 포함하여 최근 어떤 업무에 집중하고 계신지 궁금합니다."
@@ -390,18 +455,41 @@
           "content": "네, 알겠습니다.\n\n1on1 미팅 준비 요약본이 완성되었습니다. 이제 \"프렙 생성하기\" 버튼을 눌러 최종 제출하시면 됩니다.\n\n혹시 요즘 강지희님의 전반적인 컨디션이나 업무 외적인 부분에서 특별히 신경 쓰이는 점은 없으실까요?"
         }
       ],
-      "survey_answers": {
-        "topic": "PERFORMANCE_FEEDBACK",
-        "condition": "NORMAL"
-      },
-      "member_name": "강지희"
+      "condition_header": "컨디션",
+      "output_language": "Korean",
+      "condition": "NORMAL",
+      "main_topic_header": "핵심 주제",
+      "topic": "PERFORMANCE_FEEDBACK"
     }
   },
   {
-    "id": "trace_0007_005adab5",
-    "description": "Langfuse trace 005adab50db61ca2300aff82d83581bc",
+    "id": "trace_0008_67001a45",
+    "description": "Langfuse trace 67001a458af401eef90e344c7dc84518",
     "inputs": {
-      "chat_history": [
+      "chat_summary_state": [
+        {
+          "role": "assistant",
+          "content": "안녕하세요, 나혜인님! 만나 뵙게 되어 반갑습니다.\n앞으로 3-4가지 질문을 드릴 예정입니다.\n\n나혜인님께서 공유해주시는 내용은 더 깊이 있고 집중적인 1on1 대화를 가능하게 할 것입니다.\n공유해주신 내용은 최종적으로 요약해서 보여드리며, 검토하고 수정할 기회가 있으니 편하게 말씀해주세요.\n\n지금 진행하고 계신 주요 업무나 프로젝트는 어떤 것이 있으신가요?"
+        }
+      ],
+      "condition_header": "컨디션",
+      "output_language": "Korean",
+      "profile_card": {
+        "communicationStyle": "SUMMARY",
+        "feedbackStyle": "SOLUTION",
+        "careerOrientation": "SPECIALIST",
+        "motivation": "IMPACT"
+      },
+      "condition": "NORMAL",
+      "main_topic_header": "핵심 주제",
+      "topic": "ROLE_RESPONSIBILITY"
+    }
+  },
+  {
+    "id": "trace_0009_04e8dca7",
+    "description": "Langfuse trace 04e8dca7d59204e26d2608347e31743b",
+    "inputs": {
+      "chat_summary_state": [
         {
           "role": "assistant",
           "content": "강명진님, 안녕하세요.\n앞으로 3-4가지 질문을 통해 강명진님의 업무 현황을 파악하고 1on1 미팅을 효과적으로 준비할 예정입니다.\n\n강명진님의 업무 현황을 자세히 공유해 주시면, 더욱 깊이 있고 집중된 1on1 미팅을 가질 수 있습니다.\n공유해주신 내용은 최종 요약본으로 정리되며, 미팅 전 강명진님께서 직접 검토하고 수정하실 수 있습니다.\n\n현재 가장 집중하고 계시는 주요 업무나 프로젝트는 무엇인가요?"
@@ -503,79 +591,24 @@
           "content": "네, 강명진님의 고민 사항을 반영하여 1on1 미팅 준비 요약을 업데이트했습니다.\n\n---\n\n컨디션: 현재 업무에 집중하며 순조롭게 진행하고 있습니다.\n\n핵심 주제: IPL Cleaning 벤치 스케일 장비 검토 및 아이코닉 파일럿기 고용융 소재 안정화 성형 진행 현황\n\n1.  IPL Cleaning 벤치 스케일 장비 검토 현황\n    *   2개 장비 제작업체와의 미팅을 완료했습니다.\n    *   오염된 시편을 활용하여 각 업체 데모 장비로 조건 평가를 진행하고 있습니다.\n    *   업체별 장비 특성 차이를 고려하여 조건 검토 평가를 우선적으로 진행 중입니다.\n    *   업체 담당자와 함께 공정 조건에 대해 검토하고 있습니다.\n\n2.  아이코닉 파일럿기 고용융 소재 안정화 성형\n    *   해당 프로젝트도 현재 진행 중에 있습니다.\n    *   03/18까지 2.5kg 용해로 셋업 및 장비 오버홀 완료 예정입니다.\n\n3.  아이코닉 소재별 표면처리 평가\n    *   아이코닉 소재별 표면제어 평가 용역 계약의 완료일은 03/31일입니다.\n    *   03/16일 I-ZTG 15% 더미 2-2 평가를 완료했습니다.\n    *   03/20일 아이코닉 세정한 더미 샘플로 3차 평가를 진행할 예정입니다.\n    *   I-S3 평가용 시편은 현재 월드큐텍에서 가공 진행 중이며, 03월 3주차까지 가공 완료 예정입니다.\n    *   03월 4주차부터 I-S3 표면 제어 평가를 진행할 예정입니다.\n\n4.  역량 개발 및 고민 사항\n    *   IPL Cleaning 세정 및 Raman 분석과 같이 현재 나의 분야가 아닌 개념에 대한 이해 부족으로 고민이 있습니다.\n    *   특히 Raman 분석은 잘 모르는 분야가 대부분이라 어려움을 느끼고 있습니다.\n\n---\n\n최종 요약에 동의하시면 \"프렙 생성하기\" 버튼을 눌러주세요."
         }
       ],
-      "survey_answers": {
-        "topic": "GROWTH_CAREER",
-        "condition": "GOOD"
-      },
-      "member_name": "강명진",
+      "condition_header": "컨디션",
+      "output_language": "Korean",
       "profile_card": {
-        "career_orientation": "GENERALIST",
-        "communication_style": "SUMMARY",
-        "feedback_style": "SELF_REFLECTION",
+        "communicationStyle": "SUMMARY",
+        "feedbackStyle": "SELF_REFLECTION",
+        "careerOrientation": "GENERALIST",
         "motivation": "RECOGNITION"
-      }
-    }
-  },
-  {
-    "id": "trace_0008_34b47acb",
-    "description": "Langfuse trace 34b47acb22ab6ea333bc9327a7cae5f9",
-    "inputs": {
-      "chat_history": [
-        {
-          "role": "assistant",
-          "content": "안녕하세요, 이아름님.\n앞으로 3-4가지 질문을 통해 1on1 미팅을 위한 업무 현황을 파악할 예정입니다.\n\n공유해주시는 내용은 더 깊이 있고 집중적인 1on1을 만드는 데 도움이 됩니다.\n작성된 요약은 최종 공유 전에 함께 검토하고 수정할 수 있으니 편하게 말씀해주세요.\n\n현재 가장 중요하게 다루고 있는 업무나 프로젝트는 무엇인가요?"
-        },
-        {
-          "role": "user",
-          "content": "PACE 재고 관리, 제품 CAPA 및 납기 관리"
-        },
-        {
-          "role": "assistant",
-          "content": "PACE 재고 관리와 제품 CAPA 및 납기 관리에 대해 말씀해주셨군요.\n\nPACE 재고 관리의 효율성을 높이기 위해 현재 어떤 구체적인 방법론이나 도구를 활용하고 계신가요?"
-        },
-        {
-          "role": "user",
-          "content": "고객 site에서 forecast data 다운로드 후 엑셀 사용하여 향후 4개월 내 필요한 제품 재고 시트 발행 중. 매월 말 월별 납품 필요 수량 사업운영파트에 전달 및 물량 조정"
-        },
-        {
-          "role": "assistant",
-          "content": "고객 사이트에서 예측 데이터를 받아 엑셀로 4개월치 재고 시트를 발행하고, 사업운영파트와 물량을 조정한다고 말씀해주셨습니다.\n\n엑셀 시트에서 향후 4개월 재고 필요량을 산출하실 때, 어떤 기준이나 가정을 바탕으로 계산하시나요? 예를 들어, 안전 재고율, 리드 타임 등이 고려되는지요?"
-        },
-        {
-          "role": "user",
-          "content": "안전 재고 수량 포함됨. 제품 종류가 다양해 전 파트의 리드 타임을 고려하기 어렵기 때문에 사내 capacity를 고려해 lead time을 대략 4개월로 설정. 그 외 소재 lead time이 예외적으로 긴 제품은 별도 확인."
-        },
-        {
-          "role": "assistant",
-          "content": "안전 재고 수량과 사내 생산 역량(capacity)을 고려한 약 4개월의 리드 타임 설정, 그리고 예외적인 경우에 대한 별도 확인까지 상세히 설명해주셨습니다. 덕분에 이아름님의 업무 현황을 명확하게 이해할 수 있었습니다.\n\n말씀해주신 내용을 바탕으로 1on1 미팅을 위한 요약을 준비했습니다. 확인하시고 수정하거나 추가할 내용이 있으신가요?\n\n\n\n컨디션: 현재 업무에 집중하며 안정적인 상태를 유지하고 있습니다.\n\n핵심 주제: PACE 재고 및 생산/납기 관리 효율화\n\n1. PACE 재고 관리 현황\n• 고객사 예측 데이터 기반으로 4개월 재고 시트를 발행하고 있습니다.\n• 시트에는 안전 재고 수량이 포함되어 있습니다.\n• 매월 말 사업운영파트에 월별 납품 필요 수량을 전달하고 물량을 조정합니다.\n\n2. 리드 타임 설정 및 관리 방안\n• 다양한 제품 종류로 인해 모든 파트의 리드 타임을 고려하기 어렵습니다.\n• 사내 생산 역량(capacity)을 바탕으로 약 4개월의 리드 타임을 설정하여 운영 중입니다.\n• 소재 리드 타임이 예외적으로 긴 제품에 대해서는 별도 확인 및 관리를 하고 있습니다.\n\n수정하거나 추가할 내용이 있으신가요?"
-        },
-        {
-          "role": "user",
-          "content": "처음부터 다시 만들고 싶은데 가능한가?"
-        },
-        {
-          "role": "assistant",
-          "content": "네, 가능합니다. 지금까지 말씀해주신 내용을 바탕으로 요약을 다시 생성해 드릴 수 있습니다.\n\n새로운 요약을 생성합니다. 잠시만 기다려 주세요.\n\n네, 이아름님. 요약을 처음부터 다시 시작할 수 있습니다.\n\n현재 가장 중요하게 다루고 있는 업무나 프로젝트는 무엇인가요?"
-        }
-      ],
-      "survey_answers": {
-        "topic": "WORK_ISSUES",
-        "condition": "NORMAL"
       },
-      "member_name": "이아름",
-      "profile_card": {
-        "career_orientation": "GENERALIST",
-        "communication_style": "CONTEXT",
-        "feedback_style": "DIRECT",
-        "motivation": "GROWTH"
-      }
+      "condition": "GOOD",
+      "main_topic_header": "핵심 주제",
+      "topic": "GROWTH_CAREER"
     }
   },
   {
-    "id": "trace_0009_cd7424d9",
-    "description": "Langfuse trace cd7424d9b6d5474915b67fe5a7f85ba4",
+    "id": "trace_0010_52deaf32",
+    "description": "Langfuse trace 52deaf3253d3e600e33ceade54fd262d",
     "inputs": {
-      "chat_history": [
+      "chat_summary_state": [
         {
           "role": "assistant",
           "content": "안녕하세요, 정윤성님.\n\n이번 1on1 미팅을 위해 몇 가지 질문을 드릴 예정이며, 3-4가지 질문을 통해 주요 업무 현황을 파악할 것입니다.\n\n공유해주시는 내용은 더 깊이 있고 집중적인 1on1을 만드는 데 큰 도움이 됩니다. 요약된 내용은 최종 제출 전 충분히 검토하고 수정할 수 있으니 편하게 말씀해주세요.\n\n현재 가장 집중하고 계신 주요 업무나 프로젝트는 무엇인가요?"
@@ -629,24 +662,24 @@
           "content": "컨디션: 현재 업무의 우선순위를 정하며 적극적으로 업무에 임하고 있습니다.\n\n핵심 주제: 세정기술 개발 프로젝트의 효율적인 추진\n\n1. 세정기술 개발 현황\n• 현재 세정기술 개발 프로젝트를 진행하고 있으며, 일의 우선순위에 맞춰 업무를 추진하고 있습니다.\n• 파트장님과의 논의를 통해 향후 액션 아이템을 결정하고자 노력하고 있습니다.\n\n2. 프로젝트 추진 방식 및 고려사항\n• 기술적 타당성 검토는 카이스트 교수님들과의 협력 과제를 통해 전문가의 도움을 받을 예정입니다.\n• 프로젝트 진행에 필요한 추가 고려사항으로는 외부 업체를 통한 bench-scale 장비 제작 및 분석 장비 도입 검토가 있습니다.\n• 카이스트 교수님들 및 CE 사업부와의 협업이 프로젝트 성공에 매우 중요한 요소로 작용하고 있습니다.\n\n최종 요약이 완료되었습니다. \"프렙 생성하기\" 버튼을 눌러 미팅 준비를 완료해주세요.\n\n혹시 최근 업무 외적으로는 별다른 어려움 없이 잘 지내고 계신가요?"
         }
       ],
-      "survey_answers": {
-        "topic": "WORK_ISSUES",
-        "condition": "NORMAL"
-      },
-      "member_name": "정윤성",
+      "condition_header": "컨디션",
+      "output_language": "Korean",
       "profile_card": {
-        "career_orientation": "EXPLORER",
-        "communication_style": "CONTEXT",
-        "feedback_style": "DIRECT",
+        "communicationStyle": "CONTEXT",
+        "feedbackStyle": "DIRECT",
+        "careerOrientation": "EXPLORER",
         "motivation": "IMPACT"
-      }
+      },
+      "condition": "NORMAL",
+      "main_topic_header": "핵심 주제",
+      "topic": "WORK_ISSUES"
     }
   },
   {
-    "id": "trace_0010_67df9947",
-    "description": "Langfuse trace 67df994778e77518a9b72351c144fb24",
+    "id": "trace_0011_db97d211",
+    "description": "Langfuse trace db97d211bcf496aa25ee9fe57d44dbb7",
     "inputs": {
-      "chat_history": [
+      "chat_summary_state": [
         {
           "role": "assistant",
           "content": "안녕하세요, 이정민님.\n1on1 미팅을 위해 몇 가지 질문을 드릴 예정이며, 3-4개의 질문을 통해 주요 업무 현황을 파악하고자 합니다.\n\n자세한 내용을 공유해주시면 더욱 깊이 있고 집중적인 1on1을 진행하는 데 도움이 됩니다.\n공유해주신 내용은 최종 요약 전 충분히 검토하고 수정할 수 있으니 편하게 말씀해주세요.\n\n현재 가장 중요하게 다루고 계신 업무나 프로젝트는 무엇인가요?"
@@ -692,24 +725,71 @@
           "content": "네, 알겠습니다. 공유해주셔서 감사합니다.\n\n1on1 미팅 준비가 완료되었습니다."
         }
       ],
-      "survey_answers": {
-        "topic": "ROLE_RESPONSIBILITY",
-        "condition": "TIRED"
-      },
-      "member_name": "이정민",
+      "condition_header": "컨디션",
+      "output_language": "Korean",
       "profile_card": {
-        "career_orientation": "SPECIALIST",
-        "communication_style": "CONTEXT",
-        "feedback_style": "DIRECT",
+        "communicationStyle": "CONTEXT",
+        "feedbackStyle": "DIRECT",
+        "careerOrientation": "SPECIALIST",
         "motivation": "IMPACT"
-      }
+      },
+      "condition": "TIRED",
+      "main_topic_header": "핵심 주제",
+      "topic": "ROLE_RESPONSIBILITY"
     }
   },
   {
-    "id": "trace_0011_a45a7397",
-    "description": "Langfuse trace a45a7397a6e5dabae98c534988923bd3",
+    "id": "trace_0012_f5c6f9ff",
+    "description": "Langfuse trace f5c6f9ff65a21254a7d64c3e72fbca75",
     "inputs": {
-      "chat_history": [
+      "chat_summary_state": [
+        {
+          "role": "assistant",
+          "content": "안녕하세요, 이아름님.\n앞으로 3-4가지 질문을 통해 1on1 미팅을 위한 업무 현황을 파악할 예정입니다.\n\n공유해주시는 내용은 더 깊이 있고 집중적인 1on1을 만드는 데 도움이 됩니다.\n작성된 요약은 최종 공유 전에 함께 검토하고 수정할 수 있으니 편하게 말씀해주세요.\n\n현재 가장 중요하게 다루고 있는 업무나 프로젝트는 무엇인가요?"
+        },
+        {
+          "role": "user",
+          "content": "PACE 재고 관리, 제품 CAPA 및 납기 관리"
+        },
+        {
+          "role": "assistant",
+          "content": "PACE 재고 관리와 제품 CAPA 및 납기 관리에 대해 말씀해주셨군요.\n\nPACE 재고 관리의 효율성을 높이기 위해 현재 어떤 구체적인 방법론이나 도구를 활용하고 계신가요?"
+        },
+        {
+          "role": "user",
+          "content": "고객 site에서 forecast data 다운로드 후 엑셀 사용하여 향후 4개월 내 필요한 제품 재고 시트 발행 중. 매월 말 월별 납품 필요 수량 사업운영파트에 전달 및 물량 조정"
+        },
+        {
+          "role": "assistant",
+          "content": "고객 사이트에서 예측 데이터를 받아 엑셀로 4개월치 재고 시트를 발행하고, 사업운영파트와 물량을 조정한다고 말씀해주셨습니다.\n\n엑셀 시트에서 향후 4개월 재고 필요량을 산출하실 때, 어떤 기준이나 가정을 바탕으로 계산하시나요? 예를 들어, 안전 재고율, 리드 타임 등이 고려되는지요?"
+        },
+        {
+          "role": "user",
+          "content": "안전 재고 수량 포함됨. 제품 종류가 다양해 전 파트의 리드 타임을 고려하기 어렵기 때문에 사내 capacity를 고려해 lead time을 대략 4개월로 설정. 그 외 소재 lead time이 예외적으로 긴 제품은 별도 확인."
+        },
+        {
+          "role": "assistant",
+          "content": "안전 재고 수량과 사내 생산 역량(capacity)을 고려한 약 4개월의 리드 타임 설정, 그리고 예외적인 경우에 대한 별도 확인까지 상세히 설명해주셨습니다. 덕분에 이아름님의 업무 현황을 명확하게 이해할 수 있었습니다.\n\n말씀해주신 내용을 바탕으로 1on1 미팅을 위한 요약을 준비했습니다. 확인하시고 수정하거나 추가할 내용이 있으신가요?\n\n\n\n컨디션: 현재 업무에 집중하며 안정적인 상태를 유지하고 있습니다.\n\n핵심 주제: PACE 재고 및 생산/납기 관리 효율화\n\n1. PACE 재고 관리 현황\n• 고객사 예측 데이터 기반으로 4개월 재고 시트를 발행하고 있습니다.\n• 시트에는 안전 재고 수량이 포함되어 있습니다.\n• 매월 말 사업운영파트에 월별 납품 필요 수량을 전달하고 물량을 조정합니다.\n\n2. 리드 타임 설정 및 관리 방안\n• 다양한 제품 종류로 인해 모든 파트의 리드 타임을 고려하기 어렵습니다.\n• 사내 생산 역량(capacity)을 바탕으로 약 4개월의 리드 타임을 설정하여 운영 중입니다.\n• 소재 리드 타임이 예외적으로 긴 제품에 대해서는 별도 확인 및 관리를 하고 있습니다.\n\n수정하거나 추가할 내용이 있으신가요?"
+        }
+      ],
+      "condition_header": "컨디션",
+      "output_language": "Korean",
+      "profile_card": {
+        "communicationStyle": "SUMMARY",
+        "feedbackStyle": "DIRECT",
+        "careerOrientation": "GENERALIST",
+        "motivation": "GROWTH"
+      },
+      "condition": "NORMAL",
+      "main_topic_header": "핵심 주제",
+      "topic": "WORK_ISSUES"
+    }
+  },
+  {
+    "id": "trace_0015_30ee706b",
+    "description": "Langfuse trace 30ee706bb4740661a8b36817879214f3",
+    "inputs": {
+      "chat_summary_state": [
         {
           "role": "assistant",
           "content": "안녕하세요, 최재준님.\n앞으로 3-4가지 질문을 통해 최근 업무 현황을 여쭤볼 예정입니다.\n\n공유해 주시는 내용은 더욱 깊이 있고 집중적인 1on1을 만드는 데 큰 도움이 됩니다.\n모든 내용은 최종 공유 전에 함께 검토하고 수정할 수 있으니 편하게 말씀해주세요.\n\n최근 '앙코치와 홈데코 리더 진단 리포트 제공 방안 논의 후 석유형에게 제안' 건을 포함하여 전반적인 업무 진행 상황이나 새롭게 시작하신 프로젝트가 있으실까요?"
@@ -747,24 +827,24 @@
           "content": "AI 및 HR Tech 트렌드를 날카롭게 짚어 서비스와 연결하려는 접근 방식이 매우 흥미롭습니다.\n\n이제까지 말씀해주신 내용을 바탕으로 1on1 미팅을 위한 요약 초안을 작성했습니다.\n\n\n\n컨디션: 저는 현재 여러 핵심 과제들을 성공적으로 이끌어내기 위해 업무에 집중하고 있습니다.\n\n핵심 주제: LG 미래전략 포럼 세션/커뮤니티 전략 구체화 및 베테랑 리더 참여 유도 방안 모색\n\n1. 주요 업무 현황\n• vntg 커리큘럼 구체화\n• 딜로이트 자료 제공을 위한 가이드 영상/데모 제작\n• 한솔홀딩스 신임 팀장 교육 커리큘럼 구체화\n• LG 미래전략 포럼을 포함한 세션/커뮤니티 전략 구체화\n• 핀다 인터뷰 및 전환 방안 고민\n\n2. LG 미래전략 포럼 전략 구체화\n• 베테랑 리더들의 관심 유도 및 인사이트 제공, 적극적인 소개를 이끌어내는 것이 핵심 과제입니다.\n• AI 및 HR Tech 전반의 트렌드를 날카롭게 분석하여 우리 서비스와 연결하는 방안을 모색 중입니다.\n\n수정하거나 추가할 내용이 있으신가요?"
         }
       ],
-      "survey_answers": {
-        "topic": "WORK_ISSUES",
-        "condition": "GOOD"
-      },
-      "member_name": "최재준",
+      "condition_header": "컨디션",
+      "output_language": "Korean",
       "profile_card": {
-        "career_orientation": "LEADER",
-        "communication_style": "CONTEXT",
-        "feedback_style": "POSITIVE",
+        "communicationStyle": "CONTEXT",
+        "feedbackStyle": "POSITIVE",
+        "careerOrientation": "LEADER",
         "motivation": "IMPACT"
-      }
+      },
+      "condition": "GOOD",
+      "main_topic_header": "핵심 주제",
+      "topic": "WORK_ISSUES"
     }
   },
   {
-    "id": "trace_0012_2c575f08",
-    "description": "Langfuse trace 2c575f082c7c8ad21ba2780c4bedee8a",
+    "id": "trace_0016_37d853bf",
+    "description": "Langfuse trace 37d853bfbc6bc17af2a588afac90a26d",
     "inputs": {
-      "chat_history": [
+      "chat_summary_state": [
         {
           "role": "assistant",
           "content": "안녕하세요, 신소연님. 1on1 미팅을 위한 대화를 시작하겠습니다.\n지금부터 3-4가지 질문을 드릴 예정입니다.\n\n업무 내용을 공유해주시면 더 깊이 있고 집중적인 1on1이 될 수 있습니다.\n최종 요약은 미팅 전 신소연님께서 직접 검토하고 수정할 수 있으니 편하게 말씀해주세요.\n\n현재 가장 집중하고 계신 주요 업무나 프로젝트는 무엇인가요?"
@@ -802,24 +882,24 @@
           "content": "네, 알겠습니다. 요약 내용은 최종 확정되었습니다.\n\n다음 1on1 미팅 때 이 내용을 바탕으로 더 깊이 있는 대화를 나눌 수 있을 거예요. 미팅이 시작되기 전에 \"프렙 생성하기\"를 눌러 최종 보고서를 생성해 주세요.\n\n마지막으로, 요즘 신소연님의 업무나 개인적인 컨디션은 어떠신지 궁금합니다. 혹시 특별히 신경 쓰이는 부분은 없으신가요?"
         }
       ],
-      "survey_answers": {
-        "topic": "WORK_ISSUES",
-        "condition": "NORMAL"
-      },
-      "member_name": "신소연",
+      "condition_header": "컨디션",
+      "output_language": "Korean",
       "profile_card": {
-        "career_orientation": "SPECIALIST",
-        "communication_style": "CONTEXT",
-        "feedback_style": "DIRECT",
+        "communicationStyle": "CONTEXT",
+        "feedbackStyle": "DIRECT",
+        "careerOrientation": "SPECIALIST",
         "motivation": "GROWTH"
-      }
+      },
+      "condition": "NORMAL",
+      "main_topic_header": "핵심 주제",
+      "topic": "WORK_ISSUES"
     }
   },
   {
-    "id": "trace_0013_18704260",
-    "description": "Langfuse trace 18704260151fd4b421a0c2dd5c7752bf",
+    "id": "trace_0017_92627656",
+    "description": "Langfuse trace 92627656261cba74d99190a169a70302",
     "inputs": {
-      "chat_history": [
+      "chat_summary_state": [
         {
           "role": "assistant",
           "content": "최재준님, 안녕하세요!\n깊이 있는 1on1을 위해 3-4가지 질문을 드릴 예정입니다.\n\n소중한 의견을 공유해 주시면 더욱 의미 있고 집중적인 대화가 가능합니다.\n공유해주신 내용은 최종 요약 전 언제든지 검토하고 수정하실 수 있습니다.\n\n최재준님께서 현재 진행 중이신 업무 중, 특히 '앙코치와 홈데코 리더 진단 리포트 제공 방안 논의 후 석유형에게 제안' 건을 포함하여 최근 업무 근황이나 새롭게 시작하신 프로젝트가 있으실까요?"
@@ -849,24 +929,24 @@
           "content": "'실효성'을 강조하시어 교육 프로그램의 효과를 극대화하고 계시는군요. 자세한 설명 감사합니다.\n\n말씀해주신 내용을 바탕으로 1on1 미팅을 위한 사전 준비 내용을 정리해 보았습니다.\n\n\n\n컨디션: 현재 업무에 몰입할 준비가 되어 있으며, 긍정적인 에너지를 느끼고 있습니다.\n\n핵심 주제: 조직 내 원온원 문화 정착을 통해 리더십 성장을 도모하고 있습니다.\n\n1. 핵심 업무\n• 조직 내 원온원 문화 정착을 주도하고 있습니다.\n\n2. 추진 방식\n• 시스템 도입과 교육을 병행하여 추진 중입니다.\n• 특히 교육 과정에서는 원온원의 '실효성'을 강조하고 있습니다.\n\n수정하거나 추가할 내용이 있으신가요?"
         }
       ],
-      "survey_answers": {
-        "topic": "GROWTH_CAREER",
-        "condition": "GOOD"
-      },
-      "member_name": "최재준",
+      "condition_header": "컨디션",
+      "output_language": "Korean",
       "profile_card": {
-        "career_orientation": "LEADER",
-        "communication_style": "CONTEXT",
-        "feedback_style": "POSITIVE",
+        "communicationStyle": "CONTEXT",
+        "feedbackStyle": "POSITIVE",
+        "careerOrientation": "LEADER",
         "motivation": "IMPACT"
-      }
+      },
+      "condition": "GOOD",
+      "main_topic_header": "핵심 주제",
+      "topic": "GROWTH_CAREER"
     }
   },
   {
-    "id": "trace_0014_daf3ad44",
-    "description": "Langfuse trace daf3ad44fcf9cdf910894690b4c61fab",
+    "id": "trace_0018_594f33b1",
+    "description": "Langfuse trace 594f33b10c0dcf32b9a089db989415f8",
     "inputs": {
-      "chat_history": [
+      "chat_summary_state": [
         {
           "role": "assistant",
           "content": "안녕하세요, 이혜민님.\n앞으로 3-4가지 질문을 통해 1on1 미팅을 위한 업무 현황을 파악할 예정입니다.\n\n공유해주시는 내용은 더 깊이 있고 집중적인 1on1 미팅을 만드는 데 도움이 됩니다.\n작성된 요약은 최종 제출 전 검토하고 수정할 수 있으니 편하게 말씀해주세요.\n\n현재 가장 중요하게 다루고 계신 업무나 프로젝트는 무엇인가요?"
@@ -912,41 +992,41 @@
           "content": "현재 이혜민님의 업무 진행 상황과 중요하게 생각하는 가치(MVP 정의 기준)를 명확하게 공유해주셔서 감사합니다. 이러한 구체적인 내용 덕분에 1on1 미팅에서 더 생산적인 대화를 나눌 수 있을 것이라고 생각합니다.\n\n말씀해주신 '잘하고 있는지 피드백'이라는 점을 1on1 미팅 준비 요약에 추가해 드릴까요?"
         }
       ],
-      "survey_answers": {
-        "topic": "PERFORMANCE_FEEDBACK",
-        "condition": "NORMAL"
-      },
-      "member_name": "이혜민"
+      "condition_header": "컨디션",
+      "output_language": "Korean",
+      "condition": "NORMAL",
+      "main_topic_header": "핵심 주제",
+      "topic": "PERFORMANCE_FEEDBACK"
     }
   },
   {
-    "id": "trace_0015_202d7b07",
-    "description": "Langfuse trace 202d7b07aaa4512c489e18b4cd8005ea",
+    "id": "trace_0019_05fa03d1",
+    "description": "Langfuse trace 05fa03d1fdfccd181cab35b1e31392d2",
     "inputs": {
-      "chat_history": [
+      "chat_summary_state": [
         {
           "role": "assistant",
           "content": "안녕하세요, 다이슨님.\n앞으로 3-4가지 질문을 통해 주요 업무 현황을 파악하는 데 도움을 드릴게요.\n\n다이슨님께서 자세히 공유해주실수록 더 깊이 있고 집중된 1on1 미팅을 준비할 수 있습니다.\n물론, 최종 요약은 언제든지 확인하고 수정하실 수 있으니 편하게 말씀해주세요.\n\n지난번 슬랙 채널을 구분하여 설계하고 있다고 말씀해주셨는데, 현재 이 작업은 어떻게 진행되고 있으며 혹시 새롭게 시작한 다른 중요한 업무도 있으신가요?"
         }
       ],
-      "survey_answers": {
-        "topic": "TEAM_CULTURE",
-        "condition": "GOOD"
-      },
-      "member_name": "다이슨",
+      "condition_header": "컨디션",
+      "output_language": "Korean",
       "profile_card": {
-        "career_orientation": "GENERALIST",
-        "communication_style": "DATA",
-        "feedback_style": "SELF_REFLECTION",
+        "communicationStyle": "DATA",
+        "feedbackStyle": "SELF_REFLECTION",
+        "careerOrientation": "GENERALIST",
         "motivation": "IMPACT"
-      }
+      },
+      "condition": "GOOD",
+      "main_topic_header": "핵심 주제",
+      "topic": "TEAM_CULTURE"
     }
   },
   {
-    "id": "trace_0016_28e87c6f",
-    "description": "Langfuse trace 28e87c6f5f56d8400a4b96d810be6036",
+    "id": "trace_0020_c8586498",
+    "description": "Langfuse trace c8586498275ffc07801698a1a5598ea2",
     "inputs": {
-      "chat_history": [
+      "chat_summary_state": [
         {
           "role": "assistant",
           "content": "안녕하세요, 이재영님! 만나 뵙게 되어 반갑습니다.\n앞으로 3-4가지 질문을 통해 재영님의 업무 현황을 듣고 1on1 미팅을 위한 대화 내용을 정리해 드릴게요.\n\n재영님께서 업무 내용을 상세히 공유해 주시면 1on1 미팅이 더욱 깊이 있고 집중적인 논의의 장이 될 것입니다.\n공유해주신 내용은 최종 요약본으로 정리되어 미팅 전 검토하고 수정하실 수 있으니 편하게 말씀해주세요.\n\n가장 먼저, 현재 진행 중인 주요 업무나 프로젝트는 무엇인가요?"
@@ -968,193 +1048,17 @@
           "content": "KPI 목표 수립 과정에서 구체적으로 어떤 점이 가장 고민되시는지, 예를 들어 목표 설정 기준이나 측정 방식 등에 어떤 어려움이 있으신지 자세히 말씀해주실 수 있을까요?"
         }
       ],
-      "survey_answers": {
-        "topic": "WORK_ISSUES",
-        "condition": "NORMAL"
-      },
-      "member_name": "이재영",
+      "condition_header": "컨디션",
+      "output_language": "Korean",
       "profile_card": {
-        "career_orientation": "SPECIALIST",
-        "communication_style": "SUMMARY",
-        "feedback_style": "POSITIVE",
+        "communicationStyle": "SUMMARY",
+        "feedbackStyle": "POSITIVE",
+        "careerOrientation": "SPECIALIST",
         "motivation": "AUTONOMY"
-      }
-    }
-  },
-  {
-    "id": "trace_0017_8036056a",
-    "description": "Langfuse trace 8036056a5ed7d35263b61b5b5b04d389",
-    "inputs": {
-      "chat_history": [
-        {
-          "role": "assistant",
-          "content": "안녕하세요, 이재영님! 만나서 반갑습니다.\n앞으로 1on1 미팅을 위한 업무 내용을 3-4가지 질문을 통해 여쭤볼 예정입니다.\n\n나누어주시는 내용은 더 깊이 있고 집중적인 1on1 대화를 만드는 데 큰 도움이 될 것입니다.\n이야기해 주신 내용은 요약으로 정리해 드릴 것이며, 최종적으로 검토하고 수정할 기회가 있으니 편하게 말씀해주세요.\n\n가장 먼저, 현재 진행 중인 주요 업무나 프로젝트에 대해 말씀해주시겠어요?"
-        },
-        {
-          "role": "user",
-          "content": "요즘 일하는 방식 변화를 위해 고민하고 있어"
-        },
-        {
-          "role": "assistant",
-          "content": "일하는 방식의 변화를 고민하고 계시는군요. 구체적으로 어떤 부분에서 변화를 주려고 하시나요? 예를 들어, 특정 업무 프로세스나 협업 방식 등 어떤 측면에 초점을 맞춰 고민하고 계신지 궁금합니다."
-        },
-        {
-          "role": "user",
-          "content": "새로운 방향으로 바꾸는부분과 직원들의 참여도가 걱정이 돼"
-        },
-        {
-          "role": "assistant",
-          "content": "직원들의 참여도에 대해 특히 어떤 점이 염려되시는지, 예를 들어 참여를 이끌어내는 데 어떤 어려움이 있을 것으로 예상하시는지 더 구체적으로 말씀해주실 수 있을까요?"
-        },
-        {
-          "role": "user",
-          "content": "서베이를 하는데 직원들이 바뀌지 않는다고 생각할 것 같아"
-        },
-        {
-          "role": "assistant",
-          "content": "이재영님께서 말씀해주신 내용을 바탕으로 정리한 1on1 미팅 준비 자료 초안입니다.\n\n컨디션: 현재 진행 중인 일하는 방식 변화에 대한 직원들의 반응과 참여도에 대한 우려로 인해 다소 염려되는 마음입니다.\n\n핵심 주제: 일하는 방식 변화 및 직원 참여도 증진 방안 모색\n\n1. 일하는 방식 변화 추진\n• 현재 조직의 일하는 방식에 새로운 방향을 모색하고 있습니다.\n• 변화의 필요성을 느끼며, 구체적인 실행 방안을 고민 중입니다.\n\n2. 직원 참여도 및 인식 관리\n• 새로운 변화에 대한 직원들의 참여도 확보에 대한 우려가 있습니다.\n• 직원들이 변화에 대해 회의적으로 인식하여, '결국 바뀌지 않을 것'이라고 생각할까봐 염려됩니다.\n• 현재 서베이를 통해 직원들의 의견을 수렴하고 있으나, 그 결과가 직원들의 인식 변화로 이어질지에 대한 고민이 있습니다.\n\n수정하거나 추가할 내용이 있으신가요?"
-        }
-      ],
-      "survey_answers": {
-        "topic": "GROWTH_CAREER",
-        "condition": "TIRED"
       },
-      "member_name": "이재영",
-      "profile_card": {
-        "career_orientation": "SPECIALIST",
-        "communication_style": "SUMMARY",
-        "feedback_style": "POSITIVE",
-        "motivation": "AUTONOMY"
-      }
-    }
-  },
-  {
-    "id": "trace_0018_261bb9ab",
-    "description": "Langfuse trace 261bb9ab6ed50ebdd261f749244f2385",
-    "inputs": {
-      "chat_history": [
-        {
-          "role": "assistant",
-          "content": "안녕하세요, 오혜정님.\n\n앞으로 3-4가지 질문을 통해 1on1 미팅을 위한 업무 내용을 정리하는 것을 도와드릴게요.\n\n공유해주시는 내용은 더 깊이 있고 집중적인 1on1 대화를 만드는 데 기여할 거예요. 또한, 정리된 내용은 최종 공유 전에 함께 검토하고 수정할 수 있으니 부담 없이 이야기해주세요.\n\n현재 가장 집중하고 계시는 업무나 프로젝트는 무엇인가요?"
-        },
-        {
-          "role": "user",
-          "content": "특정 업무를 진행하기 위한 업무 미팅이야"
-        },
-        {
-          "role": "assistant",
-          "content": "업무 미팅이시군요. 해당 미팅의 구체적인 목표나 기대하는 결과는 무엇인가요?"
-        },
-        {
-          "role": "user",
-          "content": "부적합 제품들의 진행 현황을 공유하고 해결방법을 논의하는 거야"
-        },
-        {
-          "role": "assistant",
-          "content": "부적합 제품에 대한 해결 방법을 논의할 때, 주로 어떤 기준을 가지고 가장 효과적인 해결책을 도출하시나요? 예를 들어, 비용 효율성, 재발 방지, 생산 일정 영향 등과 같은 기준이 있을까요?"
-        },
-        {
-          "role": "user",
-          "content": "부적합 건별로 엑셀 파일로 리스트를 작성했고, 이 파일을 보면서 논의할거야"
-        },
-        {
-          "role": "assistant",
-          "content": "부적합 건별 엑셀 파일을 활용하여 논의하시는군요. 덕분에 미팅 준비가 더욱 효율적으로 진행될 것 같습니다.\n\n이제까지 말씀해주신 내용을 바탕으로 1on1 미팅을 위한 요약 초안을 작성해 보았습니다.\n\n\n\n컨디션: 업무에 대한 집중도를 최상으로 유지하기 위해 약간의 재충전이 필요한 상태입니다.\n핵심 주제: 부적합 제품 진행 현황 공유 및 해결 방안 논의\n\n1. 주요 업무 내용\n• 부적합 제품의 진행 현황을 공유하고 해결 방안을 논의하기 위한 업무 미팅을 준비하고 있습니다.\n• 미팅의 주요 목적은 현재 발생한 부적합 건들에 대한 명확한 이해를 바탕으로 실질적인 해결책을 도출하는 것입니다.\n\n2. 미팅 준비 및 진행 방식\n• 부적합 건별 상세 내역을 담은 엑셀 파일을 작성하여 미팅 자료로 활용할 예정입니다.\n• 이 엑셀 파일을 기반으로 각 부적합 건의 현황을 공유하고, 참석자들과 함께 최적의 해결 방안을 논의할 계획입니다.\n\n수정하거나 추가할 내용이 있으신가요?"
-        },
-        {
-          "role": "user",
-          "content": "개인적인 컨디션 이야기는 뻇으면 좋겟어"
-        },
-        {
-          "role": "assistant",
-          "content": "네, 알겠습니다. 개인적인 컨디션 이야기는 요약에서 제외하겠습니다.\n\n변경 전:\n컨디션: 업무에 대한 집중도를 최상으로 유지하기 위해 약간의 재충전이 필요한 상태입니다.\n\n변경 후:\n(해당 내용 삭제)\n\n다시 정리된 내용으로 요약을 업데이트한 후 보여드리겠습니다.\n\n\n\n핵심 주제: 부적합 제품 진행 현황 공유 및 해결 방안 논의\n\n1. 주요 업무 내용\n• 부적합 제품의 진행 현황을 공유하고 해결 방안을 논의하기 위한 업무 미팅을 준비하고 있습니다.\n• 미팅의 주요 목적은 현재 발생한 부적합 건들에 대한 명확한 이해를 바탕으로 실질적인 해결책을 도출하는 것입니다.\n\n2. 미팅 준비 및 진행 방식\n• 부적합 건별 상세 내역을 담은 엑셀 파일을 작성하여 미팅 자료로 활용할 예정입니다.\n• 이 엑셀 파일을 기반으로 각 부적합 건의 현황을 공유하고, 참석자들과 함께 최적의 해결 방안을 논의할 계획입니다.\n\n수정하거나 추가할 내용이 있으신가요?"
-        },
-        {
-          "role": "user",
-          "content": "미팅의 목적은 현재 발생한 부적합 건들을 수리 후 납품하거나 금액 차감 등의 방법으로 빨리 CLOSE 시키는거야"
-        },
-        {
-          "role": "assistant",
-          "content": "네, 미팅의 목적을 더 명확하게 해주셔서 감사합니다. 말씀해주신 내용을 반영하여 요약을 업데이트했습니다.\n\n변경 전:\n• 미팅의 주요 목적은 현재 발생한 부적합 건들에 대한 명확한 이해를 바탕으로 실질적인 해결책을 도출하는 것입니다.\n\n변경 후:\n• 미팅의 주요 목적은 현재 발생한 부적합 건들을 수리 후 납품하거나 금액 차감 등의 방법을 통해 신속하게 처리(CLOSE)하는 것입니다.\n\n다시 정리된 내용으로 요약을 업데이트한 후 보여드리겠습니다.\n\n핵심 주제: 부적합 제품 진행 현황 공유 및 해결 방안 논의\n\n1. 주요 업무 내용\n• 부적합 제품의 진행 현황을 공유하고 해결 방안을 논의하기 위한 업무 미팅을 준비하고 있습니다.\n• 미팅의 주요 목적은 현재 발생한 부적합 건들을 수리 후 납품하거나 금액 차감 등의 방법을 통해 신속하게 처리(CLOSE)하는 것입니다.\n\n2. 미팅 준비 및 진행 방식\n• 부적합 건별 상세 내역을 담은 엑셀 파일을 작성하여 미팅 자료로 활용할 예정입니다.\n• 이 엑셀 파일을 기반으로 각 부적합 건의 현황을 공유하고, 참석자들과 함께 최적의 해결 방안을 논의할 계획입니다.\n\n이 외에 추가하거나 수정할 내용이 있으신가요?"
-        }
-      ],
-      "survey_answers": {
-        "topic": "WORK_ISSUES",
-        "condition": "TIRED"
-      },
-      "member_name": "오혜정",
-      "profile_card": {
-        "career_orientation": "SPECIALIST",
-        "communication_style": "SUMMARY",
-        "feedback_style": "SOLUTION",
-        "motivation": "RECOGNITION"
-      }
-    }
-  },
-  {
-    "id": "trace_0019_e624bfd9",
-    "description": "Langfuse trace e624bfd9ebb3650f52d5f3164fe5a635",
-    "inputs": {
-      "chat_history": [
-        {
-          "role": "assistant",
-          "content": "안녕하세요, 동영님.\n\n앞으로 동영님의 주요 업무에 대해 3-4가지 질문을 드릴 예정입니다.\n\n나눠주시는 내용은 더 깊이 있고 집중적인 1on1을 만드는 데 큰 도움이 될 거예요.\n완성된 요약은 동영님께서 직접 검토하고 수정할 수 있으니 부담 없이 이야기해주세요.\n\n현재 가장 집중하고 계신 주요 업무나 프로젝트는 무엇인가요?"
-        },
-        {
-          "role": "user",
-          "content": "클릭컨설팅 미팅"
-        },
-        {
-          "role": "assistant",
-          "content": "클릭컨설팅 미팅의 주요 목표나 논의하고 싶은 핵심 내용은 무엇인가요?"
-        },
-        {
-          "role": "user",
-          "content": "파트너십구축을 통한 원온원 판매채널강화 및 hr 자문 역할 확대\n실제 대기업 프로세스 및 인사이트 확보를 통한 신규 아이디어 확보, 고도화"
-        },
-        {
-          "role": "assistant",
-          "content": "파트너십 구축을 위해 현재 어떤 접근 방식을 고려하고 계신가요? 예를 들어, 어떤 종류의 파트너사를 우선적으로 물색하고 있으신가요?"
-        },
-        {
-          "role": "user",
-          "content": "주 1회 미팅을 하면서 논의내용을 실제 화면으로 구상하고 발전시키고있음. 이를 좋게 보아 sk 미팅도 동석하게 됨. 세현님이 ai 과외를 하고 나도 동석하며 업무시간 외적인 라포도 형성"
-        },
-        {
-          "role": "assistant",
-          "content": "논의 내용을 실제 화면으로 구상하고 발전시키는 과정에서, 어떤 점을 가장 중요하게 고려하시나요? 예를 들어, 사용자 경험 측면이나 기술적 구현 가능성 중 어떤 부분에 더 중점을 두시는지 궁금합니다."
-        },
-        {
-          "role": "user",
-          "content": "음 그들이 진행하는 실질적인 프로세스와 실제 현장에서의 맹점을 겪는 포인트를 짚는 데에 집중하고 있어. 기술 구현과 ux는 그 다음이라 생각해"
-        },
-        {
-          "role": "assistant",
-          "content": "동영님께서 말씀해주신 내용을 바탕으로 1on1 미팅 준비 요약을 생성했습니다.\n\n컨디션: 현재 업무에 몰입하며 좋은 컨디션을 유지하고 있습니다.\n핵심 주제: 파트너십 구축을 통한 판매 채널 강화 및 HR 자문 역할 확대, 대기업 프로세스 분석을 통한 신규 아이디어 발굴 및 고도화\n\n1. 클릭컨설팅 미팅 진행 현황\n• 주 1회 미팅을 통해 파트너십 구축 및 원온원 판매 채널 강화 방안 논의 중\n• 논의 내용을 실제 화면으로 구상하고 발전시키는 작업 진행\n• SK 미팅 동석 기회를 통해 추가적인 협력 기회 모색 중\n\n2. 주요 접근 방식 및 목표\n• 파트너십 구축을 통한 HR 자문 역할 확대 목표\n• 대기업의 실질적인 프로세스 및 현장에서 겪는 맹점을 파악하는 데 집중\n• 기술 구현 및 사용자 경험(UX)은 초기 단계에서는 후순위로 고려\n\n3. 협업 및 관계 형성\n• 세현님과의 AI 과외 동석을 통해 업무 외적인 라포 형성 및 협업 강화\n\n수정하거나 추가할 내용이 있으신가요?"
-        }
-      ],
-      "survey_answers": {
-        "topic": "TEAM_CULTURE",
-        "condition": "GOOD"
-      },
-      "member_name": "Dongyoung Kim",
-      "profile_card": {
-        "career_orientation": "LEADER",
-        "communication_style": "DISCUSSION",
-        "feedback_style": "SOLUTION",
-        "motivation": "RECOGNITION"
-      }
-    }
-  },
-  {
-    "id": "trace_0020_14ece83f",
-    "description": "Langfuse trace 14ece83fc5ed80a6967ff15cdb528aa3",
-    "inputs": {
-      "survey_answers": {
-        "topic": "GROWTH_CAREER",
-        "condition": "NORMAL"
-      },
-      "member_name": "이미니"
+      "condition": "NORMAL",
+      "main_topic_header": "핵심 주제",
+      "topic": "WORK_ISSUES"
     }
   }
 ]

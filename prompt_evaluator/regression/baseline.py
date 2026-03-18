@@ -8,21 +8,15 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+import logging
+
 from langsmith import Client
 
+logger = logging.getLogger(__name__)
+
+from prompt_evaluator.config import DEFAULT_PASS_THRESHOLD
+from prompt_evaluator.context import get_context
 from prompt_evaluator.evaluators.scoring import compute_pass_result
-
-
-def _baselines_dir() -> Path:
-    from prompt_evaluator.context import get_context
-
-    return get_context().baselines_dir
-
-
-def _experiments_dir() -> Path:
-    from prompt_evaluator.context import get_context
-
-    return get_context().experiments_dir
 
 
 def get_baseline_path(prompt_name: str, version: Optional[str] = None) -> Path:
@@ -36,7 +30,7 @@ def get_baseline_path(prompt_name: str, version: Optional[str] = None) -> Path:
         기준선 파일 경로
     """
     version_tag = version or "latest"
-    return _baselines_dir() / prompt_name / f"{version_tag}.json"
+    return get_context().baselines_dir / prompt_name / f"{version_tag}.json"
 
 
 def save_baseline(
@@ -145,7 +139,6 @@ def _compute_summary_from_runs(runs: list) -> dict:
                     scores.append(stats["avg"])
 
     total = len(runs)
-    # 실패 기준: 평균 점수 0.5 미만
     passed = sum(1 for run in runs if _is_run_passed(run))
 
     return {
@@ -157,13 +150,13 @@ def _compute_summary_from_runs(runs: list) -> dict:
     }
 
 
-def _is_run_passed(run) -> bool:
+def _is_run_passed(run, threshold: float = DEFAULT_PASS_THRESHOLD) -> bool:
     """실행이 통과했는지 판단"""
     if not run.feedback_stats:
         return True  # 피드백 없으면 통과로 간주
 
     for key, stats in run.feedback_stats.items():
-        if "avg" in stats and stats["avg"] < 0.5:
+        if "avg" in stats and stats["avg"] < threshold:
             return False
     return True
 
@@ -192,7 +185,7 @@ def list_baselines(prompt_name: str) -> list[dict]:
     Returns:
         기준선 정보 목록 [{version, created_at, pass_rate}, ...]
     """
-    baseline_dir = _baselines_dir() / prompt_name
+    baseline_dir = get_context().baselines_dir / prompt_name
     if not baseline_dir.exists():
         return []
 
@@ -258,7 +251,7 @@ def save_experiment_result(
     """
     exp_name = experiment_name or experiment_result.get("experiment_name", "unknown")
 
-    result_dir = _experiments_dir() / prompt_name
+    result_dir = get_context().experiments_dir / prompt_name
     result_dir.mkdir(parents=True, exist_ok=True)
 
     # 개별 실험 결과 저장
@@ -283,7 +276,7 @@ def load_latest_experiment(prompt_name: str) -> dict | None:
     Returns:
         실험 결과 딕셔너리 또는 None
     """
-    latest_path = _experiments_dir() / prompt_name / "latest.json"
+    latest_path = get_context().experiments_dir / prompt_name / "latest.json"
     if not latest_path.exists():
         return None
 
@@ -301,7 +294,9 @@ def load_experiment_result(prompt_name: str, experiment_name: str) -> dict | Non
     Returns:
         실험 결과 딕셔너리 또는 None
     """
-    result_path = _experiments_dir() / prompt_name / f"{experiment_name}.json"
+    result_path = (
+        get_context().experiments_dir / prompt_name / f"{experiment_name}.json"
+    )
     if not result_path.exists():
         return None
 
@@ -393,7 +388,9 @@ def fetch_langfuse_experiment(
                 }
             )
         except Exception as e:
-            print(f"  ⚠ trace 조회 실패 (item {run_item.dataset_item_id}): {e}")
+            logger.warning(
+                f"  ⚠ trace 조회 실패 (item {run_item.dataset_item_id}): {e}"
+            )
             continue
 
     # 3. summary 계산

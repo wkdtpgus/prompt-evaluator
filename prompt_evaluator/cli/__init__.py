@@ -12,7 +12,7 @@ def _register():
     from prompt_evaluator.cli import prompt as prompt_cli, baseline as baseline_cli
     from prompt_evaluator.cli.experiment import experiment, regression
     from prompt_evaluator.cli.config import validate
-    from prompt_evaluator.cli.dataset import list_sets, upload, collect
+    from prompt_evaluator.cli.dataset import list_sets, upload, collect, profiles
     from prompt_evaluator.cli.scaffold import init
 
     app.add_typer(prompt_cli.app, name="prompt")
@@ -24,6 +24,7 @@ def _register():
     app.command(name="list")(list_sets)
     app.command()(upload)
     app.command()(collect)
+    app.command()(profiles)
 
 
 _register()

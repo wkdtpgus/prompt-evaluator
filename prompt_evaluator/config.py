@@ -30,6 +30,8 @@ GOOGLE_CLOUD_LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
 # =============================================================================
 
 DEFAULT_MIN_SCORE = 0.70
+DEFAULT_KEYWORD_THRESHOLD = 0.5
+DEFAULT_PASS_THRESHOLD = 0.5
 DEFAULT_EMBEDDING_THRESHOLD = 0.75
 DEFAULT_STRING_SIMILARITY_THRESHOLD = 0.30
 

@@ -8,7 +8,6 @@ import re
 from datetime import datetime
 from typing import Any, Literal
 
-from dotenv import load_dotenv, find_dotenv
 from langsmith import traceable
 from langsmith.evaluation import evaluate
 
@@ -23,6 +22,10 @@ try:
 except ImportError:
     LANGFUSE_AVAILABLE = False
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from prompt_evaluator.loaders import load_evaluation_set
 from prompt_evaluator.utils.dataset_sync import upload_dataset, get_dataset
 from prompt_evaluator.evaluators.adapters import (
@@ -36,8 +39,6 @@ from prompt_evaluator.evaluators.adapters import (
 from prompt_evaluator.evaluators.scoring import compute_pass_result
 from prompt_evaluator.models import get_execution_llm
 from prompt_evaluator.utils.prompt_sync import get_prompt
-
-load_dotenv(find_dotenv(usecwd=True))
 
 RunMode = Literal["quick", "full"]
 Backend = Literal["langsmith", "langfuse"]
@@ -144,7 +145,7 @@ def run_langsmith_experiment(
     else:
         # 프롬프트 소스 결정: LangSmith 버전 or 로컬 파일
         if prompt_version:
-            print(f"  LangSmith 프롬프트 버전: {prompt_version}")
+            logger.info(f"  LangSmith 프롬프트 버전: {prompt_version}")
             template = get_prompt(
                 prompt_name, backend="langsmith", version_tag=prompt_version
             )
@@ -182,7 +183,7 @@ def run_langsmith_experiment(
     if llm_judge_config and llm_judge_config.get("enabled", True):
         criteria = llm_judge_config.get("criteria", [])
         if mode == "full" or criteria:
-            print(f"  LLM Judge 평가자 추가: {criteria}")
+            logger.info(f"  LLM Judge 평가자 추가: {criteria}")
             for criterion in criteria:
                 evaluators.append(create_langsmith_evaluator(criterion, template))
 
@@ -191,11 +192,10 @@ def run_langsmith_experiment(
         experiment_prefix = f"{prompt_name}-{mode}"
 
     # 8. evaluate() 실행
-    print(f"\nLangSmith Experiment 시작: {experiment_prefix}")
-    print(f"  Dataset: {dataset_name}")
-    print(f"  Mode: {mode}")
-    print(f"  Model: {model_display}")
-    print()
+    logger.info(f"LangSmith Experiment 시작: {experiment_prefix}")
+    logger.info(f"  Dataset: {dataset_name}")
+    logger.info(f"  Mode: {mode}")
+    logger.info(f"  Model: {model_display}")
 
     results = evaluate(
         target,
@@ -206,8 +206,8 @@ def run_langsmith_experiment(
 
     # 9. 결과 URL 반환
     experiment_url = "https://smith.langchain.com/datasets"
-    print("\n✅ Experiment 완료!")
-    print(f"  결과 확인: {experiment_url}")
+    logger.info("✅ Experiment 완료!")
+    logger.info(f"  결과 확인: {experiment_url}")
 
     return experiment_url
 
@@ -272,7 +272,7 @@ def run_langfuse_experiment(
     else:
         # 프롬프트 소스 결정: Langfuse 버전 or 로컬 파일
         if prompt_version:
-            print(f"  Langfuse 프롬프트 버전: {prompt_version}")
+            logger.info(f"  Langfuse 프롬프트 버전: {prompt_version}")
             prompt_obj = get_prompt(
                 prompt_name,
                 backend="langfuse",
@@ -287,8 +287,8 @@ def run_langfuse_experiment(
     try:
         dataset = get_dataset(prompt_name)
     except Exception as e:
-        print(f"데이터셋 로드 실패: {e}")
-        print("Langfuse에 데이터셋이 없습니다. 먼저 업로드하세요.")
+        logger.warning(f"데이터셋 로드 실패: {e}")
+        logger.warning("Langfuse에 데이터셋이 없습니다. 먼저 업로드하세요.")
         raise
 
     # 3. 실험 이름 설정
@@ -296,12 +296,11 @@ def run_langfuse_experiment(
         experiment_prefix = f"{prompt_name}-{mode}"
     experiment_name = f"{experiment_prefix}-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
 
-    print(f"\nLangfuse Experiment 시작: {experiment_name}")
-    print(f"  Dataset: {prompt_name}")
-    print(f"  Mode: {mode}")
-    print(f"  Model: {model_display}")
-    print(f"  Items: {len(dataset.items)}")
-    print()
+    logger.info(f"Langfuse Experiment 시작: {experiment_name}")
+    logger.info(f"  Dataset: {prompt_name}")
+    logger.info(f"  Mode: {mode}")
+    logger.info(f"  Model: {model_display}")
+    logger.info(f"  Items: {len(dataset.items)}")
 
     # 4. LLM Judge 설정 확인
     llm_judge_config = None
@@ -316,7 +315,7 @@ def run_langfuse_experiment(
     criteria = llm_judge_config.get("criteria", []) if llm_judge_config else []
 
     if use_llm_judge:
-        print(f"  LLM Judge 평가자: {criteria}")
+        logger.info(f"  LLM Judge 평가자: {criteria}")
 
     # 5. Task 함수 정의
     if pipeline_mode:
@@ -345,7 +344,7 @@ def run_langfuse_experiment(
             evaluators.append(create_langfuse_evaluator(criterion, template))
 
     # 8. Langfuse 내장 run_experiment 실행
-    print("  실험 실행 중...")
+    logger.info("  실험 실행 중...")
     experiment_result = langfuse.run_experiment(
         name=experiment_name,
         data=dataset.items,
@@ -382,7 +381,7 @@ def run_langfuse_experiment(
 
         status = "✓" if passed else "✗"
         score_str = f"{overall_score:.2f}" if overall_score is not None else "-"
-        print(f"  [{case_id}] {status} ({score_str})")
+        logger.info(f"  [{case_id}] {status} ({score_str})")
 
         output_text = ""
         if item_result.output:
@@ -417,11 +416,11 @@ def run_langfuse_experiment(
         "avg_score": sum(all_scores) / len(all_scores) if all_scores else None,
     }
 
-    print("\n✅ Langfuse Experiment 완료!")
-    print(f"  결과: {passed_count}/{total} 통과 ({summary['pass_rate']:.1%})")
+    logger.info("✅ Langfuse Experiment 완료!")
+    logger.info(f"  결과: {passed_count}/{total} 통과 ({summary['pass_rate']:.1%})")
     if summary["avg_score"] is not None:
-        print(f"  평균 점수: {summary['avg_score']:.3f}")
-    print("  확인: http://localhost:3000")
+        logger.info(f"  평균 점수: {summary['avg_score']:.3f}")
+    logger.info("  확인: http://localhost:3000")
 
     return {
         "experiment_name": experiment_name,

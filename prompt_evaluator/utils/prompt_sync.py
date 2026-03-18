@@ -7,7 +7,11 @@ backend: "langfuse" | "langsmith" | "both"
 from pathlib import Path
 from typing import Literal
 
+import logging
+
 from prompt_evaluator.loaders import find_prompt_file, load_prompt_file
+
+logger = logging.getLogger(__name__)
 
 Backend = Literal["langsmith", "langfuse", "both"]
 
@@ -63,7 +67,7 @@ def push_prompt(
             result["url"] = url
         except Exception as e:
             result["langsmith_error"] = str(e)
-            print(f"✗ [LangSmith] 업로드 실패: {e}")
+            logger.warning(f"✗ [LangSmith] 업로드 실패: {e}")
 
     if backend in ("langfuse", "both"):
         try:
@@ -71,7 +75,7 @@ def push_prompt(
             result["langfuse_version"] = ver
         except Exception as e:
             result["langfuse_error"] = str(e)
-            print(f"✗ [Langfuse] 업로드 실패: {e}")
+            logger.warning(f"✗ [Langfuse] 업로드 실패: {e}")
 
     return result
 
@@ -109,9 +113,9 @@ def _push_langsmith(
         description=final_description,
     )
 
-    print(f"✓ [LangSmith] 프롬프트 업로드 완료: {langsmith_name}")
+    logger.info(f"✓ [LangSmith] 프롬프트 업로드 완료: {langsmith_name}")
     if version_tag:
-        print(f"  태그: {version_tag}")
+        logger.info(f"  태그: {version_tag}")
     return url
 
 
@@ -153,11 +157,11 @@ def _push_langfuse(
             config=config,
         )
 
-    print(
+    logger.info(
         f"✓ [Langfuse] 프롬프트 업로드 완료: {langfuse_name} (version: {prompt_obj.version})"
     )
     if version_tag:
-        print(f"  태그: {version_tag}")
+        logger.info(f"  태그: {version_tag}")
     return prompt_obj.version
 
 
@@ -245,7 +249,7 @@ def list_prompt_versions(prompt_name: str) -> list[dict]:
             )
         return versions
     except Exception as e:
-        print(f"프롬프트 조회 실패: {e}")
+        logger.warning(f"프롬프트 조회 실패: {e}")
         return []
 
 

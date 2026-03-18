@@ -8,6 +8,10 @@ import json
 from pathlib import Path
 from typing import Literal, Optional
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 Backend = Literal["langsmith", "langfuse", "both"]
 
 
@@ -43,7 +47,7 @@ def upload_dataset(
             result["langsmith_name"] = name
         except Exception as e:
             result["langsmith_error"] = str(e)
-            print(f"✗ [LangSmith] 데이터셋 업로드 실패: {e}")
+            logger.warning(f"✗ [LangSmith] 데이터셋 업로드 실패: {e}")
 
     if backend in ("langfuse", "both"):
         try:
@@ -57,7 +61,7 @@ def upload_dataset(
             result["langfuse_results"] = ds_results
         except Exception as e:
             result["langfuse_error"] = str(e)
-            print(f"✗ [Langfuse] 데이터셋 업로드 실패: {e}")
+            logger.warning(f"✗ [Langfuse] 데이터셋 업로드 실패: {e}")
 
     return result
 
@@ -81,7 +85,7 @@ def _upload_langsmith(
 
     try:
         existing = client.read_dataset(dataset_name=dataset_name)
-        print(f"기존 데이터셋 삭제: {dataset_name}")
+        logger.info(f"기존 데이터셋 삭제: {dataset_name}")
         client.delete_dataset(dataset_id=existing.id)
     except Exception:
         pass
@@ -90,7 +94,7 @@ def _upload_langsmith(
         dataset_name=dataset_name,
         description=description or f"Prompt evaluation dataset for {prompt_name}",
     )
-    print(f"데이터셋 생성: {dataset_name}")
+    logger.info(f"데이터셋 생성: {dataset_name}")
 
     examples = []
     for case in data["test_cases"]:
@@ -120,7 +124,7 @@ def _upload_langsmith(
         dataset_id=dataset.id,
     )
 
-    print(f"✓ [LangSmith] {len(examples)}개 테스트 케이스 업로드 완료")
+    logger.info(f"✓ [LangSmith] {len(examples)}개 테스트 케이스 업로드 완료")
     return dataset_name
 
 
@@ -231,7 +235,7 @@ def upload_from_files(
             )
             results[case_id] = True
         except Exception as e:
-            print(f"  ✗ {case_id} 실패: {e}")
+            logger.warning(f"  ✗ {case_id} 실패: {e}")
             results[case_id] = False
 
     return results
@@ -253,7 +257,7 @@ def upload_all_datasets(datasets_dir: str | Path = "datasets") -> dict[str, dict
             continue
 
         name = dataset_path.name
-        print(f"  {name} 데이터셋 업로드 중...")
+        logger.info(f"  {name} 데이터셋 업로드 중...")
 
         try:
             results = upload_from_files(
@@ -263,10 +267,10 @@ def upload_all_datasets(datasets_dir: str | Path = "datasets") -> dict[str, dict
             )
             success_count = sum(results.values())
             total_count = len(results)
-            print(f"  ✓ {name}: {success_count}/{total_count} 케이스 업로드 완료")
+            logger.info(f"  ✓ {name}: {success_count}/{total_count} 케이스 업로드 완료")
             all_results[name] = results
         except Exception as e:
-            print(f"  ✗ {name} 데이터셋 업로드 실패: {e}")
+            logger.warning(f"  ✗ {name} 데이터셋 업로드 실패: {e}")
             all_results[name] = {"error": str(e)}
 
     return all_results

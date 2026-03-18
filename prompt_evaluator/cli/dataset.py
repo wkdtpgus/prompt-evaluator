@@ -68,8 +68,27 @@ def upload(
     typer.echo()
 
 
+def profiles():
+    """사용 가능한 Langfuse 프로필 목록 출력."""
+    from prompt_evaluator.utils.trace_collector import list_profiles
+
+    found = list_profiles()
+    if not found:
+        typer.echo("Langfuse 프로필이 없습니다.")
+        typer.echo("  .env에 LANGFUSE_{NAME}_PUBLIC_KEY / SECRET_KEY를 추가하세요.")
+        return
+
+    typer.echo(f"\nLangfuse 프로필 ({len(found)}개):")
+    for p in found:
+        typer.echo(f"  - {p}")
+    typer.echo()
+
+
 def collect(
-    name: Annotated[str, typer.Option("--name", "-n", help="데이터셋 이름")],
+    name: Annotated[
+        str | None,
+        typer.Option("--name", "-n", help="데이터셋 이름 (미지정 시 프로필명 사용)"),
+    ] = None,
     limit: Annotated[
         int, typer.Option("--limit", "-l", help="수집할 트레이스 최대 개수")
     ] = 10,
@@ -107,6 +126,20 @@ def collect(
             "--input-contains", help="input에 이 문자열이 포함된 트레이스만 수집"
         ),
     ] = None,
+    classify: Annotated[
+        bool,
+        typer.Option(
+            "--classify", "-c", help="input/output 자동 분리 (LangGraph state 패턴)"
+        ),
+    ] = False,
+    input_fields_str: Annotated[
+        str | None,
+        typer.Option("--input-fields", help="명시적 input 필드 (쉼표 구분)"),
+    ] = None,
+    output_fields_str: Annotated[
+        str | None,
+        typer.Option("--output-fields", help="명시적 output 필드 (쉼표 구분)"),
+    ] = None,
     append: Annotated[
         bool,
         typer.Option("--append", help="기존 데이터셋에 추가"),
@@ -130,11 +163,13 @@ def collect(
         typer.Option(
             "--langfuse-profile",
             "-p",
-            help="Langfuse 프로필명 (.env의 LANGFUSE_PROFILE_{NAME}_* 키 사용)",
+            help="Langfuse 프로필명 (.env의 LANGFUSE_{NAME}_* 키)",
         ),
     ] = None,
 ):
     """Langfuse 트레이스에서 데이터셋을 수집."""
+    import json as json_mod
+
     from prompt_evaluator.context import get_context
     from prompt_evaluator.utils.trace_collector import collect_traces
 
@@ -152,24 +187,32 @@ def collect(
                 typer.echo(f"키 매핑 형식 오류: '{pair}' (예: prod_key:prompt_var)")
                 raise typer.Exit(1)
 
+    # 필드 목록 파싱
+    input_fields = (
+        [f.strip() for f in input_fields_str.split(",")] if input_fields_str else None
+    )
+    output_fields = (
+        [f.strip() for f in output_fields_str.split(",")] if output_fields_str else None
+    )
+
+    # name 미지정 시 프로필명 사용
+    if not name:
+        if not langfuse_profile:
+            typer.echo("✗ --name 또는 --langfuse-profile(-p)을 지정하세요.")
+            raise typer.Exit(1)
+        name = langfuse_profile.lower()
+
+    # 헤더 출력
     typer.echo(f"\nLangfuse 트레이스 수집: {name}")
     if langfuse_profile:
         typer.echo(f"  프로필: {langfuse_profile}")
+    if classify:
+        typer.echo("  모드: input/output 자동 분리")
     if since:
         typer.echo(f"  시작: {since}")
     if until:
         typer.echo(f"  종료: {until}")
     typer.echo(f"  최대: {limit}개")
-    if tags:
-        typer.echo(f"  태그: {', '.join(tags)}")
-    if session_id:
-        typer.echo(f"  세션: {session_id}")
-    if user_id:
-        typer.echo(f"  유저: {user_id}")
-    if input_key:
-        typer.echo(f"  input 키 필터: {input_key}")
-    if input_contains:
-        typer.echo(f"  input 포함 필터: {input_contains}")
     if dry_run:
         typer.echo("  [DRY RUN] 저장하지 않습니다")
     typer.echo()
@@ -187,6 +230,9 @@ def collect(
             trace_name=trace_name,
             input_key=input_key,
             input_contains=input_contains,
+            classify=classify,
+            input_fields=input_fields,
+            output_fields=output_fields,
             append=append,
             dry_run=dry_run,
             key_map=key_map,
@@ -207,13 +253,21 @@ def collect(
     if dry_run and result["test_cases"]:
         typer.echo("\n--- 미리보기 (첫 3개) ---")
         for case in result["test_cases"][:3]:
-            typer.echo(f"  [{case['id']}] {case['inputs']}")
+            typer.echo(f"\n  [{case['id']}]")
+            typer.echo(f"    inputs: {list(case['inputs'].keys())}")
+            stub = result["expected_stubs"].get(case["id"], {})
+            ref = stub.get("_reference_output", "")
+            try:
+                typer.echo(f"    outputs: {list(json_mod.loads(ref).keys())}")
+            except (json_mod.JSONDecodeError, TypeError):
+                if ref:
+                    typer.echo(f"    output: {ref[:100]}...")
     elif not dry_run and result["new"] > 0:
         data_dir = ctx.datasets_dir / name
         typer.echo("\n저장 위치:")
         typer.echo(f"  {data_dir / 'test_cases.json'}")
         typer.echo(f"  {data_dir / 'expected.json'}")
-        typer.echo("\n다음 단계: expected.json을 수동 큐레이션한 후 업로드하세요")
+        typer.echo("\n다음 단계: expected.json을 큐레이션한 후 업로드하세요")
         typer.echo(f"  prompt-eval upload --name {name}")
 
     typer.echo()

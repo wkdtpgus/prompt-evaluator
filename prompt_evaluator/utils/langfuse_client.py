@@ -4,10 +4,6 @@ Langfuse 클라이언트 유틸리티
 Langfuse SDK 클라이언트 및 LangChain 연동을 위한 헬퍼 함수 제공
 """
 
-from dotenv import load_dotenv, find_dotenv
-
-load_dotenv(find_dotenv(usecwd=True))
-
 from langfuse import Langfuse
 from langfuse.langchain import CallbackHandler
 
